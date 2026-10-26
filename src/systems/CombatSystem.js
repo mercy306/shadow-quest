@@ -1,0 +1,194 @@
+import * as THREE from 'three';
+
+export class CombatSystem {
+  constructor(player, enemyManager, questSystem = null, audioManager = null, uiManager = null, vfxManager = null) {
+    this.player = player;
+    this.enemyManager = enemyManager;
+    this.questSystem = questSystem;
+    this.audioManager = audioManager;
+    this.uiManager = uiManager;
+    this.vfxManager = vfxManager;
+  }
+
+  setManagers({ questSystem, audioManager, uiManager, vfxManager }) {
+    if (questSystem) this.questSystem = questSystem;
+    if (audioManager) this.audioManager = audioManager;
+    if (uiManager) this.uiManager = uiManager;
+    if (vfxManager) this.vfxManager = vfxManager;
+  }
+
+  init() {
+    if (this.player && this.uiManager) {
+      this.uiManager.updatePlayerHealth(this.player.health, this.player.maxHealth);
+    }
+  }
+
+  update(deltaTime) {
+    if (!this.player || !this.enemyManager) return;
+
+    // 1. Check player melee swing hitbox against nearby enemies
+    if (this.player.isAttacking && !this.player.hasDealtDamageThisSwing) {
+      const playerPos = this.player.getPosition();
+      const forward = this.player.getForwardVector();
+      const attackReach = 2.6;
+      const enemies = this.enemyManager.getEnemies();
+
+      let hitAny = false;
+
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
+        if (!enemy.isAlive()) continue;
+
+        const dx = enemy.position.x - playerPos.x;
+        const dz = enemy.position.z - playerPos.z;
+        const dist = Math.hypot(dx, dz);
+
+        if (dist <= attackReach) {
+          // Angle check: enemy must be in front cone of player
+          const dirX = dx / dist;
+          const dirZ = dz / dist;
+          const dot = forward.x * dirX + forward.z * dirZ;
+
+          if (dot > 0.2) { // ~78-degree forward cone
+            hitAny = true;
+            const wasAlive = enemy.isAlive();
+            enemy.takeDamage(this.player.damage);
+
+            // Audio feedback
+            if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
+              this.audioManager.playSwordHit();
+            }
+
+            // Visual feedback: impact sparks, damage numbers, and enemy damage flash
+            if (this.vfxManager) {
+              const hitPos = new THREE.Vector3(
+                playerPos.x + dx * 0.6,
+                enemy.position.y + 1.2,
+                playerPos.z + dz * 0.6
+              );
+              this.vfxManager.spawnImpactSparks(hitPos, 22, 0xffbb33);
+              this.vfxManager.flashEnemyHit(enemy);
+              this.vfxManager.spawnDamageNumber(enemy.position, this.player.damage, false);
+            }
+
+            if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+              this.uiManager.showCollectNotification(`Hit ${enemy.name}! -${this.player.damage} HP`);
+            }
+
+            // If enemy died from this blow
+            if (wasAlive && !enemy.isAlive()) {
+              if (this.audioManager && typeof this.audioManager.playEnemyDeath === 'function') {
+                this.audioManager.playEnemyDeath();
+              }
+              if (this.vfxManager) {
+                this.vfxManager.spawnImpactSparks(enemy.position, 40, 0xa855f7);
+              }
+              if (this.questSystem) {
+                this.questSystem.onEnemyDefeated(enemy);
+              }
+            }
+          }
+        }
+      }
+
+      if (hitAny) {
+        this.player.hasDealtDamageThisSwing = true;
+      }
+    }
+
+    // 2. Check enemies attacking the player
+    const enemies = this.enemyManager.getEnemies();
+    for (let i = 0; i < enemies.length; i++) {
+      const enemy = enemies[i];
+      if (!enemy.isAlive()) continue;
+
+      if (enemy.isAttacking) {
+        // Strike window at ~40% of attack duration
+        if (!enemy.hasStruckThisAttack && enemy.attackElapsedTime >= enemy.attackDuration * 0.4) {
+          enemy.hasStruckThisAttack = true;
+
+          if (this.audioManager && typeof this.audioManager.playEnemyAttack === 'function') {
+            this.audioManager.playEnemyAttack();
+          }
+
+          const playerPos = this.player.getPosition();
+          const dist = Math.hypot(enemy.position.x - playerPos.x, enemy.position.z - playerPos.z);
+
+          if (dist <= enemy.attackRange + 0.4) {
+            // Player takes damage!
+            this.player.takeDamage(enemy.damage);
+
+            if (this.vfxManager) {
+              this.vfxManager.triggerPlayerDamageFlash();
+              this.vfxManager.spawnImpactSparks(playerPos, 16, 0xef4444);
+              this.vfxManager.spawnDamageNumber(playerPos, enemy.damage, true);
+            }
+
+            if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
+              this.uiManager.updatePlayerHealth(this.player.health, this.player.maxHealth);
+            }
+          }
+        }
+      } else {
+        enemy.hasStruckThisAttack = false;
+      }
+    }
+
+    // 3. Update active sword trail
+    if (this.vfxManager && this.player) {
+      const tipPos = this.player.getSwordTipPosition();
+      const basePos = this.player.getSwordBasePosition();
+      this.vfxManager.updateSwordTrail(this.player.isAttacking, tipPos, basePos);
+    }
+
+    // 4. Update Targeted Enemy HUD (Closest hostile within 16m or engaging in combat)
+    if (this.uiManager && this.player) {
+      const playerPos = this.player.getPosition();
+      let closestEnemy = null;
+      let closestDist = 16.0;
+
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
+        if (!e.isAlive()) continue;
+        const d = Math.hypot(e.position.x - playerPos.x, e.position.z - playerPos.z);
+        if (d < closestDist) {
+          closestDist = d;
+          closestEnemy = e;
+        }
+      }
+
+      if (closestEnemy) {
+        this.uiManager.updateTargetedEnemy(closestEnemy);
+      } else {
+        this.uiManager.hideTargetedEnemy();
+      }
+
+      // 5. Contextual Interaction Prompts
+      const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
+      if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
+        const exitDist = Math.hypot(
+          playerPos.x - this.questSystem.exitLocation.x,
+          playerPos.z - this.questSystem.exitLocation.z
+        );
+        if (exitDist <= 8.0) {
+          this.uiManager.showInteractionPrompt('Ancient Altar Portal is UNLOCKED — Step into the light to ascend!');
+        } else if (closestEnemy && closestDist <= 3.5) {
+          this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
+        } else {
+          this.uiManager.hideInteractionPrompt();
+        }
+      } else if (closestEnemy && closestDist <= 3.5) {
+        this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
+      } else {
+        this.uiManager.hideInteractionPrompt();
+      }
+
+      // 6. Live Score Calculation
+      if (quest) {
+        const enemiesScore = (quest.objEnemies?.current || 0) * 300;
+        const crystalsScore = (quest.objCrystals?.current || 0) * 200;
+        this.uiManager.updateScore(enemiesScore + crystalsScore);
+      }
+    }
+  }
+}

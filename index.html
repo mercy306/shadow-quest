@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shadow Quest - 3D Adventure</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
+
+    <!-- Screen Vignette Damage Flash -->
+    <div id="damage-vignette" class="damage-vignette"></div>
+
+    <!-- Smooth Level Transition Overlay -->
+    <div id="level-transition-overlay" class="level-transition-overlay"></div>
+
+    <!-- ==================== MAIN MENU ==================== -->
+    <div id="main-menu" class="main-menu-overlay">
+      <div class="menu-backdrop-gradient"></div>
+      <div class="menu-container">
+        <div class="menu-header">
+          <div class="menu-eyebrow">A 3D THIRD-PERSON ADVENTURE</div>
+          <h1 class="menu-title">SHADOW QUEST</h1>
+          <p class="menu-tagline">Cleanse the ancient forest. Restore the lost sanctuary.</p>
+        </div>
+
+        <nav class="menu-actions">
+          <button id="menu-btn-play" class="menu-btn primary">
+            <span class="btn-icon">⚔️</span> PLAY ADVENTURE
+          </button>
+          <button id="menu-btn-settings" class="menu-btn">
+            <span class="btn-icon">⚙️</span> SETTINGS
+          </button>
+          <button id="menu-btn-controls" class="menu-btn">
+            <span class="btn-icon">🎮</span> CONTROLS
+          </button>
+          <button id="menu-btn-credits" class="menu-btn">
+            <span class="btn-icon">📜</span> CREDITS
+          </button>
+        </nav>
+
+        <footer class="menu-footer">
+          <span>v0.2.0 • BUILT WITH THREE.JS & VITE</span>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">SETTINGS</h2>
+          <button id="close-settings-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Audio Section -->
+          <section class="settings-section">
+            <h3 class="section-title">AUDIO</h3>
+            <div class="settings-row">
+              <label for="setting-master-vol">Master Volume</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-master-vol" min="0" max="100" value="80" class="vol-slider" />
+                <span id="master-vol-num" class="setting-val">80%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-music-vol">Music & Ambience</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-music-vol" min="0" max="100" value="65" class="vol-slider" />
+                <span id="music-vol-num" class="setting-val">65%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-sfx-vol">Sound Effects (SFX)</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-sfx-vol" min="0" max="100" value="85" class="vol-slider" />
+                <span id="sfx-vol-num" class="setting-val">85%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-mute-toggle">Mute Audio</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-mute-toggle" class="setting-checkbox" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Controls Section -->
+          <section class="settings-section">
+            <h3 class="section-title">CAMERA & CONTROLS</h3>
+            <div class="settings-row">
+              <label for="setting-mouse-sens">Mouse Sensitivity</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-mouse-sens" min="1" max="5" step="0.2" value="2.2" class="vol-slider" />
+                <span id="mouse-sens-num" class="setting-val">2.2x</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-invert-y">Invert Y-Axis</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-invert-y" class="setting-checkbox" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Graphics Quality Section -->
+          <section class="settings-section">
+            <h3 class="section-title">GRAPHICS QUALITY</h3>
+            <div class="graphics-presets">
+              <button id="gfx-high-btn" class="preset-btn active">HIGH</button>
+              <button id="gfx-med-btn" class="preset-btn">MEDIUM</button>
+              <button id="gfx-low-btn" class="preset-btn">LOW</button>
+            </div>
+            <p class="gfx-desc">High: 2K Shadows, Full DPI & Atmospheric Rim Lights.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Modal -->
+    <div id="modal-controls" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">GAME CONTROLS</h2>
+          <button id="close-controls-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="controls-grid">
+            <div class="control-card">
+              <div class="key-badge"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+              <div class="control-label">Run / Move</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Shift</kbd> / <kbd>2x W</kbd></div>
+              <div class="control-label">Fast Sprint Boost</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Caps</kbd> / <kbd>C</kbd></div>
+              <div class="control-label">Toggle Walk / Run</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Space</kbd></div>
+              <div class="control-label">Jump</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Left Click</kbd> / <kbd>F</kbd></div>
+              <div class="control-label">Sword Attack</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Mouse</kbd></div>
+              <div class="control-label">360° Free Camera</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>M</kbd></div>
+              <div class="control-label">Mute / Unmute Audio</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>ESC</kbd></div>
+              <div class="control-label">Pause Adventure</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div id="modal-credits" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">CREDITS</h2>
+          <button id="close-credits-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body credits-body">
+          <div class="credits-role">SHADOW QUEST - 3D ADVENTURE</div>
+          <div class="credits-name">Created by Google Antigravity Advanced Agentic Pair Programming</div>
+
+          <div class="credits-role">TECHNOLOGY & ENGINE</div>
+          <div class="credits-name">Three.js WebGL Engine, Web Audio API, Vite Vanilla JavaScript</div>
+
+          <div class="credits-role">MODELS & RIGGED ASSETS</div>
+          <div class="credits-name">Open-source 3D rigged adventurer & enemy models</div>
+
+          <div class="credits-role">SOUNDTRACK & EFFECTS</div>
+          <div class="credits-name">Procedural Audio Synthesizer & Local 16-Bit WAV Soundbanks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== IN-GAME HUD ==================== -->
+    <div id="ui-overlay" class="hidden">
+      <div id="top-bar">
+        <header id="game-header">
+          <h1 class="game-title">SHADOW QUEST</h1>
+          <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
+        </header>
+
+        <!-- Player Health & Status -->
+        <div id="player-health-bar" class="player-health-bar">
+          <span class="health-icon">❤️</span>
+          <div class="health-track">
+            <div id="health-fill" class="health-fill"></div>
+          </div>
+          <span id="health-text" class="health-text">100 / 100</span>
+        </div>
+
+        <!-- Movement Stance & Run Mode Indicator -->
+        <div id="movement-stance-badge" class="movement-stance-badge" title="Press CapsLock or C to toggle Walk/Run; hold Shift to Sprint">
+          <span id="stance-icon" class="stance-icon">🏃</span>
+          <span id="stance-label" class="stance-label">RUNNING</span>
+          <span class="stance-hint">Shift: Sprint • Caps: Walk</span>
+        </div>
+
+        <!-- Live Score Counter -->
+        <div id="score-badge" class="score-badge">
+          <span class="score-label">SCORE:</span>
+          <span id="score-text" class="score-text">0 PTS</span>
+        </div>
+
+        <div class="top-bar-right">
+          <div id="crystal-counter" class="crystal-counter">
+            <span class="crystal-icon">💎</span>
+            <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
+          </div>
+
+          <!-- Quick Audio Mute Toggle -->
+          <button id="mute-btn" class="audio-toggle-btn" title="Toggle Audio (M)">
+            <span id="mute-icon">🔊</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Targeted Enemy Health HUD (Boss / Nearby Hostile) -->
+      <div id="targeted-enemy-hud" class="targeted-enemy-hud hidden">
+        <div class="enemy-hud-info">
+          <span id="enemy-hud-name" class="enemy-hud-name">Forest Sentinel</span>
+          <span id="enemy-hud-hp" class="enemy-hud-hp">80 / 80</span>
+        </div>
+        <div class="enemy-hud-track">
+          <div id="enemy-hud-fill" class="enemy-hud-fill"></div>
+        </div>
+      </div>
+
+      <!-- Quest Objectives Tracker -->
+      <div id="quest-tracker" class="quest-tracker">
+        <h3 id="quest-title" class="quest-title">RESTORE THE FOREST</h3>
+        <ul id="quest-objectives" class="quest-objectives">
+          <li id="obj-enemies" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Enemies defeated: 0 / 3</span>
+          </li>
+          <li id="obj-crystals" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Crystals collected: 0 / 5</span>
+          </li>
+          <li id="obj-entrance" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Ancient entrance: Locked</span>
+          </li>
+          <li id="obj-exit" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Ruins Exit Portal: Sealed</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Contextual Interaction Prompt Banner -->
+      <div id="interaction-prompt" class="interaction-prompt hidden">
+        <span class="prompt-icon">💡</span>
+        <span id="interaction-prompt-text">Step into the Altar Portal to Complete Mission</span>
+      </div>
+
+      <!-- Unlock Notification Banner -->
+      <div id="unlock-banner" class="unlock-banner hidden">
+        <span class="unlock-icon">✨</span>
+        <span id="unlock-banner-text">ANCIENT RUINS UNLOCKED - The portal barrier has dissolved!</span>
+      </div>
+
+      <!-- Floating Collect Notification Toast -->
+      <div id="collect-toast" class="collect-toast hidden">
+        <span id="toast-text">+1 Shadow Crystal</span>
+      </div>
+
+      <!-- Pointer Lock Hint -->
+      <div id="pointer-lock-hint" class="pointer-lock-hint">
+        <span>Click screen to enable 360° Mouse Look</span>
+      </div>
+
+      <div id="controls-hint">
+        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [Left Click / F] Attack • [M] Mute • [ESC] Pause</span>
+      </div>
+    </div>
+
+    <!-- ==================== PAUSE SCREEN ==================== -->
+    <div id="pause-screen" class="hidden">
+      <div class="pause-content">
+        <h2 class="pause-title">GAME PAUSED</h2>
+        <p class="pause-instructions">Press <kbd>ESC</kbd> or click button to resume quest</p>
+
+        <div class="pause-actions">
+          <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
+          <button id="pause-restart-btn" class="pause-btn secondary">RESTART LEVEL</button>
+          <button id="pause-settings-btn" class="pause-btn secondary">SETTINGS</button>
+          <button id="pause-menu-btn" class="pause-btn danger">RETURN TO MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== GAME OVER SCREEN ==================== -->
+    <div id="game-over-screen" class="game-over-screen hidden">
+      <div class="game-over-card">
+        <div class="game-over-badge">DEFEAT</div>
+        <h1 class="game-over-title">YOU HAVE FALLEN</h1>
+        <p class="game-over-subtitle">The ancient darkness has consumed your light. Rise again and conquer the trial.</p>
+
+        <div class="game-over-actions">
+          <button id="gameover-retry-btn" class="gameover-btn primary">RETRY LEVEL</button>
+          <button id="gameover-menu-btn" class="gameover-btn secondary">RETURN TO MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MISSION COMPLETED SCREEN ==================== -->
+    <div id="victory-screen" class="victory-screen hidden">
+      <div class="victory-card">
+        <div id="victory-badge" class="victory-badge">MISSION ACCOMPLISHED</div>
+        <h1 id="victory-title" class="victory-title">RESTORE THE FOREST</h1>
+        <p id="victory-subtitle" class="victory-subtitle">The ancient darkness recedes as the forest comes back to life.</p>
+
+        <div class="results-grid">
+          <div class="result-row">
+            <span id="res-enemies-label">Enemies Defeated:</span>
+            <span id="res-enemies" class="res-val">3 / 3 (+900 pts)</span>
+          </div>
+          <div class="result-row">
+            <span id="res-crystals-label">Crystals Gathered:</span>
+            <span id="res-crystals" class="res-val">5 / 5 (+1000 pts)</span>
+          </div>
+          <div class="result-row">
+            <span>Completion Time:</span>
+            <span id="res-time" class="res-val">01:45</span>
+          </div>
+          <div class="result-row">
+            <span>Stage Score:</span>
+            <span id="res-stage-score" class="res-val">2,850 PTS</span>
+          </div>
+          <div class="result-row total-row">
+            <span>TOTAL CUMULATIVE SCORE:</span>
+            <span id="res-score" class="res-val-gold">2,850 PTS</span>
+          </div>
+        </div>
+
+        <div class="victory-actions">
+          <button id="next-level-btn" class="victory-btn">CONTINUE TO NEXT LEVEL</button>
+          <button id="victory-restart-btn" class="victory-btn secondary">RESTART LEVEL</button>
+          <button id="victory-menu-btn" class="victory-btn tertiary">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CLEAN LOADING SCREEN ==================== -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <h1 class="loader-title">SHADOW QUEST</h1>
+        <p class="loader-subtitle">Preparing 3D World...</p>
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="loading-status" class="loading-status">Initializing engine...</p>
+      </div>
+    </div>
+
+    <!-- Error Screen (Fallback) -->
+    <div id="error-screen" class="hidden">
+      <div class="error-content">
+        <h2>Unable to Initialize 3D Engine</h2>
+        <p id="error-message">Please check WebGL support in your browser.</p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

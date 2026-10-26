@@ -458,10 +458,16 @@ export class SaveManager {
         this.applySettings(game, migrated.settings);
       }
 
-      // Update HUD Score
+      // Update HUD Score & Gold
       const totalScore = game.levelManager.cumulativeScore + (game.questSystem?.currentQuest?.score || 0);
       if (game.uiManager && typeof game.uiManager.updateScore === 'function') {
         game.uiManager.updateScore(totalScore);
+      }
+      if (game.uiManager && game.player) {
+        game.uiManager.updateGold(game.player.gold);
+        if (typeof game.uiManager.refreshInventoryUI === 'function') {
+          game.uiManager.refreshInventoryUI();
+        }
       }
 
       // Feedback indicator

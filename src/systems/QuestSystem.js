@@ -1,4 +1,4 @@
-import { Quest } from './Quest.js';
+import { Quest, SideQuest } from './Quest.js';
 
 export class QuestSystem {
   constructor(collectibleManager = null, uiManager = null, environment = null, audioManager = null) {
@@ -12,11 +12,133 @@ export class QuestSystem {
     this.exitLocation = { x: 40, z: -75, radius: 3.5 };
     this.isEntranceUnlocked = false;
 
+    this.sideQuests = new Map();
+    this.initSideQuests();
+
     this.onQuestCompletedCallbacks = [];
 
     // Auto-wire collectible manager if provided
     if (this.collectibleManager && typeof this.collectibleManager.onCollect === 'function') {
-      this.collectibleManager.onCollect((item) => this.onCrystalCollected(item));
+      this.collectibleManager.onCollect((item) => {
+        if (item && item.type === 'item') {
+          this.onItemCollected(item);
+        } else {
+          this.onCrystalCollected(item);
+        }
+      });
+    }
+  }
+
+  initSideQuests() {
+    this.sideQuests.clear();
+
+    // 1. Retrieving a lost item
+    this.sideQuests.set('side-hermit-satchel', new SideQuest({
+      id: 'side-hermit-satchel',
+      title: "The Hermit's Lost Satchel",
+      description: "Sylas the Hermit dropped his medicine satchel near the overgrown ruins to the north-west. Retrieve it for him.",
+      giverId: 'npc-sylas',
+      giverName: 'Sylas',
+      type: 'retrieval',
+      targetId: 'hermit_satchel',
+      objectiveText: "Recover Sylas's Lost Satchel",
+      target: 1,
+      rewards: { gold: 100, xp: 100, itemId: 'healing_potion', itemQty: 2 }
+    }));
+
+    // 2. Defeating a dangerous creature
+    this.sideQuests.set('side-bane-grimfang', new SideQuest({
+      id: 'side-bane-grimfang',
+      title: 'Bane of Grimfang',
+      description: 'Elder Kaelen has marked a dangerous corrupted shadow stalker named Grimfang roaming the western hollow. Slay the beast.',
+      giverId: 'npc-kaelen',
+      giverName: 'Elder Kaelen',
+      type: 'kill',
+      targetId: 'grimfang-alpha',
+      objectiveText: 'Defeat Grimfang in the western hollow',
+      target: 1,
+      rewards: { gold: 150, xp: 150, itemId: 'shadow_cleaver', itemQty: 1 }
+    }));
+
+    // 3. Discovering a hidden location
+    this.sideQuests.set('side-sunken-grotto', new SideQuest({
+      id: 'side-sunken-grotto',
+      title: 'The Sunken Grotto',
+      description: 'Discover the ancient Sunken Grotto Shrine hidden beyond the western ridge.',
+      giverId: 'npc-kaelen',
+      giverName: 'Elder Kaelen',
+      type: 'discovery',
+      targetId: 'sunken-grotto',
+      discoveryZone: { x: -30.0, z: -35.0, radius: 6.0 },
+      objectiveText: 'Discover the Sunken Grotto Shrine',
+      target: 1,
+      rewards: { gold: 100, xp: 100, itemId: 'stamina_potion', itemQty: 1 }
+    }));
+  }
+
+  getSideQuest(id) {
+    return this.sideQuests.get(id);
+  }
+
+  getAllSideQuests() {
+    return Array.from(this.sideQuests.values());
+  }
+
+  getActiveSideQuests() {
+    return Array.from(this.sideQuests.values()).filter(q => q.status === 'ACTIVE' || q.status === 'READY_TO_TURN_IN');
+  }
+
+  acceptSideQuest(id) {
+    const quest = this.sideQuests.get(id);
+    if (!quest) return false;
+    if (quest.status === 'AVAILABLE') {
+      quest.status = 'ACTIVE';
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification(`📜 Side Quest Accepted: ${quest.title}`);
+      }
+      this.updateSideQuestHUD();
+      return true;
+    }
+    return false;
+  }
+
+  completeSideQuest(id, player = null) {
+    const quest = this.sideQuests.get(id);
+    if (!quest || quest.status !== 'READY_TO_TURN_IN') return false;
+
+    quest.complete();
+
+    // Distribute rewards
+    if (player) {
+      if (quest.rewards.gold && player.inventorySystem) {
+        player.inventorySystem.addGold(quest.rewards.gold);
+      }
+      if (quest.rewards.xp) {
+        player.xp = (player.xp || 0) + quest.rewards.xp;
+      }
+      if (quest.rewards.itemId && player.inventorySystem) {
+        const item = player.inventorySystem.createItem(quest.rewards.itemId);
+        if (item) {
+          player.inventorySystem.addItem(item, quest.rewards.itemQty || 1);
+        }
+      }
+    }
+
+    if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+      this.uiManager.showCollectNotification(`🏆 Quest Completed: ${quest.title}! (+${quest.rewards.gold} Gold, +${quest.rewards.xp} XP)`);
+    }
+
+    if (this.audioManager && typeof this.audioManager.playVictoryFanfare === 'function') {
+      this.audioManager.playVictoryFanfare();
+    }
+
+    this.updateSideQuestHUD();
+    return true;
+  }
+
+  updateSideQuestHUD() {
+    if (this.uiManager && typeof this.uiManager.updateSideQuestsHUD === 'function') {
+      this.uiManager.updateSideQuestsHUD(this.getActiveSideQuests());
     }
   }
 
@@ -24,7 +146,13 @@ export class QuestSystem {
     if (collectibleManager) {
       this.collectibleManager = collectibleManager;
       if (typeof this.collectibleManager.onCollect === 'function') {
-        this.collectibleManager.onCollect((item) => this.onCrystalCollected(item));
+        this.collectibleManager.onCollect((item) => {
+          if (item && item.type === 'item') {
+            this.onItemCollected(item);
+          } else {
+            this.onCrystalCollected(item);
+          }
+        });
       }
     }
     if (uiManager) this.uiManager = uiManager;
@@ -131,6 +259,21 @@ export class QuestSystem {
     if (this.currentQuest) {
       this.currentQuest.onEnemyDefeated(enemy);
     }
+
+    // Check side quests with kill objectives (e.g. Grimfang)
+    if (enemy) {
+      for (const sideQuest of this.sideQuests.values()) {
+        if (sideQuest.status === 'ACTIVE' && sideQuest.type === 'kill') {
+          if (sideQuest.targetId === enemy.id || (enemy.name && enemy.name.toLowerCase().includes('grimfang'))) {
+            sideQuest.updateProgress(1);
+            if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+              this.uiManager.showCollectNotification(`⚔️ Side Quest Updated: ${sideQuest.title} (Target Defeated!)`);
+            }
+            this.updateSideQuestHUD();
+          }
+        }
+      }
+    }
   }
 
   onCrystalCollected(crystal) {
@@ -139,11 +282,43 @@ export class QuestSystem {
     }
   }
 
-  update(deltaTime, playerPosition) {
-    if (!this.currentQuest || this.currentQuest.isCompleted) return;
+  onItemCollected(item) {
+    if (!item) return;
+    for (const sideQuest of this.sideQuests.values()) {
+      if (sideQuest.status === 'ACTIVE' && sideQuest.type === 'retrieval') {
+        if (sideQuest.targetId === item.id) {
+          sideQuest.updateProgress(1);
+          if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+            this.uiManager.showCollectNotification(`🎒 Side Quest Updated: ${sideQuest.title} (Item Recovered!)`);
+          }
+          this.updateSideQuestHUD();
+        }
+      }
+    }
+  }
 
-    // Check exit trigger zone if entrance is unlocked
-    if (this.currentQuest.isEntranceUnlocked && playerPosition) {
+  update(deltaTime, playerPosition) {
+    if (!this.currentQuest) return;
+
+    // 1. Check discovery side quests
+    if (playerPosition) {
+      for (const sideQuest of this.sideQuests.values()) {
+        if (sideQuest.status === 'ACTIVE' && sideQuest.type === 'discovery' && sideQuest.discoveryZone) {
+          const zone = sideQuest.discoveryZone;
+          const dist = Math.hypot(playerPosition.x - zone.x, playerPosition.z - zone.z);
+          if (dist <= zone.radius) {
+            sideQuest.updateProgress(1);
+            if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+              this.uiManager.showCollectNotification(`🏛️ DISCOVERY: Sunken Grotto Shrine Discovered!`);
+            }
+            this.updateSideQuestHUD();
+          }
+        }
+      }
+    }
+
+    // 2. Check main mission exit trigger zone if entrance is unlocked
+    if (!this.currentQuest.isCompleted && this.currentQuest.isEntranceUnlocked && playerPosition) {
       const distToExit = Math.hypot(
         playerPosition.x - this.exitLocation.x,
         playerPosition.z - this.exitLocation.z
@@ -164,39 +339,52 @@ export class QuestSystem {
   }
 
   getQuestSaveState() {
-    if (!this.currentQuest) {
-      return {
-        id: `stage-${this.currentLevelIndex}`,
-        enemiesDefeated: 0,
-        crystalsCollected: 0,
-        isEntranceUnlocked: false,
-        isCompleted: false,
-        score: 0
-      };
-    }
-    return this.currentQuest.getState();
+    const baseState = this.currentQuest ? this.currentQuest.getState() : {
+      id: `stage-${this.currentLevelIndex}`,
+      enemiesDefeated: 0,
+      crystalsCollected: 0,
+      isEntranceUnlocked: false,
+      isCompleted: false,
+      score: 0
+    };
+
+    return {
+      ...baseState,
+      sideQuests: Array.from(this.sideQuests.values()).map(q => q.getState())
+    };
   }
 
   restoreQuestSaveState(state) {
-    if (!state || !this.currentQuest) return;
+    if (!state) return;
 
-    this.currentQuest.restoreState(state);
-    this.isEntranceUnlocked = this.currentQuest.isEntranceUnlocked;
+    if (this.currentQuest) {
+      this.currentQuest.restoreState(state);
+      this.isEntranceUnlocked = this.currentQuest.isEntranceUnlocked;
 
-    if (this.isEntranceUnlocked) {
-      if (this.currentLevelIndex === 0) {
-        if (this.environment?.ruins && typeof this.environment.ruins.unlockEntrance === 'function') {
-          this.environment.ruins.unlockEntrance();
+      if (this.isEntranceUnlocked) {
+        if (this.currentLevelIndex === 0) {
+          if (this.environment?.ruins && typeof this.environment.ruins.unlockEntrance === 'function') {
+            this.environment.ruins.unlockEntrance();
+          }
+        } else {
+          if (this.environment?.ruinsStage && typeof this.environment.ruinsStage.unlockSanctum === 'function') {
+            this.environment.ruinsStage.unlockSanctum();
+          }
         }
-      } else {
-        if (this.environment?.ruinsStage && typeof this.environment.ruinsStage.unlockSanctum === 'function') {
-          this.environment.ruinsStage.unlockSanctum();
-        }
+      }
+
+      if (this.uiManager && typeof this.uiManager.updateQuestHUD === 'function') {
+        this.uiManager.updateQuestHUD(this.currentQuest);
       }
     }
 
-    if (this.uiManager && typeof this.uiManager.updateQuestHUD === 'function') {
-      this.uiManager.updateQuestHUD(this.currentQuest);
+    // Restore side quests
+    if (Array.isArray(state.sideQuests)) {
+      state.sideQuests.forEach(savedSq => {
+        const sq = this.sideQuests.get(savedSq.id);
+        if (sq) sq.restoreState(savedSq);
+      });
+      this.updateSideQuestHUD();
     }
   }
 }

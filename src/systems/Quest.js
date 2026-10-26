@@ -186,3 +186,49 @@ export class Quest {
     this.notifyProgress();
   }
 }
+
+export class SideQuest {
+  constructor(config = {}) {
+    this.id = config.id;
+    this.title = config.title;
+    this.description = config.description;
+    this.giverId = config.giverId;
+    this.giverName = config.giverName;
+    this.type = config.type; // 'retrieval' | 'kill' | 'discovery'
+    this.targetId = config.targetId; // item id, enemy id, or discovery tag
+    this.discoveryZone = config.discoveryZone || null;
+    this.objectiveText = config.objectiveText;
+    this.target = config.target || 1;
+    this.current = config.current || 0;
+    this.status = config.status || 'AVAILABLE'; // 'AVAILABLE' | 'ACTIVE' | 'READY_TO_TURN_IN' | 'COMPLETED'
+    this.rewards = config.rewards || { gold: 50, xp: 50 };
+  }
+
+  updateProgress(amount = 1) {
+    if (this.status !== 'ACTIVE') return false;
+    this.current = Math.min(this.target, this.current + amount);
+    if (this.current >= this.target) {
+      this.status = 'READY_TO_TURN_IN';
+    }
+    return true;
+  }
+
+  complete() {
+    this.status = 'COMPLETED';
+    this.current = this.target;
+  }
+
+  getState() {
+    return {
+      id: this.id,
+      current: this.current,
+      status: this.status
+    };
+  }
+
+  restoreState(state) {
+    if (!state) return;
+    if (typeof state.current === 'number') this.current = state.current;
+    if (typeof state.status === 'string') this.status = state.status;
+  }
+}

@@ -12,7 +12,8 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
 | **Sprint Boost** | `Shift` (Hold) or `Double-tap W` | Fast sprint boost ($10.5\text{ m/s}$) with camera FOV speed punch & dust |
 | **Toggle Walk / Run** | `Caps Lock` / `C` | Toggle between deliberate Walk mode ($4.0\text{ m/s}$) and Run mode |
 | **Jump** | `Space` | Jump with gravity curve and ground landing detection |
-| **Attack** | `Left Click` / `F` / `E` | Swing sword with trail VFX and hit detection |
+| **Attack** | `Left Click` / `F` | Swing sword with trail VFX and hit detection |
+| **Interact / Talk** | `E` | Talk to nearby NPCs, accept quests, and trade |
 | **Inventory / Gear** | `I` / `Tab` | Open backpack, equipment slots, and character stats |
 | **Look / Aim** | `Mouse` | Orbit camera around player with pitch clamping |
 | **Zoom** | `Mouse Wheel` | Smooth camera distance zoom |
@@ -57,6 +58,22 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
   - Visual save notification indicator toast with pulse animation.
   - Protection against saving transient states (e.g., during level transitions or player defeat).
   - Strict isolation between local single-player saves and future multiplayer states.
+- **Interactive NPCs & Dynamic Dialogue**:
+  - Three distinct friendly NPCs: **Elder Kaelen** (Quest Giver), **Valen** (Traveling Merchant), and **Sylas** (Forest Hermit).
+  - Rigged 3D models with skeletal animations (`Idle`, `Wave`, `agree`), proximity detection, and facing orientation towards the player.
+  - Floating canvas nameplates with dynamic quest markers (`!` for available quests, `?` for turn-in readiness).
+  - Branching dialogue interface initiated with `E`, supporting multi-step choices, story progression, quest acceptance, and trade triggers.
+- **Side Quest System**:
+  - Three complete side quests with distinct objective types:
+    - *The Hermit's Lost Satchel*: Lost item retrieval in northwest ruins.
+    - *Bane of Grimfang*: Dangerous alpha beast elimination.
+    - *The Sunken Grotto*: Hidden sacred shrine discovery.
+  - Objective tracking integrated with HUD side-quest counter, audio cues, item/XP/Gold rewards, and persistent state saving.
+- **Merchant Trading & Game Economy**:
+  - Complete merchant trading modal (`Buy` and `Sell` tabs) with Valen.
+  - Gold currency tracked across HUD, transactions, inventory, and save files.
+  - Atomic transactions with strict validation (preventing negative gold, capacity overflows, or duplicate purchases).
+  - Sell items at 50% catalog value.
 - **Inventory & Equipment System**:
   - Full-screen modal screen (`I` or `Tab`) with category tabs (*All*, *Gear*, *Potions*, *Materials & Quest*).
   - 20-slot grid inventory with stackable consumables/materials (up to 99) and unique unstackable equipment.
@@ -104,6 +121,7 @@ game/
 │   │   ├── AnimationController.js # Three.js AnimationMixer cross-fader
 │   │   ├── Enemy.js               # Guardian entity with state machine AI
 │   │   ├── EnemyManager.js        # Stage enemy lifecycle and spawning
+│   │   ├── NPC.js                 # 3D interactive NPC entity with animations & nameplate
 │   │   ├── Player.js              # Character controller & input handler
 │   │   └── Sword.js               # Weapon tip-to-base collision geometry
 │   ├── environment/
@@ -120,8 +138,12 @@ game/
 │   │   ├── Collectible.js         # Base and crystal collectible entities
 │   │   ├── CollectibleManager.js  # Stage crystal placement & pickups
 │   │   ├── CombatSystem.js        # Damage calculation, proximity targeting, score
-│   │   ├── Quest.js               # Quest objectives & criteria
-│   │   ├── QuestSystem.js         # Objective listeners & portal unlock logic
+│   │   ├── DialogueManager.js     # Branching dialogue trees & state progression
+│   │   ├── InventorySystem.js     # Backpack, equipment slots, gold, stat calculations
+│   │   ├── MerchantManager.js     # Shop catalog, buy/sell validations & gold economy
+│   │   ├── NPCManager.js          # NPC lifecycle, proximity & interaction management
+│   │   ├── Quest.js               # Main quest & side quest classes & objective criteria
+│   │   ├── QuestSystem.js         # Side quest tracking, reward distribution, portal logic
 │   │   └── SaveManager.js         # IndexedDB persistent save system & schema migration
 │   ├── ui/
 │   │   └── UIManager.js           # Menu, HUD, modal, and screen controller

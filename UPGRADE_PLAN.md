@@ -170,3 +170,26 @@ Each upgrade phase must adhere to strict QA gates:
   - Inventory full warning feedback when capacity is reached.
 - **Save System Integration**: Fully serialized and restored via `SaveManager.js`, with schema backwards compatibility.
 - **Automated Verification**: `tests/inventory_equipment.test.js` executed via Headless Chrome CDP verifying all 10 test suites with 100% pass rate.
+
+### Phase 2, Milestone 3: Interactive NPCs & Side Quests System ✅ COMPLETED
+- **Architecture**:
+  - `src/entities/NPC.js`: Interactive NPC class with 3D rigged models (`Soldier.glb`, `Xbot.glb`), `AnimationController` for skeletal clips (`Idle`, `Wave`, `agree`), cylinder/circle colliders registered in `PhysicsWorld`, dynamic floating canvas nameplates and quest status markers (`!`, `?`), and smooth player orientation interpolation.
+  - `src/systems/NPCManager.js`: NPC registry, lifecycle, proximity detection, and active interactable resolution.
+  - `src/systems/DialogueManager.js`: Branching dialogue engine with stateful progression trees, choice routing, side quest acceptance hooks, merchant shop triggers, and exit handlers.
+  - `src/systems/MerchantManager.js`: Trading economy engine with gold currency validation, purchasing, selling at 50% catalog value, and inventory capacity guards.
+  - `src/systems/Quest.js` & `src/systems/QuestSystem.js`: Added `SideQuest` class supporting `retrieval`, `kill`, and `discovery` objective types, progress tracking, HUD counters, reward distribution, and save serialization.
+- **Implemented NPCs**:
+  - **Elder Kaelen** (Quest Giver, `npc-kaelen`): Positioned in clearing `(-5, 0, -4)`. Guides player, offers *Bane of Grimfang* and *The Sunken Grotto* side quests.
+  - **Valen** (Traveling Merchant, `npc-valen`): Positioned at campsite `(6, 0.7, -4)`. Sells potions, advanced weapons, and armors; buys loot from the player.
+  - **Sylas** (Forest Hermit, `npc-sylas`): Positioned in grove `(-18, -1, -28)`. Offers *The Hermit's Lost Satchel* side quest.
+- **Implemented Side Quests**:
+  1. *The Hermit's Lost Satchel* (Item Retrieval): Recover Sylas's Alchemy Satchel from northwest ruins. Reward: $100\text{ Gold}$, $100\text{ XP}$, Greater Healing Elixir.
+  2. *Bane of Grimfang* (Dangerous Creature Elimination): Slay the rogue alpha beast Grimfang stalking the forest. Reward: $150\text{ Gold}$, $150\text{ XP}$, Starfall Ore.
+  3. *The Sunken Grotto* (Location Discovery): Discover the ancient Sunken Grotto Shrine hidden in the deep forest. Reward: $100\text{ Gold}$, $100\text{ XP}$, Ruin Shard.
+- **UI & HUD Integration**:
+  - Branching Dialogue Modal (`#modal-dialogue`) with speaker portraits, dialogue text, and interactive choice cards.
+  - Merchant Modal (`#modal-merchant`) with `Buy` and `Sell` tabs, gold balances, item catalog cards, and transaction feedback.
+  - In-game HUD Gold counter (`#hud-gold-counter`) displaying current currency.
+  - In-game HUD Side Quests Tracker (`#side-quests-container`) showing live objectives and statuses (`ACTIVE`, `READY_TO_TURN_IN`, `COMPLETED`).
+- **Persistence**: Integrated into Schema v1 save data (persisting active/completed side quests, current objective counters, and player gold).
+- **Automated Verification**: `tests/npcs_sidequests.test.js` executed via Headless Chrome CDP verifying all 10 requirement suites with 100% pass rate.

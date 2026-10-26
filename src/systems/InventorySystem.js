@@ -39,6 +39,7 @@ export const ITEM_DATABASE = {
     icon: '⚔️',
     description: 'A finely balanced steel blade forged by kingdom armorers. Reliable and sharp.',
     stats: { damage: 35 },
+    value: 50,
     stackable: false
   },
   shadow_cleaver: {
@@ -49,6 +50,7 @@ export const ITEM_DATABASE = {
     icon: '🗡️',
     description: 'Carved from dark abyssal glass. Cuts through enemy armor with ease.',
     stats: { damage: 55 },
+    value: 180,
     stackable: false
   },
   void_reaver: {
@@ -59,6 +61,7 @@ export const ITEM_DATABASE = {
     icon: '⚡',
     description: 'An ancient relic blade pulsing with raw void thunder. Inflicts massive damage.',
     stats: { damage: 80 },
+    value: 350,
     stackable: false
   },
 
@@ -71,6 +74,7 @@ export const ITEM_DATABASE = {
     icon: '🥋',
     description: 'Sturdy leather garment providing foundational protection on the trails.',
     stats: { defense: 10, maxHealth: 20 },
+    value: 60,
     stackable: false
   },
   shadow_plate: {
@@ -81,6 +85,7 @@ export const ITEM_DATABASE = {
     icon: '🛡️',
     description: 'Tempered steel plate inscribed with protective defensive runes.',
     stats: { defense: 25, maxHealth: 50 },
+    value: 220,
     stackable: false
   },
   sanctuary_aegis: {
@@ -91,6 +96,7 @@ export const ITEM_DATABASE = {
     icon: '⚜️',
     description: 'Consecrated armor once worn by high guardians of the sacred sanctum.',
     stats: { defense: 45, maxHealth: 100 },
+    value: 400,
     stackable: false
   },
 
@@ -103,6 +109,7 @@ export const ITEM_DATABASE = {
     icon: '🧿',
     description: 'Wards the wearer against malice, boosting physical defense by +15.',
     stats: { defense: 15 },
+    value: 150,
     stackable: false
   },
   radiant_crystal_heart: {
@@ -113,6 +120,7 @@ export const ITEM_DATABASE = {
     icon: '💎',
     description: 'A pure pulsating crystalline core. Grants +20 Attack Damage and +35 Max HP.',
     stats: { damage: 20, maxHealth: 35 },
+    value: 500,
     stackable: false
   },
 
@@ -125,6 +133,7 @@ export const ITEM_DATABASE = {
     icon: '🧪',
     description: 'Restores 45 Health Points immediately upon consumption.',
     stats: { heal: 45 },
+    value: 25,
     stackable: true,
     maxStack: 10
   },
@@ -136,6 +145,7 @@ export const ITEM_DATABASE = {
     icon: '🏺',
     description: 'Consecrated nectar that fully restores 100 Health Points.',
     stats: { heal: 100 },
+    value: 60,
     stackable: true,
     maxStack: 5
   },
@@ -147,6 +157,7 @@ export const ITEM_DATABASE = {
     icon: '🍶',
     description: 'Increases sprint and run speed by 25% for 15 seconds.',
     stats: { speedBoost: 1.25, duration: 15 },
+    value: 35,
     stackable: true,
     maxStack: 10
   },
@@ -159,6 +170,7 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.UNCOMMON,
     icon: '🔮',
     description: 'Volatile magical residue harvested from vanquished shadow guardians.',
+    value: 50,
     stackable: true,
     maxStack: 99
   },
@@ -169,6 +181,7 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.RARE,
     icon: '🪨',
     description: 'Dense glowing meteorite ore required for sacred weapon forging.',
+    value: 75,
     stackable: true,
     maxStack: 99
   },
@@ -179,11 +192,22 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.COMMON,
     icon: '🧱',
     description: 'Ancient masonry carved with celestial motifs. Useful for crafting.',
+    value: 30,
     stackable: true,
     maxStack: 99
   },
 
   // --- QUEST ITEMS ---
+  hermit_satchel: {
+    id: 'hermit_satchel',
+    name: 'Lost Alchemy Satchel',
+    type: ItemType.QUEST,
+    rarity: ItemRarity.RARE,
+    icon: '👝',
+    description: 'Sylas the Hermit’s leather satchel containing rare curative mosses and notes.',
+    value: 0,
+    stackable: false
+  },
   sanctuary_key: {
     id: 'sanctuary_key',
     name: 'Ancient Sanctuary Key',
@@ -191,6 +215,7 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.RARE,
     icon: '🗝️',
     description: 'An ornate bronze key carved with sunburst glyphs. Unlocks the sanctum vault.',
+    value: 0,
     stackable: false
   },
   sealed_scroll: {
@@ -200,13 +225,17 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.UNCOMMON,
     icon: '📜',
     description: 'Sacred parchment containing translations of the ancient ruins architecture.',
+    value: 0,
     stackable: false
   }
 };
 
+export const ItemCatalog = ITEM_DATABASE;
+
 export class InventorySystem {
   constructor(options = {}) {
     this.capacity = options.capacity || 20;
+    this.gold = typeof options.gold === 'number' ? options.gold : 150;
     this.slots = new Array(this.capacity).fill(null);
     this.equipment = {
       weapon: null,
@@ -220,6 +249,26 @@ export class InventorySystem {
     if (options.initializeDefaults !== false) {
       this.initDefaultLoadout();
     }
+  }
+
+  getGold() {
+    return this.gold;
+  }
+
+  addGold(amount) {
+    const val = Math.max(0, Math.floor(amount || 0));
+    this.gold += val;
+    this.notifyChange();
+    return this.gold;
+  }
+
+  spendGold(amount) {
+    const val = Math.max(0, Math.floor(amount || 0));
+    if (val <= 0) return true;
+    if (this.gold < val) return false;
+    this.gold -= val;
+    this.notifyChange();
+    return true;
   }
 
   onChange(callback) {
@@ -262,6 +311,7 @@ export class InventorySystem {
       icon: template.icon,
       description: template.description,
       stats: template.stats ? { ...template.stats } : {},
+      value: typeof template.value === 'number' ? template.value : 10,
       stackable: !!template.stackable,
       maxStack: template.maxStack || 1,
       uniqueId: template.stackable ? undefined : `${template.id}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
@@ -274,6 +324,10 @@ export class InventorySystem {
 
   isFull() {
     return this.getOccupiedSlotCount() >= this.capacity;
+  }
+
+  canFitItem(item, quantity = 1) {
+    return this.canAddItem(item, quantity);
   }
 
   canAddItem(itemId, quantity = 1) {
@@ -535,6 +589,7 @@ export class InventorySystem {
   getSaveState() {
     return {
       capacity: this.capacity,
+      gold: this.gold,
       slots: this.slots.map(s => {
         if (!s) return null;
         return {
@@ -556,6 +611,10 @@ export class InventorySystem {
 
     if (typeof state.capacity === 'number') {
       this.capacity = state.capacity;
+    }
+
+    if (typeof state.gold === 'number') {
+      this.gold = state.gold;
     }
 
     this.slots = new Array(this.capacity).fill(null);

@@ -19,10 +19,35 @@ export class UIManager {
     this.modalControls = document.getElementById('modal-controls');
     this.modalCredits = document.getElementById('modal-credits');
     this.modalInventory = document.getElementById('modal-inventory');
+    this.modalDialogue = document.getElementById('modal-dialogue');
+    this.modalMerchant = document.getElementById('modal-merchant');
     this.closeSettingsBtn = document.getElementById('close-settings-btn');
     this.closeControlsBtn = document.getElementById('close-controls-btn');
     this.closeCreditsBtn = document.getElementById('close-credits-btn');
     this.closeInventoryBtn = document.getElementById('close-inventory-btn');
+    this.closeDialogueBtn = document.getElementById('close-dialogue-btn');
+    this.closeMerchantBtn = document.getElementById('close-merchant-btn');
+
+    // Dialogue UI Elements
+    this.dialogueAvatar = document.getElementById('dialogue-avatar');
+    this.dialogueSpeakerName = document.getElementById('dialogue-speaker-name');
+    this.dialogueSpeakerTitle = document.getElementById('dialogue-speaker-title');
+    this.dialogueSpeechText = document.getElementById('dialogue-speech-text');
+    this.dialogueChoicesContainer = document.getElementById('dialogue-choices-container');
+    this.dialogueManagerRef = null;
+
+    // Merchant UI Elements
+    this.merchantGoldDisplay = document.getElementById('merchant-gold-display');
+    this.merchantTabBuy = document.getElementById('merchant-tab-buy');
+    this.merchantTabSell = document.getElementById('merchant-tab-sell');
+    this.merchantItemsContainer = document.getElementById('merchant-items-container');
+    this.merchantManagerRef = null;
+
+    // Currency & Side Quests Elements
+    this.hudGoldText = document.getElementById('hud-gold-text');
+    this.invGoldBadge = document.getElementById('inv-gold-badge');
+    this.sideQuestsContainer = document.getElementById('side-quests-container');
+    this.sideQuestsList = document.getElementById('side-quests-list');
 
     // Inventory & Equipment Elements
     this.inventoryToggleBtn = document.getElementById('inventory-toggle-btn');
@@ -253,14 +278,24 @@ export class UIManager {
     if (this.closeInventoryBtn) {
       this.closeInventoryBtn.onclick = () => this.closeInventory();
     }
+    if (this.closeDialogueBtn) {
+      this.closeDialogueBtn.onclick = () => this.closeDialogueModal();
+    }
+    if (this.closeMerchantBtn) {
+      this.closeMerchantBtn.onclick = () => this.closeMerchantModal();
+    }
 
     // Close on backdrop click
-    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory].forEach(modal => {
+    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalDialogue, this.modalMerchant].forEach(modal => {
       if (modal) {
         modal.onclick = (e) => {
           if (e.target === modal) {
             if (modal === this.modalInventory) {
               this.closeInventory();
+            } else if (modal === this.modalDialogue) {
+              this.closeDialogueModal();
+            } else if (modal === this.modalMerchant) {
+              this.closeMerchantModal();
             } else {
               this.closeModal(modal);
             }
@@ -935,6 +970,235 @@ export class UIManager {
     this.bannerTimeout = setTimeout(() => {
       this.unlockBanner.classList.add('hidden');
     }, 6000);
+  }
+
+  updateGold(amount) {
+    const val = Math.max(0, Math.floor(amount || 0));
+    if (this.hudGoldText) this.hudGoldText.textContent = `${val} G`;
+    if (this.invGoldBadge) this.invGoldBadge.textContent = `🪙 ${val} G`;
+    if (this.merchantGoldDisplay) this.merchantGoldDisplay.textContent = `${val}`;
+  }
+
+  updateSideQuestsHUD(activeSideQuests = []) {
+    if (!this.sideQuestsContainer || !this.sideQuestsList) return;
+
+    if (!activeSideQuests || activeSideQuests.length === 0) {
+      this.sideQuestsContainer.classList.add('hidden');
+      return;
+    }
+
+    this.sideQuestsContainer.classList.remove('hidden');
+    this.sideQuestsList.innerHTML = '';
+
+    activeSideQuests.forEach(quest => {
+      const li = document.createElement('li');
+      li.className = `side-quest-item ${quest.status === 'READY_TO_TURN_IN' ? 'ready' : ''} ${quest.status === 'COMPLETED' ? 'completed' : ''}`;
+
+      const icon = quest.status === 'READY_TO_TURN_IN' ? '❓' : (quest.status === 'COMPLETED' ? '✅' : '📜');
+      const progressText = quest.status === 'READY_TO_TURN_IN' ? 'Ready to turn in!' : `${quest.current} / ${quest.target}`;
+
+      li.innerHTML = `
+        <span class="side-quest-dot">${icon}</span>
+        <span class="side-quest-text"><strong>${quest.title}</strong>: ${quest.objectiveText} (${progressText})</span>
+      `;
+      this.sideQuestsList.appendChild(li);
+    });
+  }
+
+  // ==================== DIALOGUE SYSTEM UI ====================
+  setupDialogue(dialogueManager) {
+    this.dialogueManagerRef = dialogueManager;
+    if (this.closeDialogueBtn) {
+      this.closeDialogueBtn.onclick = () => this.closeDialogueModal();
+    }
+  }
+
+  openDialogueModal(dialogueManager = this.dialogueManagerRef) {
+    this.dialogueManagerRef = dialogueManager;
+    if (this.modalDialogue) {
+      this.modalDialogue.classList.remove('hidden');
+    }
+  }
+
+  closeDialogueModal() {
+    if (this.modalDialogue) {
+      this.modalDialogue.classList.add('hidden');
+    }
+    if (this.dialogueManagerRef && this.dialogueManagerRef.isOpen) {
+      this.dialogueManagerRef.closeDialogue(false);
+    }
+  }
+
+  renderDialogueNode(node) {
+    if (!node) return;
+
+    if (this.dialogueAvatar) this.dialogueAvatar.textContent = node.avatar || '💬';
+    if (this.dialogueSpeakerName) this.dialogueSpeakerName.textContent = node.speaker || 'Wanderer';
+    if (this.dialogueSpeakerTitle) this.dialogueSpeakerTitle.textContent = node.title || '';
+    if (this.dialogueSpeechText) this.dialogueSpeechText.textContent = node.text || '';
+
+    if (this.dialogueChoicesContainer) {
+      this.dialogueChoicesContainer.innerHTML = '';
+      if (Array.isArray(node.choices)) {
+        node.choices.forEach((choice, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'dialogue-choice-btn';
+          btn.innerHTML = `<span class="choice-arrow">▸</span> <span>${choice.text}</span>`;
+          btn.onclick = () => {
+            if (this.dialogueManagerRef) {
+              this.dialogueManagerRef.selectChoice(idx);
+            } else if (typeof choice.action === 'function') {
+              choice.action();
+            }
+          };
+          this.dialogueChoicesContainer.appendChild(btn);
+        });
+      }
+    }
+  }
+
+  // ==================== MERCHANT SHOP UI ====================
+  setupMerchant(merchantManager) {
+    this.merchantManagerRef = merchantManager;
+    if (this.closeMerchantBtn) {
+      this.closeMerchantBtn.onclick = () => this.closeMerchantModal();
+    }
+    if (this.merchantTabBuy) {
+      this.merchantTabBuy.onclick = () => {
+        this.merchantTabBuy.classList.add('active');
+        if (this.merchantTabSell) this.merchantTabSell.classList.remove('active');
+        if (this.merchantManagerRef) this.merchantManagerRef.switchTab('buy');
+      };
+    }
+    if (this.merchantTabSell) {
+      this.merchantTabSell.onclick = () => {
+        this.merchantTabSell.classList.add('active');
+        if (this.merchantTabBuy) this.merchantTabBuy.classList.remove('active');
+        if (this.merchantManagerRef) this.merchantManagerRef.switchTab('sell');
+      };
+    }
+  }
+
+  openMerchantModal(merchantManager = this.merchantManagerRef) {
+    this.merchantManagerRef = merchantManager;
+    if (this.modalMerchant) {
+      this.modalMerchant.classList.remove('hidden');
+    }
+    this.refreshMerchantUI();
+  }
+
+  closeMerchantModal() {
+    if (this.modalMerchant) {
+      this.modalMerchant.classList.add('hidden');
+    }
+    if (this.merchantManagerRef && this.merchantManagerRef.isOpen) {
+      this.merchantManagerRef.closeShop();
+    }
+  }
+
+  refreshMerchantUI() {
+    if (!this.merchantManagerRef || !this.merchantItemsContainer) return;
+    const mgr = this.merchantManagerRef;
+    const player = mgr.player;
+    if (!player || !player.inventorySystem) return;
+
+    const gold = player.inventorySystem.getGold();
+    this.updateGold(gold);
+
+    this.merchantItemsContainer.innerHTML = '';
+
+    if (mgr.currentTab === 'buy') {
+      // Render buy wares
+      mgr.merchantStock.forEach(stockItem => {
+        const itemTemplate = player.inventorySystem.createItem(stockItem.id);
+        const card = document.createElement('div');
+        card.className = 'merchant-item-card';
+
+        const icon = itemTemplate ? itemTemplate.icon : '📦';
+        const name = itemTemplate ? itemTemplate.name : stockItem.name;
+        const desc = itemTemplate ? itemTemplate.description : '';
+        const price = stockItem.price;
+
+        const canAfford = gold >= price;
+
+        card.innerHTML = `
+          <div class="merchant-item-left">
+            <div class="merchant-item-icon">${icon}</div>
+            <div class="merchant-item-meta">
+              <div class="merchant-item-title-row">
+                <span class="merchant-item-name">${name}</span>
+              </div>
+              <span class="merchant-item-desc">${desc}</span>
+            </div>
+          </div>
+          <div class="merchant-item-right">
+            <span class="merchant-price-tag">🪙 ${price} G</span>
+            <button class="merchant-trade-btn buy" ${!canAfford ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>BUY</button>
+          </div>
+        `;
+
+        const buyBtn = card.querySelector('.merchant-trade-btn.buy');
+        if (buyBtn && canAfford) {
+          buyBtn.onclick = () => {
+            mgr.buyItem(stockItem.id);
+          };
+        }
+
+        this.merchantItemsContainer.appendChild(card);
+      });
+
+    } else {
+      // Render sell wares from player inventory
+      const slots = player.inventorySystem.slots;
+      let hasSellable = false;
+
+      slots.forEach((slot, idx) => {
+        if (!slot || !slot.item) return;
+        const item = slot.item;
+        if (item.type === 'quest' || (item.value || 0) <= 0) return; // cannot sell quest items
+
+        hasSellable = true;
+        const card = document.createElement('div');
+        card.className = 'merchant-item-card';
+
+        const baseVal = item.value || 10;
+        const sellPrice = Math.max(1, Math.floor(baseVal * 0.5));
+
+        card.innerHTML = `
+          <div class="merchant-item-left">
+            <div class="merchant-item-icon">${item.icon || '📦'}</div>
+            <div class="merchant-item-meta">
+              <div class="merchant-item-title-row">
+                <span class="merchant-item-name">${item.name}</span>
+                <span class="inv-slot-qty-badge" style="font-size:0.75rem;padding:2px 6px;">x${slot.quantity}</span>
+              </div>
+              <span class="merchant-item-desc">${item.description || ''}</span>
+            </div>
+          </div>
+          <div class="merchant-item-right">
+            <span class="merchant-price-tag" style="color:#4ade80;">+${sellPrice} G</span>
+            <button class="merchant-trade-btn sell">SELL</button>
+          </div>
+        `;
+
+        const sellBtn = card.querySelector('.merchant-trade-btn.sell');
+        if (sellBtn) {
+          sellBtn.onclick = () => {
+            mgr.sellItem(idx);
+          };
+        }
+
+        this.merchantItemsContainer.appendChild(card);
+      });
+
+      if (!hasSellable) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'details-placeholder';
+        emptyMsg.style.padding = '30px';
+        emptyMsg.textContent = 'No tradeable goods in your backpack. Quest artifacts cannot be sold.';
+        this.merchantItemsContainer.appendChild(emptyMsg);
+      }
+    }
   }
 
   // ==================== PAUSE MENU ====================

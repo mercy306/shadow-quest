@@ -66,6 +66,7 @@ export class Player {
     // Complete Inventory & Equipment System
     this.inventorySystem = new InventorySystem();
     this.inventory = [];
+    this.onInteractCallback = null;
     this.recalculateStats();
 
     this.isInvulnerable = false;
@@ -112,6 +113,20 @@ export class Player {
 
     this.scene.add(this.mesh);
     this.setupInput();
+  }
+
+  onInteract(callback) {
+    this.onInteractCallback = callback;
+  }
+
+  get gold() {
+    return this.inventorySystem ? this.inventorySystem.getGold() : 150;
+  }
+
+  set gold(val) {
+    if (this.inventorySystem) {
+      this.inventorySystem.gold = Math.max(0, Math.floor(val || 0));
+    }
   }
 
   setPhysicsWorld(physicsWorld) {
@@ -279,7 +294,13 @@ export class Player {
           }
           break;
         case 'KeyF':
+          this.triggerAttack();
+          break;
         case 'KeyE':
+          if (this.onInteractCallback && this.onInteractCallback()) {
+            // Handled NPC or world interaction cleanly without combat swing
+            break;
+          }
           this.triggerAttack();
           break;
 
@@ -725,6 +746,7 @@ export class Player {
       isRunMode: this.isRunMode,
       level: this.level,
       xp: this.xp,
+      gold: this.gold,
       inventory: this.inventorySystem.getSaveState(),
       legacyInventory: Array.isArray(this.inventory) ? [...this.inventory] : [],
       equipment: { ...this.inventorySystem.equipment },
@@ -763,6 +785,7 @@ export class Player {
 
     if (typeof state.level === 'number') this.level = state.level;
     if (typeof state.xp === 'number') this.xp = state.xp;
+    if (typeof state.gold === 'number') this.gold = state.gold;
     if (Array.isArray(state.unlockedSkills)) this.unlockedSkills = state.unlockedSkills;
     if (Array.isArray(state.discoveredLocations)) this.discoveredLocations = state.discoveredLocations;
 

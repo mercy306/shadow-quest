@@ -12,6 +12,9 @@ import { CollectibleManager } from '../systems/CollectibleManager.js';
 import { LevelManager } from './LevelManager.js';
 import { VFXManager } from '../vfx/VFXManager.js';
 import { SaveManager, QUICK_SAVE_SLOT } from '../systems/SaveManager.js';
+import { NPCManager } from '../systems/NPCManager.js';
+import { DialogueManager } from '../systems/DialogueManager.js';
+import { MerchantManager } from '../systems/MerchantManager.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -30,6 +33,9 @@ export class Game {
     this.isRunning = false;
     this.isPaused = false;
     this.isInventoryOpen = false;
+    this.npcManager = null;
+    this.dialogueManager = null;
+    this.merchantManager = null;
     this.gameState = GameState.MAIN_MENU;
     this.currentGraphicsPreset = 'high';
   }
@@ -127,6 +133,27 @@ export class Game {
       this.combatSystem.init();
       this.initStep = 'combat';
 
+      // 11b. NPC, Dialogue & Merchant Subsystems
+      this.npcManager = new NPCManager(this.scene, this.physicsWorld, this.uiManager);
+      this.merchantManager = new MerchantManager(this.uiManager, this.audioManager);
+      this.dialogueManager = new DialogueManager(this.uiManager, this.questSystem, this.merchantManager, this.audioManager);
+      this.dialogueManager.player = this.player;
+      this.merchantManager.player = this.player;
+
+      this.uiManager.setupDialogue(this.dialogueManager);
+      this.uiManager.setupMerchant(this.merchantManager);
+      this.combatSystem.setNPCManager(this.npcManager);
+
+      // Wire Player interaction key [E] to NPC dialogue
+      this.player.onInteract(() => {
+        const npc = this.npcManager ? this.npcManager.getActiveInteractable() : null;
+        if (npc) {
+          this.openDialogue(npc);
+          return true;
+        }
+        return false;
+      });
+
       // 12. Level Manager (manages stages, level switching, resets, score)
       this.uiManager.setLoadingProgress(92, 'Initializing level management system...');
       this.levelManager = new LevelManager(this);
@@ -216,13 +243,51 @@ export class Game {
           this.toggleInventory();
         }
       } else if (e.code === 'Escape') {
-        if (this.isInventoryOpen) {
+        if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
+          this.closeDialogue();
+        } else if (this.merchantManager && this.merchantManager.isShopOpen()) {
+          this.closeShop();
+        } else if (this.isInventoryOpen) {
           this.toggleInventory(false);
         } else {
           this.togglePause();
         }
       }
     });
+  }
+
+  openDialogue(npc) {
+    if (!npc) return;
+    this.player.isEnabled = false;
+    this.cameraManager.setLockEnabled(false);
+    this.cameraManager.exitPointerLock();
+    this.dialogueManager.startDialogue(npc, this.player);
+  }
+
+  closeDialogue() {
+    this.dialogueManager.closeDialogue();
+    if (!this.merchantManager.isShopOpen() && this.gameState === GameState.PLAYING && !this.isPaused && !this.isInventoryOpen) {
+      this.player.isEnabled = true;
+      this.cameraManager.setLockEnabled(true);
+      this.cameraManager.requestPointerLock();
+    }
+  }
+
+  openShop(npc) {
+    if (!npc) return;
+    this.player.isEnabled = false;
+    this.cameraManager.setLockEnabled(false);
+    this.cameraManager.exitPointerLock();
+    this.merchantManager.openShop(npc, this.player);
+  }
+
+  closeShop() {
+    this.merchantManager.closeShop();
+    if (!this.dialogueManager.isDialogueActive() && this.gameState === GameState.PLAYING && !this.isPaused && !this.isInventoryOpen) {
+      this.player.isEnabled = true;
+      this.cameraManager.setLockEnabled(true);
+      this.cameraManager.requestPointerLock();
+    }
   }
 
   toggleInventory(forceState = null) {
@@ -333,12 +398,16 @@ export class Game {
     this.gameState = GameState.MAIN_MENU;
     this.isPaused = false;
     this.isInventoryOpen = false;
+    if (this.dialogueManager) this.dialogueManager.closeDialogue();
+    if (this.merchantManager) this.merchantManager.closeShop();
     this.player.isEnabled = false;
     this.cameraManager.setLockEnabled(false);
     this.cameraManager.exitPointerLock();
 
     this.uiManager.hidePause();
     this.uiManager.closeInventory();
+    this.uiManager.closeDialogueModal();
+    this.uiManager.closeMerchantModal();
     this.uiManager.hideGameOver();
     this.uiManager.hideVictoryScreen();
     this.uiManager.showMainMenu();
@@ -377,14 +446,24 @@ export class Game {
     if (this.player) {
       this.player.level = 1;
       this.player.xp = 0;
+      this.player.gold = 150;
       this.player.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
       this.player.discoveredLocations = ['dark-forest'];
       if (this.player.inventorySystem) {
         this.player.inventorySystem.slots = new Array(this.player.inventorySystem.capacity).fill(null);
+        this.player.inventorySystem.gold = 150;
         this.player.inventorySystem.initDefaultLoadout();
+        this.player.inventory = this.player.inventorySystem.slots.filter(Boolean);
       }
       this.player.recalculateStats();
       this.player.health = this.player.maxHealth;
+    }
+    if (this.questSystem) {
+      this.questSystem.initSideQuests();
+      this.questSystem.updateSideQuestHUD();
+    }
+    if (this.uiManager) {
+      this.uiManager.updateGold(150);
     }
     this.startGame();
   }
@@ -505,8 +584,12 @@ export class Game {
       return;
     }
 
-    // 2. Paused, Inventory Open, Game Over, or Victory: hold static entity states, keep ambient world breathing
-    if (this.gameState === GameState.PAUSED || this.isInventoryOpen || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+    // 2. Paused, Inventory, Dialogue, Shop, Game Over, or Victory: hold static entity states, keep ambient world breathing
+    const isModalOpen = this.isInventoryOpen ||
+      (this.dialogueManager && this.dialogueManager.isDialogueActive()) ||
+      (this.merchantManager && this.merchantManager.isShopOpen());
+
+    if (this.gameState === GameState.PAUSED || isModalOpen || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
       if (this.environment) {
         this.environment.update(deltaTime);
       }
@@ -517,6 +600,15 @@ export class Game {
     }
 
     // 3. Active Playing state: full interactive simulation
+    // NPCs update & interaction tracking
+    if (this.npcManager && this.player) {
+      this.npcManager.update(deltaTime, this.player.getPosition());
+      const activeNPC = this.npcManager.getActiveInteractable();
+      if (activeNPC) {
+        this.uiManager.showInteractionPrompt(`[E] Talk to ${activeNPC.name}`);
+      }
+    }
+
     // Player movement & actions
     if (this.player) {
       this.player.update(deltaTime, this.cameraManager);

@@ -54,6 +54,7 @@ export class CollectibleManager {
           { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
           { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
           { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
+          { id: 'pickup-hermit-satchel', itemId: 'hermit_satchel', x: -12.0, z: -58.0, quantity: 1 },
           { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
         ]
       : [
@@ -139,6 +140,7 @@ export class CollectibleManager {
               if (success) {
                 this.collectedIds.add(item.id);
                 player.inventorySystem.addItem(item.itemId, item.quantity);
+                this.onCollectCallbacks.forEach(cb => cb(item));
 
                 if (audioManager && typeof audioManager.playCrystalCollect === 'function') {
                   audioManager.playCrystalCollect();

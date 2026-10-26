@@ -498,9 +498,20 @@ async function runInventoryTests() {
       await sleep(500);
     }
 
+    // Wait until continue button is enabled
+    for (let i = 0; i < 25; i++) {
+      const btnDisabled = await cdp.eval('document.getElementById("menu-btn-continue").disabled');
+      if (!btnDisabled) break;
+      await sleep(200);
+    }
+
     // Click Continue
     await cdp.eval('document.getElementById("menu-btn-continue").click();');
-    await sleep(1500);
+    for (let i = 0; i < 30; i++) {
+      const isPlaying = await cdp.eval('(window.game || window.__GAME__).gameState === "PLAYING"');
+      if (isPlaying) break;
+      await sleep(200);
+    }
 
     // Verify restored equipment, inventory, and stats
     const restoredData = await cdp.eval(`

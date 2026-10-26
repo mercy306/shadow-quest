@@ -8,6 +8,11 @@ export class CombatSystem {
     this.audioManager = audioManager;
     this.uiManager = uiManager;
     this.vfxManager = vfxManager;
+    this.npcManager = null;
+  }
+
+  setNPCManager(npcManager) {
+    this.npcManager = npcManager;
   }
 
   setManagers({ questSystem, audioManager, uiManager, vfxManager }) {
@@ -164,23 +169,26 @@ export class CombatSystem {
       }
 
       // 5. Contextual Interaction Prompts
-      const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
-      if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
-        const exitDist = Math.hypot(
-          playerPos.x - this.questSystem.exitLocation.x,
-          playerPos.z - this.questSystem.exitLocation.z
-        );
-        if (exitDist <= 8.0) {
-          this.uiManager.showInteractionPrompt('Ancient Altar Portal is UNLOCKED — Step into the light to ascend!');
+      const hasNPCPrompt = this.npcManager && this.npcManager.getActiveInteractable();
+      if (!hasNPCPrompt) {
+        const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
+        if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
+          const exitDist = Math.hypot(
+            playerPos.x - this.questSystem.exitLocation.x,
+            playerPos.z - this.questSystem.exitLocation.z
+          );
+          if (exitDist <= 8.0) {
+            this.uiManager.showInteractionPrompt('Ancient Altar Portal is UNLOCKED — Step into the light to ascend!');
+          } else if (closestEnemy && closestDist <= 3.5) {
+            this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
+          } else {
+            this.uiManager.hideInteractionPrompt();
+          }
         } else if (closestEnemy && closestDist <= 3.5) {
           this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
         } else {
           this.uiManager.hideInteractionPrompt();
         }
-      } else if (closestEnemy && closestDist <= 3.5) {
-        this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
-      } else {
-        this.uiManager.hideInteractionPrompt();
       }
 
       // 6. Live Score Calculation

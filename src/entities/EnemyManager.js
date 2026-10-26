@@ -47,6 +47,16 @@ export class EnemyManager {
             damage: 18,
             detectionRadius: 16.0,
             attackRange: 2.4
+          },
+          {
+            id: 'grimfang-alpha',
+            name: 'Grimfang (Shadow Stalker)',
+            patrolCenter: new THREE.Vector3(-22, 0, -45),
+            patrolRadius: 5.0,
+            health: 130,
+            damage: 18,
+            detectionRadius: 14.0,
+            attackRange: 2.3
           }
         ]
       : [

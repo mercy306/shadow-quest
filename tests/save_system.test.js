@@ -354,7 +354,13 @@ async function runTests() {
       await sleep(500);
     }
 
-    // Verify Continue button is now ENABLED after reload!
+    // Wait for Continue button to be ENABLED after reload!
+    for (let i = 0; i < 30; i++) {
+      const isDisabled = await cdp.eval('document.getElementById("menu-btn-continue").disabled');
+      if (!isDisabled) break;
+      await sleep(200);
+    }
+
     const postReloadContinueState = await cdp.eval(`
       const btn = document.getElementById('menu-btn-continue');
       return ({
@@ -373,7 +379,14 @@ async function runTests() {
     await cdp.eval(`
       document.getElementById('menu-btn-continue').click();
     `);
-    await sleep(1500);
+
+    // Wait until game finishes loading level and enters PLAYING state
+    for (let i = 0; i < 40; i++) {
+      const isPlaying = await cdp.eval('(window.game || window.__GAME__).gameState === "PLAYING"');
+      if (isPlaying) break;
+      await sleep(200);
+    }
+    await sleep(500);
 
     // Verify all restored states
     const restoredState = await cdp.eval(`

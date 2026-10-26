@@ -109,6 +109,11 @@ export class LevelManager {
           await this.game.enemyManager.init(targetIndex);
         }
 
+        // 4b. Reset and spawn stage NPCs
+        if (this.game.npcManager) {
+          await this.game.npcManager.init(targetIndex);
+        }
+
         // 5. Reset and spawn stage collectibles
         if (this.game.collectibleManager) {
           this.game.collectibleManager.init(targetIndex);

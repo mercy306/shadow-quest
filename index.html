@@ -203,6 +203,7 @@
           <div class="modal-title-wrap">
             <h2 class="modal-title">INVENTORY & EQUIPMENT</h2>
             <span id="inv-capacity-badge" class="inv-capacity-badge">🎒 8 / 20 SLOTS</span>
+            <span id="inv-gold-badge" class="inv-gold-badge">🪙 150 G</span>
           </div>
           <button id="close-inventory-btn" class="modal-close-btn" title="Close Inventory (I / ESC)">✕</button>
         </div>
@@ -301,6 +302,54 @@
       </div>
     </div>
 
+    <!-- ==================== DIALOGUE MODAL ==================== -->
+    <div id="modal-dialogue" class="game-modal hidden">
+      <div class="modal-card dialogue-modal-card">
+        <div class="modal-header dialogue-modal-header">
+          <div class="dialogue-speaker-wrap">
+            <div id="dialogue-avatar" class="dialogue-avatar">🧙‍♂️</div>
+            <div class="dialogue-speaker-meta">
+              <h2 id="dialogue-speaker-name" class="dialogue-speaker-name">Elder Kaelen</h2>
+              <span id="dialogue-speaker-title" class="dialogue-speaker-title">Village Elder & Quest Giver</span>
+            </div>
+          </div>
+          <button id="close-dialogue-btn" class="modal-close-btn" title="Leave Conversation (ESC)">✕</button>
+        </div>
+
+        <div class="modal-body dialogue-modal-body">
+          <div id="dialogue-speech-text" class="dialogue-speech-text">
+            Greetings, traveler.
+          </div>
+          <div id="dialogue-choices-container" class="dialogue-choices-container">
+            <!-- Choice buttons inserted dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MERCHANT SHOP MODAL ==================== -->
+    <div id="modal-merchant" class="game-modal hidden">
+      <div class="modal-card merchant-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">VALEN'S OUTPOST SUPPLIES</h2>
+            <span class="merchant-gold-badge">🪙 Gold: <strong id="merchant-gold-display">150</strong> G</span>
+          </div>
+          <button id="close-merchant-btn" class="modal-close-btn" title="Close Shop (ESC)">✕</button>
+        </div>
+
+        <div class="modal-body merchant-modal-body">
+          <div class="merchant-tabs">
+            <button id="merchant-tab-buy" class="merchant-tab-btn active">BUY WARES</button>
+            <button id="merchant-tab-sell" class="merchant-tab-btn">SELL ITEMS</button>
+          </div>
+          <div id="merchant-items-container" class="merchant-items-container">
+            <!-- Dynamically populated stock or sell list -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
@@ -332,6 +381,12 @@
         </div>
 
         <div class="top-bar-right">
+          <!-- Player Currency Counter -->
+          <div id="hud-gold-counter" class="gold-counter-badge" title="Hero Currency">
+            <span class="gold-icon">🪙</span>
+            <span id="hud-gold-text" class="gold-text">150 G</span>
+          </div>
+
           <div id="crystal-counter" class="crystal-counter">
             <span class="crystal-icon">💎</span>
             <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
@@ -381,6 +436,14 @@
             <span class="obj-label">Ruins Exit Portal: Sealed</span>
           </li>
         </ul>
+
+        <!-- Side Quests Tracker Section -->
+        <div id="side-quests-container" class="side-quests-container hidden">
+          <h4 class="side-quests-header">SIDE QUESTS</h4>
+          <ul id="side-quests-list" class="side-quests-list">
+            <!-- Dynamically populated side quests -->
+          </ul>
+        </div>
       </div>
 
       <!-- Contextual Interaction Prompt Banner -->

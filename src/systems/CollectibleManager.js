@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CrystalCollectible } from './Collectible.js';
+import { CrystalCollectible, ItemPickupCollectible } from './Collectible.js';
 
 export class CollectibleManager {
   constructor(scene, physicsWorld = null) {
@@ -45,6 +45,45 @@ export class CollectibleManager {
     crystalLocations.forEach(loc => {
       this.spawnCrystal(loc.id, loc.x, loc.z, loc.desc);
     });
+
+    // World Item Pickups (Weapons, Armor, Potions, Materials, Quest Items, Relics)
+    const itemPickups = levelIndex === 0
+      ? [
+          { id: 'pickup-blade-1', itemId: 'shadow_cleaver', x: -8.0, z: -10.0, quantity: 1 },
+          { id: 'pickup-armor-1', itemId: 'shadow_plate', x: 20.0, z: -40.0, quantity: 1 },
+          { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
+          { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
+          { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
+          { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
+        ]
+      : [
+          { id: 'pickup-void-blade', itemId: 'void_reaver', x: 0.0, z: -10.0, quantity: 1 },
+          { id: 'pickup-sanct-armor', itemId: 'sanctuary_aegis', x: 0.0, z: 10.0, quantity: 1 },
+          { id: 'pickup-trinket-heart', itemId: 'radiant_crystal_heart', x: -15.0, z: 0.0, quantity: 1 },
+          { id: 'pickup-key', itemId: 'sanctuary_key', x: 15.0, z: 0.0, quantity: 1 },
+          { id: 'pickup-great-pot', itemId: 'greater_healing_potion', x: 0.0, z: 25.0, quantity: 2 }
+        ];
+
+    itemPickups.forEach(p => {
+      if (!this.collectedIds.has(p.id)) {
+        this.spawnItemPickup(p.id, p.itemId, p.x, p.z, p.quantity);
+      }
+    });
+  }
+
+  spawnItemPickup(id, itemId, x, z, quantity = 1) {
+    let groundY = 0;
+    if (this.physicsWorld) {
+      groundY = this.physicsWorld.getGroundHeight(x, z, 5.0);
+    }
+    const itemY = groundY + 0.8;
+
+    const itemPickup = new ItemPickupCollectible(id, itemId, x, itemY, z, {
+      quantity: quantity
+    });
+
+    this.collectibles.push(itemPickup);
+    this.scene.add(itemPickup.mesh);
   }
 
   spawnCrystal(id, x, z, desc = '') {
@@ -71,7 +110,7 @@ export class CollectibleManager {
     }
   }
 
-  update(deltaTime, playerPosition, audioManager = null, uiManager = null, vfxManager = null) {
+  update(deltaTime, playerPosition, audioManager = null, uiManager = null, vfxManager = null, player = null) {
     for (let i = 0; i < this.collectibles.length; i++) {
       const item = this.collectibles[i];
       if (item.isDisposed) continue;
@@ -85,6 +124,42 @@ export class CollectibleManager {
         );
 
         if (dist <= item.collectionRadius) {
+          // World Item Pickup handling
+          if (item.type === 'item') {
+            if (player && player.inventorySystem) {
+              const canFit = player.inventorySystem.canAddItem(item.itemId, item.quantity);
+              if (!canFit) {
+                if (uiManager && typeof uiManager.showCollectNotification === 'function') {
+                  uiManager.showCollectNotification(`INVENTORY FULL! Cannot carry ${item.name}`, 'warning');
+                }
+                continue;
+              }
+
+              const success = item.collect();
+              if (success) {
+                this.collectedIds.add(item.id);
+                player.inventorySystem.addItem(item.itemId, item.quantity);
+
+                if (audioManager && typeof audioManager.playCrystalCollect === 'function') {
+                  audioManager.playCrystalCollect();
+                }
+                if (vfxManager && typeof vfxManager.spawnCrystalBurst === 'function') {
+                  vfxManager.spawnCrystalBurst(item.mesh.position, 0x38bdf8);
+                }
+                if (uiManager) {
+                  if (typeof uiManager.showCollectNotification === 'function') {
+                    uiManager.showCollectNotification(`+${item.quantity} ${item.name} (${item.rarity.toUpperCase()})`);
+                  }
+                  if (typeof uiManager.refreshInventoryUI === 'function') {
+                    uiManager.refreshInventoryUI();
+                  }
+                }
+              }
+            }
+            continue;
+          }
+
+          // Existing crystal collection logic (100% preserved)
           const success = item.collect();
           if (success) {
             this.collectedIds.add(item.id);

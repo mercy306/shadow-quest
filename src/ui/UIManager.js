@@ -18,9 +18,40 @@ export class UIManager {
     this.modalSettings = document.getElementById('modal-settings');
     this.modalControls = document.getElementById('modal-controls');
     this.modalCredits = document.getElementById('modal-credits');
+    this.modalInventory = document.getElementById('modal-inventory');
     this.closeSettingsBtn = document.getElementById('close-settings-btn');
     this.closeControlsBtn = document.getElementById('close-controls-btn');
     this.closeCreditsBtn = document.getElementById('close-credits-btn');
+    this.closeInventoryBtn = document.getElementById('close-inventory-btn');
+
+    // Inventory & Equipment Elements
+    this.inventoryToggleBtn = document.getElementById('inventory-toggle-btn');
+    this.invCapacityBadge = document.getElementById('inv-capacity-badge');
+    this.invSlotsGrid = document.getElementById('inv-slots-grid');
+    this.invItemDetails = document.getElementById('inv-item-details');
+
+    this.equipWeaponName = document.getElementById('equip-weapon-name');
+    this.equipWeaponStat = document.getElementById('equip-weapon-stat');
+    this.unequipWeaponBtn = document.getElementById('unequip-weapon-btn');
+
+    this.equipArmorName = document.getElementById('equip-armor-name');
+    this.equipArmorStat = document.getElementById('equip-armor-stat');
+    this.unequipArmorBtn = document.getElementById('unequip-armor-btn');
+
+    this.equipTrinketName = document.getElementById('equip-trinket-name');
+    this.equipTrinketStat = document.getElementById('equip-trinket-stat');
+    this.unequipTrinketBtn = document.getElementById('unequip-trinket-btn');
+
+    this.statValHealth = document.getElementById('stat-val-health');
+    this.statValDamage = document.getElementById('stat-val-damage');
+    this.statValDefense = document.getElementById('stat-val-defense');
+    this.statValSpeed = document.getElementById('stat-val-speed');
+    this.statValLevel = document.getElementById('stat-val-level');
+
+    this.currentInventoryCategory = 'all';
+    this.selectedInventorySlotIndex = null;
+    this.playerRef = null;
+    this.onToggleInventoryCallback = null;
 
     // Settings Controls
     this.settingMasterVol = document.getElementById('setting-master-vol');
@@ -219,15 +250,347 @@ export class UIManager {
     if (this.closeCreditsBtn) {
       this.closeCreditsBtn.onclick = () => this.closeModal(this.modalCredits);
     }
+    if (this.closeInventoryBtn) {
+      this.closeInventoryBtn.onclick = () => this.closeInventory();
+    }
 
     // Close on backdrop click
-    [this.modalSettings, this.modalControls, this.modalCredits].forEach(modal => {
+    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory].forEach(modal => {
       if (modal) {
         modal.onclick = (e) => {
-          if (e.target === modal) this.closeModal(modal);
+          if (e.target === modal) {
+            if (modal === this.modalInventory) {
+              this.closeInventory();
+            } else {
+              this.closeModal(modal);
+            }
+          }
         };
       }
     });
+  }
+
+  // ==================== INVENTORY & EQUIPMENT UI ====================
+  setupInventory({ player, onToggleInventory }) {
+    this.playerRef = player;
+    this.onToggleInventoryCallback = onToggleInventory;
+
+    if (this.inventoryToggleBtn) {
+      this.inventoryToggleBtn.onclick = () => {
+        if (typeof this.onToggleInventoryCallback === 'function') {
+          this.onToggleInventoryCallback();
+        } else {
+          this.toggleInventory();
+        }
+      };
+    }
+
+    if (this.unequipWeaponBtn) {
+      this.unequipWeaponBtn.onclick = () => this.unequipSlot('weapon');
+    }
+    if (this.unequipArmorBtn) {
+      this.unequipArmorBtn.onclick = () => this.unequipSlot('armor');
+    }
+    if (this.unequipTrinketBtn) {
+      this.unequipTrinketBtn.onclick = () => this.unequipSlot('trinket');
+    }
+
+    // Category Tabs
+    if (this.modalInventory) {
+      const tabs = this.modalInventory.querySelectorAll('.inv-tab');
+      tabs.forEach(tab => {
+        tab.onclick = () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          this.currentInventoryCategory = tab.dataset.category || 'all';
+          this.refreshInventoryUI();
+        };
+      });
+    }
+
+    if (player && player.inventorySystem) {
+      player.inventorySystem.onChange(() => {
+        this.refreshInventoryUI();
+      });
+    }
+
+    this.refreshInventoryUI();
+  }
+
+  toggleInventory() {
+    if (this.isInventoryOpen()) {
+      this.closeInventory();
+    } else {
+      this.openInventory();
+    }
+  }
+
+  openInventory() {
+    if (this.modalInventory) {
+      this.openModal(this.modalInventory);
+      this.refreshInventoryUI();
+    }
+  }
+
+  closeInventory() {
+    if (this.modalInventory) {
+      this.closeModal(this.modalInventory);
+      this.selectedInventorySlotIndex = null;
+      if (typeof this.onToggleInventoryCallback === 'function') {
+        this.onToggleInventoryCallback(false);
+      }
+    }
+  }
+
+  isInventoryOpen() {
+    return this.modalInventory && !this.modalInventory.classList.contains('hidden');
+  }
+
+  unequipSlot(slotName) {
+    if (!this.playerRef || !this.playerRef.inventorySystem) return;
+
+    const result = this.playerRef.inventorySystem.unequipItem(slotName, this.playerRef);
+    if (!result.success) {
+      if (result.reason === 'INVENTORY_FULL') {
+        this.showCollectNotification('INVENTORY FULL! Cannot unequip item.', 'warning');
+      }
+    } else {
+      this.showCollectNotification(`Unequipped ${result.unequipped.name}`);
+      this.refreshInventoryUI();
+    }
+  }
+
+  refreshInventoryUI() {
+    if (!this.playerRef || !this.playerRef.inventorySystem) return;
+    const inv = this.playerRef.inventorySystem;
+    const stats = this.playerRef.getCharacterStats();
+
+    // 1. Equipped Gear
+    const eq = inv.equipment;
+    if (this.equipWeaponName) {
+      this.equipWeaponName.textContent = eq.weapon ? eq.weapon.name : 'Empty Slot';
+      this.equipWeaponName.className = `equip-slot-name ${eq.weapon ? 'rarity-' + eq.weapon.rarity : ''}`;
+    }
+    if (this.equipWeaponStat) {
+      this.equipWeaponStat.textContent = eq.weapon?.stats?.damage ? `+${eq.weapon.stats.damage} DMG` : 'None';
+    }
+    if (this.unequipWeaponBtn) {
+      this.unequipWeaponBtn.style.display = eq.weapon ? 'flex' : 'none';
+    }
+
+    if (this.equipArmorName) {
+      this.equipArmorName.textContent = eq.armor ? eq.armor.name : 'Empty Slot';
+      this.equipArmorName.className = `equip-slot-name ${eq.armor ? 'rarity-' + eq.armor.rarity : ''}`;
+    }
+    if (this.equipArmorStat) {
+      this.equipArmorStat.textContent = eq.armor?.stats?.defense ? `+${eq.armor.stats.defense} DEF` : 'None';
+    }
+    if (this.unequipArmorBtn) {
+      this.unequipArmorBtn.style.display = eq.armor ? 'flex' : 'none';
+    }
+
+    if (this.equipTrinketName) {
+      this.equipTrinketName.textContent = eq.trinket ? eq.trinket.name : 'Empty Slot';
+      this.equipTrinketName.className = `equip-slot-name ${eq.trinket ? 'rarity-' + eq.trinket.rarity : ''}`;
+    }
+    if (this.equipTrinketStat) {
+      let trinketStr = 'None';
+      if (eq.trinket?.stats) {
+        const parts = [];
+        if (eq.trinket.stats.damage) parts.push(`+${eq.trinket.stats.damage} DMG`);
+        if (eq.trinket.stats.defense) parts.push(`+${eq.trinket.stats.defense} DEF`);
+        if (eq.trinket.stats.maxHealth) parts.push(`+${eq.trinket.stats.maxHealth} HP`);
+        trinketStr = parts.join(' • ') || 'Active';
+      }
+      this.equipTrinketStat.textContent = trinketStr;
+    }
+    if (this.unequipTrinketBtn) {
+      this.unequipTrinketBtn.style.display = eq.trinket ? 'flex' : 'none';
+    }
+
+    // 2. Character Stats
+    if (this.statValHealth) {
+      this.statValHealth.textContent = `${Math.ceil(stats.health)} / ${stats.maxHealth}`;
+    }
+    if (this.statValDamage) {
+      this.statValDamage.textContent = `${stats.damage} DMG`;
+    }
+    if (this.statValDefense) {
+      this.statValDefense.textContent = `${stats.defense} DEF`;
+    }
+    if (this.statValSpeed) {
+      this.statValSpeed.textContent = `${stats.runSpeed.toFixed(1)} m/s`;
+    }
+    if (this.statValLevel) {
+      this.statValLevel.textContent = `Level ${stats.level} (${stats.xp} XP)`;
+    }
+
+    // 3. Capacity Badge
+    const occupied = inv.getOccupiedSlotCount();
+    if (this.invCapacityBadge) {
+      this.invCapacityBadge.textContent = `🎒 ${occupied} / ${inv.capacity} SLOTS`;
+      if (occupied >= inv.capacity) {
+        this.invCapacityBadge.style.color = '#ef4444';
+        this.invCapacityBadge.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+        this.invCapacityBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+      } else {
+        this.invCapacityBadge.style.color = '#38bdf8';
+        this.invCapacityBadge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        this.invCapacityBadge.style.background = 'rgba(14, 165, 233, 0.15)';
+      }
+    }
+
+    // 4. Slots Grid
+    if (this.invSlotsGrid) {
+      this.invSlotsGrid.innerHTML = '';
+      const category = this.currentInventoryCategory;
+
+      for (let i = 0; i < inv.capacity; i++) {
+        const slotData = inv.slots[i];
+        const slotEl = document.createElement('div');
+        slotEl.className = 'inv-slot';
+        slotEl.dataset.slotIndex = i;
+
+        if (this.selectedInventorySlotIndex === i) {
+          slotEl.classList.add('selected');
+        }
+
+        if (slotData && slotData.item) {
+          const item = slotData.item;
+
+          // Filter matching
+          let isMatch = false;
+          if (category === 'all') isMatch = true;
+          else if (category === 'equipment' && (item.type === 'weapon' || item.type === 'armor' || item.type === 'trinket')) isMatch = true;
+          else if (category === 'consumable' && item.type === 'consumable') isMatch = true;
+          else if (category === 'material' && (item.type === 'material' || item.type === 'quest')) isMatch = true;
+
+          if (!isMatch) {
+            slotEl.style.opacity = '0.25';
+          }
+
+          slotEl.classList.add(`rarity-${item.rarity || 'common'}`);
+
+          const icon = document.createElement('div');
+          icon.className = 'inv-slot-icon';
+          icon.textContent = item.icon || '📦';
+          slotEl.appendChild(icon);
+
+          if (slotData.quantity > 1) {
+            const count = document.createElement('span');
+            count.className = 'inv-slot-count';
+            count.textContent = slotData.quantity;
+            slotEl.appendChild(count);
+          }
+        }
+
+        slotEl.onclick = () => {
+          this.selectedInventorySlotIndex = i;
+          this.refreshInventoryUI();
+        };
+
+        this.invSlotsGrid.appendChild(slotEl);
+      }
+    }
+
+    // 5. Selected Item Details Card
+    this.renderSelectedDetails();
+  }
+
+  renderSelectedDetails() {
+    if (!this.invItemDetails) return;
+
+    const idx = this.selectedInventorySlotIndex;
+    if (idx === null || !this.playerRef?.inventorySystem?.slots[idx]) {
+      this.invItemDetails.innerHTML = '<div class="details-placeholder">Select an item in your backpack to view details and actions.</div>';
+      return;
+    }
+
+    const slot = this.playerRef.inventorySystem.slots[idx];
+    const item = slot.item;
+    const rarity = item.rarity || 'common';
+
+    const isEquippable = (item.type === 'weapon' || item.type === 'armor' || item.type === 'trinket');
+    const isConsumable = (item.type === 'consumable');
+
+    let statsHtml = '';
+    if (item.stats) {
+      const parts = [];
+      if (item.stats.damage) parts.push(`⚔️ Attack Damage: +${item.stats.damage}`);
+      if (item.stats.defense) parts.push(`🛡️ Physical Defense: +${item.stats.defense}`);
+      if (item.stats.maxHealth) parts.push(`❤️ Max Health: +${item.stats.maxHealth}`);
+      if (item.stats.heal) parts.push(`🧪 Restores ${item.stats.heal} HP`);
+      if (item.stats.speedBoost) parts.push(`⚡ Movement Speed: +${Math.round((item.stats.speedBoost - 1) * 100)}%`);
+      if (parts.length > 0) {
+        statsHtml = `<div class="details-stats">${parts.join(' &nbsp;•&nbsp; ')}</div>`;
+      }
+    }
+
+    let actionsHtml = '<div class="details-actions">';
+    if (isEquippable) {
+      actionsHtml += `<button class="inv-action-btn equip" id="inv-action-equip">⚔️ EQUIP ITEM</button>`;
+    }
+    if (isConsumable) {
+      actionsHtml += `<button class="inv-action-btn use" id="inv-action-use">🧪 DRINK / USE</button>`;
+    }
+    actionsHtml += `<button class="inv-action-btn drop" id="inv-action-drop">DISCARD (1)</button>`;
+    actionsHtml += '</div>';
+
+    this.invItemDetails.innerHTML = `
+      <div class="details-active-wrap">
+        <div class="details-top">
+          <div class="details-header">
+            <div class="details-icon">${item.icon || '📦'}</div>
+            <div class="details-title-box">
+              <span class="details-name">${item.name}</span>
+              <span class="details-rarity-badge rarity-${rarity}">${rarity.toUpperCase()} • ${item.type.toUpperCase()}${slot.quantity > 1 ? ` (${slot.quantity})` : ''}</span>
+            </div>
+          </div>
+        </div>
+        <p class="details-desc">${item.description || 'An artifact found in the ancient ruins.'}</p>
+        ${statsHtml}
+        ${actionsHtml}
+      </div>
+    `;
+
+    // Wire actions
+    const equipBtn = document.getElementById('inv-action-equip');
+    if (equipBtn) {
+      equipBtn.onclick = () => {
+        const res = this.playerRef.inventorySystem.equipItem(idx, this.playerRef);
+        if (res.success) {
+          this.showCollectNotification(`Equipped ${res.equipped.name}!`);
+          this.refreshInventoryUI();
+        }
+      };
+    }
+
+    const useBtn = document.getElementById('inv-action-use');
+    if (useBtn) {
+      useBtn.onclick = () => {
+        const res = this.playerRef.inventorySystem.useConsumable(idx, this.playerRef);
+        if (res.success) {
+          this.showCollectNotification(res.message);
+          this.refreshInventoryUI();
+        } else if (res.message) {
+          this.showCollectNotification(res.message, 'warning');
+        }
+      };
+    }
+
+    const dropBtn = document.getElementById('inv-action-drop');
+    if (dropBtn) {
+      dropBtn.onclick = () => {
+        const res = this.playerRef.inventorySystem.removeItemAt(idx, 1);
+        if (res) {
+          this.showCollectNotification(`Discarded 1x ${res.item.name}`);
+          if (!this.playerRef.inventorySystem.slots[idx]) {
+            this.selectedInventorySlotIndex = null;
+          }
+          this.refreshInventoryUI();
+        }
+      };
+    }
   }
 
   openModal(modal) {
@@ -497,19 +860,29 @@ export class UIManager {
     }
   }
 
-  showCollectNotification(message) {
+  showCollectNotification(message, type = 'info') {
     if (!this.collectToast || !this.toastText) return;
 
     this.toastText.textContent = message;
+    if (type === 'warning') {
+      this.collectToast.style.background = 'linear-gradient(135deg, rgba(220, 38, 38, 0.92), rgba(234, 88, 12, 0.92))';
+      this.collectToast.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+      this.collectToast.style.color = '#fee2e2';
+    } else {
+      this.collectToast.style.background = 'linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(99, 102, 241, 0.85))';
+      this.collectToast.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+      this.collectToast.style.color = '#ffffff';
+    }
+
     this.collectToast.classList.remove('hidden');
     this.collectToast.style.animation = 'none';
     this.collectToast.offsetHeight;
-    this.collectToast.style.animation = 'toastFade 1.6s forwards ease-out';
+    this.collectToast.style.animation = 'toastFade 1.8s forwards ease-out';
 
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => {
       this.collectToast.classList.add('hidden');
-    }, 1600);
+    }, 1800);
   }
 
   updateQuestHUD(quest) {

@@ -150,3 +150,23 @@ Each upgrade phase must adhere to strict QA gates:
   - Pause menu: **Save Game** (`#pause-save-btn`) and **Load Game** (`#pause-load-btn`) buttons.
   - In-game HUD: Visual `#save-indicator` toast with pulse animation.
 - **Automated Verification**: `tests/save_system.test.js` executed via Headless Chrome CDP verifying all 9 requirement suites with 100% pass rate.
+
+### Phase 1, Milestone 2: Inventory & Equipment System ✅ COMPLETED
+- **Architecture**: `src/systems/InventorySystem.js` managing 20-slot inventory, stackable consumables/materials, unique equipment items, and slot-based gear equip/unequip logic.
+- **Character Attributes & Calculations**: Integrated centralized character-stat calculation in `Player.js` computing modified `damage`, `defense`, `maxHealth`, and movement speed from base attributes plus equipped gear.
+- **Item Catalog & Types**:
+  - Weapons (`iron_sword`, `shadow_cleaver`, `void_reaver`).
+  - Armor (`adventurer_tunic`, `shadow_plate`, `sanctuary_aegis`).
+  - Trinkets (`void_talisman`, `radiant_crystal_heart`).
+  - Consumables (`healing_potion`, `greater_healing_potion`, `stamina_potion`).
+  - Crafting Materials (`shadow_essence`, `starfall_ore`, `ruin_shard`).
+  - Quest Items (`sanctuary_key`, `sealed_scroll`).
+- **In-World 3D Pickups**: Subclassed `ItemPickupCollectible` in `src/systems/Collectible.js` with rarity lighting halos, custom geometry, floating/bobbing animations, and duplicate pickup guards.
+- **UI Integration**:
+  - Full-screen responsive inventory modal (`#modal-inventory`) accessible via `I` or `Tab` key and top-bar button.
+  - Category filter tabs (*All*, *Gear*, *Potions*, *Materials & Quest*).
+  - Equipment slots for Weapon, Armor, and Trinket with one-click equip/unequip.
+  - Detailed item inspected panel with stat comparisons, action buttons (`EQUIP`, `USE`, `DROP`), and rarity color styling.
+  - Inventory full warning feedback when capacity is reached.
+- **Save System Integration**: Fully serialized and restored via `SaveManager.js`, with schema backwards compatibility.
+- **Automated Verification**: `tests/inventory_equipment.test.js` executed via Headless Chrome CDP verifying all 10 test suites with 100% pass rate.

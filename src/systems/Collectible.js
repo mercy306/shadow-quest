@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ITEM_DATABASE, RARITY_CONFIG } from './InventorySystem.js';
 
 export class Collectible {
   constructor(id, type, x, y, z, options = {}) {
@@ -237,5 +238,99 @@ export class CrystalCollectible extends Collectible {
         this.dispose();
       }
     }
+  }
+}
+
+/**
+ * In-world 3D item pickup entity (weapons, armor, potions, materials, relics)
+ */
+export class ItemPickupCollectible extends Collectible {
+  constructor(id, itemId, x, y, z, options = {}) {
+    const template = ITEM_DATABASE[itemId] || {
+      id: itemId,
+      name: options.name || 'Ancient Item',
+      rarity: options.rarity || 'common',
+      type: options.type || 'material',
+      icon: '📦'
+    };
+
+    super(id, 'item', x, y, z, {
+      collectionRadius: 1.8,
+      name: template.name,
+      value: options.quantity || 1,
+      ...options
+    });
+
+    this.itemId = template.id;
+    this.itemData = template;
+    this.quantity = options.quantity || 1;
+    this.rarity = template.rarity || 'common';
+
+    this.buildItemMesh();
+  }
+
+  buildItemMesh() {
+    const hexColor = RARITY_CONFIG[this.rarity]?.color || '#38bdf8';
+    const threeColor = new THREE.Color(hexColor);
+
+    // 1. Central floating relic gem / chest
+    const coreMat = new THREE.MeshStandardMaterial({
+      color: threeColor,
+      emissive: threeColor,
+      emissiveIntensity: 1.1,
+      roughness: 0.25,
+      metalness: 0.8
+    });
+
+    // Use different geometries depending on item type
+    let geo;
+    if (this.itemData.type === 'weapon') {
+      geo = new THREE.ConeGeometry(0.28, 0.9, 6);
+      geo.rotateX(Math.PI);
+    } else if (this.itemData.type === 'armor') {
+      geo = new THREE.BoxGeometry(0.55, 0.55, 0.45);
+    } else if (this.itemData.type === 'consumable') {
+      geo = new THREE.CylinderGeometry(0.22, 0.28, 0.6, 8);
+    } else {
+      geo = new THREE.DodecahedronGeometry(0.38, 0);
+    }
+
+    this.coreMesh = new THREE.Mesh(geo, coreMat);
+    this.coreMesh.castShadow = true;
+    this.mesh.add(this.coreMesh);
+
+    // 2. Encircling magical ring
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: threeColor,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.55
+    });
+    const ringGeo = new THREE.TorusGeometry(0.65, 0.02, 6, 24);
+    this.ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    this.ringMesh.rotation.x = Math.PI / 3;
+    this.mesh.add(this.ringMesh);
+
+    // 3. Ambient point light
+    this.pointLight = new THREE.PointLight(threeColor, 1.8, 6);
+    this.pointLight.position.set(0, 0, 0);
+    this.mesh.add(this.pointLight);
+  }
+
+  update(deltaTime) {
+    if (this.isDisposed) return;
+
+    this.animTime += deltaTime;
+    // Hover bobbing
+    this.mesh.position.y = this.baseY + Math.sin(this.animTime * 2.5) * 0.14;
+    // Rotation
+    this.mesh.rotation.y += deltaTime * 1.5;
+    if (this.ringMesh) {
+      this.ringMesh.rotation.z += deltaTime * 1.8;
+    }
+  }
+
+  onCollected() {
+    this.dispose();
   }
 }

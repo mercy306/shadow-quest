@@ -13,6 +13,7 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
 | **Toggle Walk / Run** | `Caps Lock` / `C` | Toggle between deliberate Walk mode ($4.0\text{ m/s}$) and Run mode |
 | **Jump** | `Space` | Jump with gravity curve and ground landing detection |
 | **Attack** | `Left Click` / `F` / `E` | Swing sword with trail VFX and hit detection |
+| **Inventory / Gear** | `I` / `Tab` | Open backpack, equipment slots, and character stats |
 | **Look / Aim** | `Mouse` | Orbit camera around player with pitch clamping |
 | **Zoom** | `Mouse Wheel` | Smooth camera distance zoom |
 | **Pause** | `Escape` | Pause simulation and open pause menu |
@@ -56,6 +57,15 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
   - Visual save notification indicator toast with pulse animation.
   - Protection against saving transient states (e.g., during level transitions or player defeat).
   - Strict isolation between local single-player saves and future multiplayer states.
+- **Inventory & Equipment System**:
+  - Full-screen modal screen (`I` or `Tab`) with category tabs (*All*, *Gear*, *Potions*, *Materials & Quest*).
+  - 20-slot grid inventory with stackable consumables/materials (up to 99) and unique unstackable equipment.
+  - Equipment slots for **Weapon**, **Armor**, and **Trinket**.
+  - Centralized stat calculations: dynamically computes damage, defense, and max health bonuses.
+  - Usable consumables: Healing Elixir (instant HP restoration) and Windrunner Tonic (temporary sprint/run speed boost).
+  - In-world 3D item pickups with rarity color halos, bobbing animations, and duplicate pickup guards.
+  - Configurable capacity limits with full-inventory visual warning banners.
+  - Full persistence integration across sessions and page reloads.
 
 ---
 

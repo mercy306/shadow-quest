@@ -29,6 +29,7 @@ export class Game {
     this.clock = new THREE.Clock();
     this.isRunning = false;
     this.isPaused = false;
+    this.isInventoryOpen = false;
     this.gameState = GameState.MAIN_MENU;
     this.currentGraphicsPreset = 'high';
   }
@@ -155,6 +156,12 @@ export class Game {
         onSetGraphics: (preset) => this.setGraphicsQuality(preset)
       });
 
+      // Complete Inventory & Equipment UI Setup
+      this.uiManager.setupInventory({
+        player: this.player,
+        onToggleInventory: (open) => this.toggleInventory(open)
+      });
+
       // Apply initial saved settings
       this.saveManager.applySettings(this, this.saveManager.loadSettings());
 
@@ -202,10 +209,47 @@ export class Game {
 
   setupInputListeners() {
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Escape') {
-        this.togglePause();
+      // Inventory toggle with 'I' or 'Tab'
+      if (e.code === 'KeyI' || e.code === 'Tab') {
+        e.preventDefault();
+        if (this.gameState === GameState.PLAYING || this.isInventoryOpen) {
+          this.toggleInventory();
+        }
+      } else if (e.code === 'Escape') {
+        if (this.isInventoryOpen) {
+          this.toggleInventory(false);
+        } else {
+          this.togglePause();
+        }
       }
     });
+  }
+
+  toggleInventory(forceState = null) {
+    if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+      return;
+    }
+
+    const shouldOpen = (forceState !== null) ? forceState : !this.isInventoryOpen;
+    if (shouldOpen === this.isInventoryOpen) return;
+
+    this.isInventoryOpen = shouldOpen;
+
+    if (shouldOpen) {
+      // Pause single-player inputs and unlock mouse for inventory
+      this.player.isEnabled = false;
+      this.cameraManager.setLockEnabled(false);
+      this.cameraManager.exitPointerLock();
+      this.uiManager.openInventory();
+    } else {
+      this.uiManager.closeInventory();
+      if (this.gameState === GameState.PLAYING && !this.isPaused) {
+        this.player.isEnabled = true;
+        this.cameraManager.setLockEnabled(true);
+        this.clock.getDelta();
+        this.cameraManager.requestPointerLock();
+      }
+    }
   }
 
   togglePause() {
@@ -288,11 +332,13 @@ export class Game {
   async returnToMainMenu() {
     this.gameState = GameState.MAIN_MENU;
     this.isPaused = false;
+    this.isInventoryOpen = false;
     this.player.isEnabled = false;
     this.cameraManager.setLockEnabled(false);
     this.cameraManager.exitPointerLock();
 
     this.uiManager.hidePause();
+    this.uiManager.closeInventory();
     this.uiManager.hideGameOver();
     this.uiManager.hideVictoryScreen();
     this.uiManager.showMainMenu();
@@ -325,17 +371,20 @@ export class Game {
   async startNewGame() {
     this.levelManager.stageScores = [0, 0];
     this.levelManager.cumulativeScore = 0;
-    await this.levelManager.loadLevel(0, true);
+    if (this.levelManager.currentLevelIndex !== 0) {
+      await this.levelManager.loadLevel(0, true);
+    }
     if (this.player) {
-      this.player.health = this.player.maxHealth;
       this.player.level = 1;
       this.player.xp = 0;
-      this.player.inventory = [
-        { id: 'health_potion', name: 'Ancient Elixir', count: 2, icon: '🧪' }
-      ];
-      this.player.equipment = { weapon: 'Iron Sword', armor: 'Adventurer Tunic' };
       this.player.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
       this.player.discoveredLocations = ['dark-forest'];
+      if (this.player.inventorySystem) {
+        this.player.inventorySystem.slots = new Array(this.player.inventorySystem.capacity).fill(null);
+        this.player.inventorySystem.initDefaultLoadout();
+      }
+      this.player.recalculateStats();
+      this.player.health = this.player.maxHealth;
     }
     this.startGame();
   }
@@ -456,8 +505,8 @@ export class Game {
       return;
     }
 
-    // 2. Paused, Game Over, or Victory: hold static entity states, keep ambient world breathing
-    if (this.gameState === GameState.PAUSED || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+    // 2. Paused, Inventory Open, Game Over, or Victory: hold static entity states, keep ambient world breathing
+    if (this.gameState === GameState.PAUSED || this.isInventoryOpen || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
       if (this.environment) {
         this.environment.update(deltaTime);
       }
@@ -490,7 +539,7 @@ export class Game {
 
     // Collectibles update & pickup detection
     if (this.collectibleManager && this.player) {
-      this.collectibleManager.update(deltaTime, this.player.getPosition(), this.audioManager, this.uiManager, this.vfxManager);
+      this.collectibleManager.update(deltaTime, this.player.getPosition(), this.audioManager, this.uiManager, this.vfxManager, this.player);
     }
 
     // Combat & Quest logic

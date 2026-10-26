@@ -196,6 +196,111 @@
       </div>
     </div>
 
+    <!-- ==================== INVENTORY & EQUIPMENT MODAL ==================== -->
+    <div id="modal-inventory" class="game-modal hidden">
+      <div class="modal-card inventory-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">INVENTORY & EQUIPMENT</h2>
+            <span id="inv-capacity-badge" class="inv-capacity-badge">🎒 8 / 20 SLOTS</span>
+          </div>
+          <button id="close-inventory-btn" class="modal-close-btn" title="Close Inventory (I / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body inventory-modal-body">
+          <!-- Left Column: Character Equipment & Stats Panel -->
+          <div class="inv-character-panel">
+            <h3 class="panel-heading">EQUIPPED GEAR</h3>
+
+            <div class="equipment-slots-grid">
+              <!-- Weapon Slot -->
+              <div class="equip-slot" id="equip-slot-weapon" data-slot="weapon">
+                <div class="equip-slot-type-icon">⚔️</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">WEAPON</div>
+                  <div class="equip-slot-name" id="equip-weapon-name">None</div>
+                  <div class="equip-slot-stat" id="equip-weapon-stat">+0 DMG</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-weapon-btn" title="Unequip">✕</button>
+              </div>
+
+              <!-- Armor Slot -->
+              <div class="equip-slot" id="equip-slot-armor" data-slot="armor">
+                <div class="equip-slot-type-icon">🛡️</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">ARMOR</div>
+                  <div class="equip-slot-name" id="equip-armor-name">None</div>
+                  <div class="equip-slot-stat" id="equip-armor-stat">+0 DEF</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-armor-btn" title="Unequip">✕</button>
+              </div>
+
+              <!-- Trinket Slot -->
+              <div class="equip-slot" id="equip-slot-trinket" data-slot="trinket">
+                <div class="equip-slot-type-icon">🧿</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">RELIC / TRINKET</div>
+                  <div class="equip-slot-name" id="equip-trinket-name">None</div>
+                  <div class="equip-slot-stat" id="equip-trinket-stat">+0 BONUS</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-trinket-btn" title="Unequip">✕</button>
+              </div>
+            </div>
+
+            <!-- Centralized Character Stats -->
+            <h3 class="panel-heading stats-heading">HERO ATTRIBUTES</h3>
+            <div class="character-stats-grid">
+              <div class="stat-badge">
+                <span class="stat-icon">❤️</span>
+                <span class="stat-name">HEALTH</span>
+                <span class="stat-val" id="stat-val-health">100 / 100</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">⚔️</span>
+                <span class="stat-name">ATTACK</span>
+                <span class="stat-val" id="stat-val-damage">40 DMG</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">🛡️</span>
+                <span class="stat-name">DEFENSE</span>
+                <span class="stat-val" id="stat-val-defense">10 DEF</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">⚡</span>
+                <span class="stat-name">SPEED</span>
+                <span class="stat-val" id="stat-val-speed">7.5 m/s</span>
+              </div>
+              <div class="stat-badge stat-badge-full">
+                <span class="stat-icon">🎖️</span>
+                <span class="stat-name">HERO RANK</span>
+                <span class="stat-val" id="stat-val-level">Level 1 (0 XP)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Backpack Grid & Selected Item Card -->
+          <div class="inv-backpack-panel">
+            <div class="inv-filter-tabs">
+              <button class="inv-tab active" data-category="all">ALL</button>
+              <button class="inv-tab" data-category="equipment">GEAR</button>
+              <button class="inv-tab" data-category="consumable">POTIONS</button>
+              <button class="inv-tab" data-category="material">MATERIALS & QUEST</button>
+            </div>
+
+            <!-- 20-Slot Backpack Grid -->
+            <div class="inv-slots-grid" id="inv-slots-grid">
+              <!-- Dynamically populated slots -->
+            </div>
+
+            <!-- Selected Item Details Card -->
+            <div class="inv-item-details" id="inv-item-details">
+              <div class="details-placeholder">Select an item in your backpack to view details and actions.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
@@ -231,6 +336,11 @@
             <span class="crystal-icon">💎</span>
             <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
           </div>
+
+          <!-- Inventory & Equipment Toggle Button -->
+          <button id="inventory-toggle-btn" class="inventory-toggle-btn" title="Open Inventory & Equipment (I)">
+            <span class="inventory-icon">🎒</span>
+          </button>
 
           <!-- Quick Audio Mute Toggle -->
           <button id="mute-btn" class="audio-toggle-btn" title="Toggle Audio (M)">
@@ -302,7 +412,7 @@
       </div>
 
       <div id="controls-hint">
-        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [Left Click / F] Attack • [M] Mute • [ESC] Pause</span>
+        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [Left Click / F] Attack • [I] Inventory • [M] Mute • [ESC] Pause</span>
       </div>
     </div>
 

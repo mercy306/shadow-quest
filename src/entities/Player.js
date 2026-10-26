@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
+import { InventorySystem } from '../systems/InventorySystem.js';
 
 export class Player {
   constructor(scene, environment = null, physicsWorld = null) {
@@ -24,11 +25,19 @@ export class Player {
     this.radius = 0.45;
     this.height = 1.8;
 
-    // Configurable movement parameters (in units/sec)
-    this.walkSpeed = 4.0;
-    this.runSpeed = 7.5;
-    this.sprintSpeed = 10.5;
+    // Configurable base movement parameters (in units/sec)
+    this.baseWalkSpeed = 4.0;
+    this.baseRunSpeed = 7.5;
+    this.baseSprintSpeed = 10.5;
     this.rotationSpeed = 14.0;
+
+    this.walkSpeed = this.baseWalkSpeed;
+    this.runSpeed = this.baseRunSpeed;
+    this.sprintSpeed = this.baseSprintSpeed;
+
+    // Temporary consumable buffs
+    this.speedBuffMultiplier = 1.0;
+    this.speedBuffTimer = 0;
 
     // Movement mode: Run by default on WASD!
     this.isRunMode = true;
@@ -37,23 +46,28 @@ export class Player {
     this.lastWPressTime = 0;
     this.isDoubleTapSprint = false;
 
-    // Progression, Inventory & Skills (Persistent Save System)
+    // Base Character Stats
+    this.baseMaxHealth = 100;
+    this.baseDamage = 25;
+    this.baseDefense = 0;
+
+    // Effective Combat Stats (Base + Equipment bonuses)
+    this.maxHealth = 100;
+    this.health = 100;
+    this.damage = 40;
+    this.defense = 0;
+
+    // Progression & Skills
     this.level = 1;
     this.xp = 0;
-    this.inventory = [
-      { id: 'health_potion', name: 'Ancient Elixir', count: 2, icon: '🧪' }
-    ];
-    this.equipment = {
-      weapon: 'Iron Sword',
-      armor: 'Adventurer Tunic'
-    };
     this.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
     this.discoveredLocations = ['dark-forest'];
 
-    // Combat parameters
-    this.damage = 40;
-    this.maxHealth = 100;
-    this.health = 100;
+    // Complete Inventory & Equipment System
+    this.inventorySystem = new InventorySystem();
+    this.inventory = [];
+    this.recalculateStats();
+
     this.isInvulnerable = false;
     this.invulnerableTimer = 0;
     this.isEnabled = true;
@@ -343,10 +357,60 @@ export class Player {
     }
   }
 
+  recalculateStats() {
+    if (!this.inventorySystem) return;
+
+    const bonuses = this.inventorySystem.getEquipmentBonuses();
+
+    this.maxHealth = this.baseMaxHealth + bonuses.maxHealth;
+    this.damage = this.baseDamage + bonuses.damage;
+    this.defense = this.baseDefense + bonuses.defense;
+
+    const buffMultiplier = this.speedBuffTimer > 0 ? this.speedBuffMultiplier : 1.0;
+    const equipSpeed = 1.0 + bonuses.speedBonus;
+    this.walkSpeed = this.baseWalkSpeed * buffMultiplier * equipSpeed;
+    this.runSpeed = this.baseRunSpeed * buffMultiplier * equipSpeed;
+    this.sprintSpeed = this.baseSprintSpeed * buffMultiplier * equipSpeed;
+
+    this.health = Math.min(this.maxHealth, this.health);
+
+    if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
+      this.uiManager.updatePlayerHealth(this.health, this.maxHealth);
+    }
+  }
+
+  applySpeedBuff(multiplier = 1.25, duration = 15) {
+    this.speedBuffMultiplier = multiplier;
+    this.speedBuffTimer = duration;
+    this.recalculateStats();
+  }
+
+  getCharacterStats() {
+    return {
+      level: this.level,
+      xp: this.xp,
+      health: this.health,
+      maxHealth: this.maxHealth,
+      baseMaxHealth: this.baseMaxHealth,
+      damage: this.damage,
+      baseDamage: this.baseDamage,
+      defense: this.defense,
+      baseDefense: this.baseDefense,
+      walkSpeed: this.walkSpeed,
+      runSpeed: this.runSpeed,
+      sprintSpeed: this.sprintSpeed,
+      equipment: this.inventorySystem.equipment
+    };
+  }
+
   takeDamage(amount) {
     if (!this.isEnabled || this.isInvulnerable || this.health <= 0) return;
 
-    this.health = Math.max(0, this.health - amount);
+    // Defense mitigates incoming physical damage smoothly
+    const reduction = this.defense > 0 ? this.defense / (this.defense + 50) : 0;
+    const finalDamage = Math.max(1, Math.round(amount * (1 - reduction)));
+
+    this.health = Math.max(0, this.health - finalDamage);
     this.isInvulnerable = true;
     this.invulnerableTimer = 0.5;
 
@@ -354,7 +418,7 @@ export class Player {
       this.audioManager.playPlayerDamage();
     }
 
-    this.onDamageCallbacks.forEach(cb => cb(amount, this.health, this.maxHealth));
+    this.onDamageCallbacks.forEach(cb => cb(finalDamage, this.health, this.maxHealth));
 
     if (this.health <= 0) {
       if (this.animController) {
@@ -430,6 +494,16 @@ export class Player {
       this.invulnerableTimer -= deltaTime;
       if (this.invulnerableTimer <= 0) {
         this.isInvulnerable = false;
+      }
+    }
+
+    // Consumable speed buff timer
+    if (this.speedBuffTimer > 0) {
+      this.speedBuffTimer -= deltaTime;
+      if (this.speedBuffTimer <= 0) {
+        this.speedBuffTimer = 0;
+        this.speedBuffMultiplier = 1.0;
+        this.recalculateStats();
       }
     }
 
@@ -643,11 +717,17 @@ export class Player {
       rotationY: Number(this.rotation.y.toFixed(3)),
       health: Math.max(1, Math.min(this.maxHealth, Math.ceil(this.health))),
       maxHealth: this.maxHealth,
+      baseMaxHealth: this.baseMaxHealth,
+      damage: this.damage,
+      baseDamage: this.baseDamage,
+      defense: this.defense,
+      baseDefense: this.baseDefense,
       isRunMode: this.isRunMode,
       level: this.level,
       xp: this.xp,
-      inventory: JSON.parse(JSON.stringify(this.inventory)),
-      equipment: JSON.parse(JSON.stringify(this.equipment)),
+      inventory: this.inventorySystem.getSaveState(),
+      legacyInventory: Array.isArray(this.inventory) ? [...this.inventory] : [],
+      equipment: { ...this.inventorySystem.equipment },
       unlockedSkills: [...this.unlockedSkills],
       discoveredLocations: [...this.discoveredLocations]
     };
@@ -669,9 +749,40 @@ export class Player {
       this.mesh.rotation.y = state.rotationY;
     }
 
-    if (typeof state.maxHealth === 'number') {
-      this.maxHealth = state.maxHealth;
+    if (typeof state.baseMaxHealth === 'number') {
+      this.baseMaxHealth = state.baseMaxHealth;
     }
+
+    if (typeof state.baseDamage === 'number') {
+      this.baseDamage = state.baseDamage;
+    }
+
+    if (typeof state.baseDefense === 'number') {
+      this.baseDefense = state.baseDefense;
+    }
+
+    if (typeof state.level === 'number') this.level = state.level;
+    if (typeof state.xp === 'number') this.xp = state.xp;
+    if (Array.isArray(state.unlockedSkills)) this.unlockedSkills = state.unlockedSkills;
+    if (Array.isArray(state.discoveredLocations)) this.discoveredLocations = state.discoveredLocations;
+
+    // Restore inventory and equipment
+    if (state.inventory) {
+      this.inventorySystem.restoreSaveState(state.inventory, this);
+    } else if (Array.isArray(state.inventory)) {
+      this.inventorySystem.restoreSaveState({ slots: state.inventory, equipment: state.equipment }, this);
+    }
+
+    if (Array.isArray(state.legacyInventory)) {
+      this.inventory = [...state.legacyInventory];
+    } else if (Array.isArray(state.inventory)) {
+      this.inventory = [...state.inventory];
+    } else {
+      this.inventory = this.inventorySystem.slots.filter(Boolean);
+    }
+
+    // Recompute stats from base + restored equipment
+    this.recalculateStats();
 
     if (typeof state.health === 'number') {
       this.health = Math.max(1, Math.min(this.maxHealth, state.health));
@@ -686,13 +797,6 @@ export class Player {
         this.uiManager.updateMovementStance(this.isRunMode ? 'run' : 'walk');
       }
     }
-
-    if (typeof state.level === 'number') this.level = state.level;
-    if (typeof state.xp === 'number') this.xp = state.xp;
-    if (Array.isArray(state.inventory)) this.inventory = state.inventory;
-    if (state.equipment) this.equipment = state.equipment;
-    if (Array.isArray(state.unlockedSkills)) this.unlockedSkills = state.unlockedSkills;
-    if (Array.isArray(state.discoveredLocations)) this.discoveredLocations = state.discoveredLocations;
 
     this.isInvulnerable = false;
     this.invulnerableTimer = 0;

@@ -174,6 +174,11 @@ export class LevelManager {
     } else {
       await performLoad();
     }
+
+    // Auto-save on stage transitions if actively playing
+    if (this.hasInitiallyLoaded && this.game.gameState === 'PLAYING' && this.game.saveManager) {
+      this.game.saveManager.saveGame(this.game, 'quicksave');
+    }
   }
 
   onStageCompleted(results) {

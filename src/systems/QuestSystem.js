@@ -162,4 +162,41 @@ export class QuestSystem {
   isMissionCompleted() {
     return this.currentQuest ? this.currentQuest.isCompleted : false;
   }
+
+  getQuestSaveState() {
+    if (!this.currentQuest) {
+      return {
+        id: `stage-${this.currentLevelIndex}`,
+        enemiesDefeated: 0,
+        crystalsCollected: 0,
+        isEntranceUnlocked: false,
+        isCompleted: false,
+        score: 0
+      };
+    }
+    return this.currentQuest.getState();
+  }
+
+  restoreQuestSaveState(state) {
+    if (!state || !this.currentQuest) return;
+
+    this.currentQuest.restoreState(state);
+    this.isEntranceUnlocked = this.currentQuest.isEntranceUnlocked;
+
+    if (this.isEntranceUnlocked) {
+      if (this.currentLevelIndex === 0) {
+        if (this.environment?.ruins && typeof this.environment.ruins.unlockEntrance === 'function') {
+          this.environment.ruins.unlockEntrance();
+        }
+      } else {
+        if (this.environment?.ruinsStage && typeof this.environment.ruinsStage.unlockSanctum === 'function') {
+          this.environment.ruinsStage.unlockSanctum();
+        }
+      }
+    }
+
+    if (this.uiManager && typeof this.uiManager.updateQuestHUD === 'function') {
+      this.uiManager.updateQuestHUD(this.currentQuest);
+    }
+  }
 }

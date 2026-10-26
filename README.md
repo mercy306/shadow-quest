@@ -47,6 +47,15 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
   - In-game HUD: health bar, live score, targeted enemy health, crystal counter, objective list, and interaction prompts.
   - Settings modal: Master, Music, and SFX volume sliders, Mouse sensitivity, Invert Y-axis, and Graphics presets (High, Medium, Low).
   - Pause menu, Game Over screen (with Retry), and Victory mission results screen.
+- **Robust Persistent Save System**:
+  - IndexedDB storage with automatic `localStorage` fallback.
+  - Versioned schema (v1) with validation, error handling, and migrations for backwards compatibility.
+  - Saves player coordinates, rotation, health, level, experience, inventory, equipment, unlocked skills, discovered locations, collectibles, and quest progress.
+  - Persists game settings (audio volumes, mute, mouse sensitivity, invert-Y, graphics preset).
+  - Main menu **Continue** & **New Game** buttons; pause menu **Save Game** & **Load Game** buttons.
+  - Visual save notification indicator toast with pulse animation.
+  - Protection against saving transient states (e.g., during level transitions or player defeat).
+  - Strict isolation between local single-player saves and future multiplayer states.
 
 ---
 
@@ -102,7 +111,8 @@ game/
 │   │   ├── CollectibleManager.js  # Stage crystal placement & pickups
 │   │   ├── CombatSystem.js        # Damage calculation, proximity targeting, score
 │   │   ├── Quest.js               # Quest objectives & criteria
-│   │   └── QuestSystem.js         # Objective listeners & portal unlock logic
+│   │   ├── QuestSystem.js         # Objective listeners & portal unlock logic
+│   │   └── SaveManager.js         # IndexedDB persistent save system & schema migration
 │   ├── ui/
 │   │   └── UIManager.js           # Menu, HUD, modal, and screen controller
 │   ├── vfx/

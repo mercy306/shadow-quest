@@ -37,6 +37,19 @@ export class Player {
     this.lastWPressTime = 0;
     this.isDoubleTapSprint = false;
 
+    // Progression, Inventory & Skills (Persistent Save System)
+    this.level = 1;
+    this.xp = 0;
+    this.inventory = [
+      { id: 'health_potion', name: 'Ancient Elixir', count: 2, icon: '🧪' }
+    ];
+    this.equipment = {
+      weapon: 'Iron Sword',
+      armor: 'Adventurer Tunic'
+    };
+    this.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
+    this.discoveredLocations = ['dark-forest'];
+
     // Combat parameters
     this.damage = 40;
     this.maxHealth = 100;
@@ -615,5 +628,74 @@ export class Player {
 
   getAvailableAnimations() {
     return this.animController ? this.animController.getAvailableClips() : [];
+  }
+
+  /**
+   * Captures the full player state for persistent storage
+   */
+  getSaveState() {
+    return {
+      position: {
+        x: Number(this.position.x.toFixed(3)),
+        y: Number(this.position.y.toFixed(3)),
+        z: Number(this.position.z.toFixed(3))
+      },
+      rotationY: Number(this.rotation.y.toFixed(3)),
+      health: Math.max(1, Math.min(this.maxHealth, Math.ceil(this.health))),
+      maxHealth: this.maxHealth,
+      isRunMode: this.isRunMode,
+      level: this.level,
+      xp: this.xp,
+      inventory: JSON.parse(JSON.stringify(this.inventory)),
+      equipment: JSON.parse(JSON.stringify(this.equipment)),
+      unlockedSkills: [...this.unlockedSkills],
+      discoveredLocations: [...this.discoveredLocations]
+    };
+  }
+
+  /**
+   * Restores player state from persistent storage
+   */
+  restoreSaveState(state) {
+    if (!state) return;
+
+    if (state.position && typeof state.position.x === 'number') {
+      this.mesh.position.set(state.position.x, state.position.y, state.position.z);
+      this.verticalVelocity = 0;
+      this.isGrounded = true;
+    }
+
+    if (typeof state.rotationY === 'number') {
+      this.mesh.rotation.y = state.rotationY;
+    }
+
+    if (typeof state.maxHealth === 'number') {
+      this.maxHealth = state.maxHealth;
+    }
+
+    if (typeof state.health === 'number') {
+      this.health = Math.max(1, Math.min(this.maxHealth, state.health));
+      if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
+        this.uiManager.updatePlayerHealth(this.health, this.maxHealth);
+      }
+    }
+
+    if (typeof state.isRunMode === 'boolean') {
+      this.isRunMode = state.isRunMode;
+      if (this.uiManager && typeof this.uiManager.updateMovementStance === 'function') {
+        this.uiManager.updateMovementStance(this.isRunMode ? 'run' : 'walk');
+      }
+    }
+
+    if (typeof state.level === 'number') this.level = state.level;
+    if (typeof state.xp === 'number') this.xp = state.xp;
+    if (Array.isArray(state.inventory)) this.inventory = state.inventory;
+    if (state.equipment) this.equipment = state.equipment;
+    if (Array.isArray(state.unlockedSkills)) this.unlockedSkills = state.unlockedSkills;
+    if (Array.isArray(state.discoveredLocations)) this.discoveredLocations = state.discoveredLocations;
+
+    this.isInvulnerable = false;
+    this.invulnerableTimer = 0;
+    this.isAttacking = false;
   }
 }

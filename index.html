@@ -27,8 +27,11 @@
         </div>
 
         <nav class="menu-actions">
-          <button id="menu-btn-play" class="menu-btn primary">
-            <span class="btn-icon">⚔️</span> PLAY ADVENTURE
+          <button id="menu-btn-continue" class="menu-btn primary disabled" disabled>
+            <span class="btn-icon">⏩</span> CONTINUE
+          </button>
+          <button id="menu-btn-play" class="menu-btn secondary">
+            <span class="btn-icon">⚔️</span> NEW GAME
           </button>
           <button id="menu-btn-settings" class="menu-btn">
             <span class="btn-icon">⚙️</span> SETTINGS
@@ -287,6 +290,12 @@
         <span id="toast-text">+1 Shadow Crystal</span>
       </div>
 
+      <!-- Persistent Save Status Indicator Toast -->
+      <div id="save-indicator" class="save-indicator hidden">
+        <span id="save-indicator-icon" class="save-indicator-icon">💾</span>
+        <span id="save-indicator-text" class="save-indicator-text">GAME PROGRESS SAVED</span>
+      </div>
+
       <!-- Pointer Lock Hint -->
       <div id="pointer-lock-hint" class="pointer-lock-hint">
         <span>Click screen to enable 360° Mouse Look</span>
@@ -305,6 +314,8 @@
 
         <div class="pause-actions">
           <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
+          <button id="pause-save-btn" class="pause-btn save-btn">💾 SAVE GAME</button>
+          <button id="pause-load-btn" class="pause-btn load-btn">📂 LOAD GAME</button>
           <button id="pause-restart-btn" class="pause-btn secondary">RESTART LEVEL</button>
           <button id="pause-settings-btn" class="pause-btn secondary">SETTINGS</button>
           <button id="pause-menu-btn" class="pause-btn danger">RETURN TO MAIN MENU</button>

@@ -144,4 +144,45 @@ export class Quest {
   onCompleted(callback) {
     this.onCompletedCallbacks.push(callback);
   }
+
+  getState() {
+    return {
+      id: this.id,
+      enemiesDefeated: this.objEnemies.current,
+      crystalsCollected: this.objCrystals.current,
+      isEntranceUnlocked: this.isEntranceUnlocked,
+      isCompleted: this.isCompleted,
+      score: this.score
+    };
+  }
+
+  restoreState(state) {
+    if (!state) return;
+    this.objEnemies.current = Math.min(this.enemiesRequired, state.enemiesDefeated || 0);
+    this.objEnemies.isCompleted = this.objEnemies.current >= this.enemiesRequired;
+
+    this.objCrystals.current = Math.min(this.crystalsRequired, state.crystalsCollected || 0);
+    this.objCrystals.isCompleted = this.objCrystals.current >= this.crystalsRequired;
+
+    if (state.isEntranceUnlocked || (this.objEnemies.isCompleted && this.objCrystals.isCompleted)) {
+      this.isEntranceUnlocked = true;
+      this.objEntrance.setStatus('UNLOCKED', true);
+      this.objExit.setStatus('ACTIVE (Enter Portal)', false);
+    } else {
+      this.isEntranceUnlocked = false;
+      this.objEntrance.setStatus('Locked', false);
+      this.objExit.setStatus('Sealed', false);
+    }
+
+    if (state.isCompleted) {
+      this.isCompleted = true;
+      this.objExit.setStatus('COMPLETED', true);
+    }
+
+    if (typeof state.score === 'number') {
+      this.score = state.score;
+    }
+
+    this.notifyProgress();
+  }
 }

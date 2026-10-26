@@ -11,6 +11,7 @@ import { PhysicsWorld } from '../physics/PhysicsWorld.js';
 import { CollectibleManager } from '../systems/CollectibleManager.js';
 import { LevelManager } from './LevelManager.js';
 import { VFXManager } from '../vfx/VFXManager.js';
+import { SaveManager, QUICK_SAVE_SLOT } from '../systems/SaveManager.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -24,6 +25,7 @@ export class Game {
   constructor() {
     this.container = document.getElementById('game-container');
     this.uiManager = new UIManager();
+    this.saveManager = new SaveManager();
     this.clock = new THREE.Clock();
     this.isRunning = false;
     this.isPaused = false;
@@ -130,17 +132,34 @@ export class Game {
       await this.levelManager.init();
       this.initStep = 'levelManager';
 
-      // 13. UI Configuration (Main Menu & Settings)
+      // Auto-save on collectible pickups
+      if (this.collectibleManager) {
+        this.collectibleManager.onCollect(() => {
+          if (this.gameState === GameState.PLAYING && !this.levelManager.isTransitioning) {
+            this.saveManager.saveGame(this, QUICK_SAVE_SLOT);
+          }
+        });
+      }
+
+      // 13. UI Configuration (Main Menu, Settings, & Persistent Saves)
       this.uiManager.setupMainMenu({
-        onPlay: () => this.startGame(),
+        onPlay: () => this.startNewGame(),
+        onContinue: () => this.continueSavedGame(),
         onOpenSettings: () => {}
       });
 
       this.uiManager.setupSettings({
         audioManager: this.audioManager,
         cameraManager: this.cameraManager,
+        saveManager: this.saveManager,
         onSetGraphics: (preset) => this.setGraphicsQuality(preset)
       });
+
+      // Apply initial saved settings
+      this.saveManager.applySettings(this, this.saveManager.loadSettings());
+
+      // Check if quicksave exists and update Continue button
+      await this.refreshContinueButton();
 
       // 14. Pause & window resize listeners
       this.setupInputListeners();
@@ -206,7 +225,9 @@ export class Game {
         () => this.resumeGame(),
         () => this.restartLevel(),
         () => {},
-        () => this.returnToMainMenu()
+        () => this.returnToMainMenu(),
+        () => this.saveCurrentGame(),
+        () => this.loadSavedGame()
       );
     } else if (this.gameState === GameState.PAUSED) {
       this.resumeGame();
@@ -276,9 +297,67 @@ export class Game {
     this.uiManager.hideVictoryScreen();
     this.uiManager.showMainMenu();
 
+    await this.refreshContinueButton();
+
     // Reload stage 0 in menu mode
     await this.levelManager.loadLevel(0);
     this.player.isEnabled = false;
+  }
+
+  async refreshContinueButton() {
+    try {
+      const hasSave = await this.saveManager.hasSave(QUICK_SAVE_SLOT);
+      let metaText = '';
+      if (hasSave) {
+        const meta = await this.saveManager.getSaveMetadata(QUICK_SAVE_SLOT);
+        if (meta) {
+          metaText = `${meta.stageName || 'Stage'} • ${meta.score || 0} PTS`;
+        }
+      }
+      this.uiManager.setContinueButtonEnabled(hasSave, metaText);
+      return hasSave;
+    } catch (e) {
+      this.uiManager.setContinueButtonEnabled(false);
+      return false;
+    }
+  }
+
+  async startNewGame() {
+    this.startGame();
+  }
+
+  async continueSavedGame() {
+    const hasSave = await this.saveManager.hasSave(QUICK_SAVE_SLOT);
+    if (!hasSave) {
+      console.warn('[Game] No save file found, starting new adventure.');
+      this.startNewGame();
+      return;
+    }
+
+    const result = await this.saveManager.loadGame(this, QUICK_SAVE_SLOT);
+    if (result.success) {
+      this.resumeFromMenuOrEnd();
+      // Start audio
+      if (this.audioManager) {
+        this.audioManager.initAudioContext();
+        this.audioManager.playAmbience(this.levelManager.currentLevelIndex);
+      }
+    } else {
+      console.error('[Game] Error loading save, falling back to new adventure:', result.reason);
+      this.startNewGame();
+    }
+  }
+
+  async saveCurrentGame() {
+    return await this.saveManager.saveGame(this, QUICK_SAVE_SLOT);
+  }
+
+  async loadSavedGame() {
+    const result = await this.saveManager.loadGame(this, QUICK_SAVE_SLOT);
+    if (result.success) {
+      this.resumeGame();
+    }
+    return result;
   }
 
   setGraphicsQuality(preset) {

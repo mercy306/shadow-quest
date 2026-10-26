@@ -3,6 +3,7 @@ import { Game } from './core/Game.js';
 
 async function initGame() {
   const game = new Game();
+  window.game = game;
   window.__GAME__ = game;
   if (import.meta.env.DEV) {
     window.THREE = THREE;

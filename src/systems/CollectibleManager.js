@@ -9,6 +9,7 @@ export class CollectibleManager {
     this.collectibles = [];
     this.collectedCounts = new Map();
     this.totalCounts = new Map();
+    this.collectedIds = new Set();
     this.onCollectCallbacks = [];
   }
 
@@ -86,6 +87,7 @@ export class CollectibleManager {
         if (dist <= item.collectionRadius) {
           const success = item.collect();
           if (success) {
+            this.collectedIds.add(item.id);
             const count = (this.collectedCounts.get(item.type) || 0) + item.value;
             this.collectedCounts.set(item.type, count);
             const total = this.totalCounts.get(item.type) || count;
@@ -137,10 +139,35 @@ export class CollectibleManager {
     return Math.max(0, this.getTotalCount(type) - this.getCollectedCount(type));
   }
 
+  getCollectedIds() {
+    return Array.from(this.collectedIds);
+  }
+
+  restoreCollectedIds(ids = []) {
+    if (!Array.isArray(ids)) return;
+
+    this.collectedIds = new Set(ids);
+    let crystalsRemoved = 0;
+
+    for (let i = 0; i < this.collectibles.length; i++) {
+      const item = this.collectibles[i];
+      if (this.collectedIds.has(item.id)) {
+        item.isCollected = true;
+        item.isDisposed = true;
+        item.dispose();
+        crystalsRemoved++;
+      }
+    }
+
+    this.collectibles = this.collectibles.filter(item => !item.isDisposed);
+    this.collectedCounts.set('crystal', this.collectedIds.size);
+  }
+
   clear() {
     this.collectibles.forEach(item => item.dispose());
     this.collectibles = [];
     this.collectedCounts.clear();
     this.totalCounts.clear();
+    this.collectedIds.clear();
   }
 }

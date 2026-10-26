@@ -8,6 +8,7 @@ export class UIManager {
 
     // Main Menu
     this.mainMenu = document.getElementById('main-menu');
+    this.menuBtnContinue = document.getElementById('menu-btn-continue');
     this.menuBtnPlay = document.getElementById('menu-btn-play');
     this.menuBtnSettings = document.getElementById('menu-btn-settings');
     this.menuBtnControls = document.getElementById('menu-btn-controls');
@@ -83,9 +84,17 @@ export class UIManager {
     // Pause Screen
     this.pauseScreen = document.getElementById('pause-screen');
     this.resumeBtn = document.getElementById('resume-btn');
+    this.pauseSaveBtn = document.getElementById('pause-save-btn');
+    this.pauseLoadBtn = document.getElementById('pause-load-btn');
     this.pauseRestartBtn = document.getElementById('pause-restart-btn');
     this.pauseSettingsBtn = document.getElementById('pause-settings-btn');
     this.pauseMenuBtn = document.getElementById('pause-menu-btn');
+
+    // Save Status Indicator
+    this.saveIndicator = document.getElementById('save-indicator');
+    this.saveIndicatorText = document.getElementById('save-indicator-text');
+    this.saveIndicatorIcon = document.getElementById('save-indicator-icon');
+    this.saveIndicatorTimeout = null;
 
     // Game Over Screen
     this.gameOverScreen = document.getElementById('game-over-screen');
@@ -115,7 +124,15 @@ export class UIManager {
   }
 
   // ==================== MAIN MENU & MODALS ====================
-  setupMainMenu({ onPlay, onOpenSettings }) {
+  setupMainMenu({ onPlay, onContinue, onOpenSettings }) {
+    if (this.menuBtnContinue) {
+      this.menuBtnContinue.onclick = () => {
+        if (!this.menuBtnContinue.disabled && typeof onContinue === 'function') {
+          onContinue();
+        }
+      };
+    }
+
     if (this.menuBtnPlay) {
       this.menuBtnPlay.onclick = () => {
         if (typeof onPlay === 'function') onPlay();
@@ -136,6 +153,60 @@ export class UIManager {
     if (this.menuBtnCredits) {
       this.menuBtnCredits.onclick = () => this.openModal(this.modalCredits);
     }
+  }
+
+  setContinueButtonEnabled(enabled, metaText = '') {
+    if (!this.menuBtnContinue) return;
+
+    if (enabled) {
+      this.menuBtnContinue.removeAttribute('disabled');
+      this.menuBtnContinue.classList.remove('disabled');
+      this.menuBtnContinue.classList.add('primary');
+      if (this.menuBtnPlay) {
+        this.menuBtnPlay.classList.remove('primary');
+      }
+      this.menuBtnContinue.title = metaText ? `Resume adventure: ${metaText}` : 'Resume saved adventure';
+    } else {
+      this.menuBtnContinue.setAttribute('disabled', 'true');
+      this.menuBtnContinue.classList.add('disabled');
+      this.menuBtnContinue.classList.remove('primary');
+      if (this.menuBtnPlay) {
+        this.menuBtnPlay.classList.add('primary');
+      }
+      this.menuBtnContinue.title = 'No saved adventure found';
+    }
+  }
+
+  showSaveIndicator(message = 'GAME PROGRESS SAVED', type = 'success') {
+    if (!this.saveIndicator) return;
+
+    if (this.saveIndicatorText) {
+      this.saveIndicatorText.textContent = message;
+    }
+
+    if (this.saveIndicatorIcon) {
+      if (type === 'error') {
+        this.saveIndicatorIcon.textContent = '⚠️';
+      } else if (message.includes('LOAD')) {
+        this.saveIndicatorIcon.textContent = '📂';
+      } else {
+        this.saveIndicatorIcon.textContent = '💾';
+      }
+    }
+
+    this.saveIndicator.className = 'save-indicator';
+    if (type === 'error') {
+      this.saveIndicator.classList.add('error');
+    }
+
+    this.saveIndicator.style.animation = 'none';
+    this.saveIndicator.offsetHeight; // trigger reflow
+    this.saveIndicator.style.animation = 'savePulse 2.2s forwards ease-in-out';
+
+    if (this.saveIndicatorTimeout) clearTimeout(this.saveIndicatorTimeout);
+    this.saveIndicatorTimeout = setTimeout(() => {
+      this.saveIndicator.classList.add('hidden');
+    }, 2200);
   }
 
   setupModalListeners() {
@@ -181,7 +252,9 @@ export class UIManager {
   }
 
   // ==================== SETTINGS CONFIGURATION ====================
-  setupSettings({ audioManager, cameraManager, onSetGraphics }) {
+  setupSettings({ audioManager, cameraManager, onSetGraphics, saveManager = null }) {
+    const saved = saveManager ? saveManager.loadSettings() : null;
+
     // 1. Audio
     if (audioManager) {
       const syncMuteUI = (isMuted) => {
@@ -190,11 +263,34 @@ export class UIManager {
         if (this.muteBtn) this.muteBtn.style.borderColor = isMuted ? '#ef4444' : 'rgba(255, 255, 255, 0.2)';
       };
 
+      if (saved) {
+        if (typeof saved.masterVolume === 'number') {
+          audioManager.setMasterVolume(saved.masterVolume);
+          if (this.settingMasterVol) this.settingMasterVol.value = Math.round(saved.masterVolume * 100);
+          if (this.masterVolNum) this.masterVolNum.textContent = `${Math.round(saved.masterVolume * 100)}%`;
+        }
+        if (typeof saved.musicVolume === 'number') {
+          audioManager.setMusicVolume(saved.musicVolume);
+          if (this.settingMusicVol) this.settingMusicVol.value = Math.round(saved.musicVolume * 100);
+          if (this.musicVolNum) this.musicVolNum.textContent = `${Math.round(saved.musicVolume * 100)}%`;
+        }
+        if (typeof saved.sfxVolume === 'number') {
+          audioManager.setSFXVolume(saved.sfxVolume);
+          if (this.settingSfxVol) this.settingSfxVol.value = Math.round(saved.sfxVolume * 100);
+          if (this.sfxVolNum) this.sfxVolNum.textContent = `${Math.round(saved.sfxVolume * 100)}%`;
+        }
+        if (typeof saved.isMuted === 'boolean') {
+          audioManager.setMute(saved.isMuted);
+          syncMuteUI(saved.isMuted);
+        }
+      }
+
       if (this.settingMasterVol) {
         this.settingMasterVol.oninput = (e) => {
           const val = parseFloat(e.target.value);
           if (this.masterVolNum) this.masterVolNum.textContent = `${Math.round(val)}%`;
           audioManager.setMasterVolume(val / 100);
+          if (saveManager) saveManager.saveSettings({ masterVolume: val / 100 });
         };
       }
 
@@ -203,6 +299,7 @@ export class UIManager {
           const val = parseFloat(e.target.value);
           if (this.musicVolNum) this.musicVolNum.textContent = `${Math.round(val)}%`;
           audioManager.setMusicVolume(val / 100);
+          if (saveManager) saveManager.saveSettings({ musicVolume: val / 100 });
         };
       }
 
@@ -211,6 +308,7 @@ export class UIManager {
           const val = parseFloat(e.target.value);
           if (this.sfxVolNum) this.sfxVolNum.textContent = `${Math.round(val)}%`;
           audioManager.setSFXVolume(val / 100);
+          if (saveManager) saveManager.saveSettings({ sfxVolume: val / 100 });
         };
       }
 
@@ -218,6 +316,7 @@ export class UIManager {
         this.settingMuteToggle.onchange = (e) => {
           audioManager.setMute(e.target.checked);
           syncMuteUI(e.target.checked);
+          if (saveManager) saveManager.saveSettings({ isMuted: e.target.checked });
         };
       }
 
@@ -226,6 +325,7 @@ export class UIManager {
           e.stopPropagation();
           const isMuted = audioManager.toggleMute();
           syncMuteUI(isMuted);
+          if (saveManager) saveManager.saveSettings({ isMuted });
         };
       }
 
@@ -233,23 +333,38 @@ export class UIManager {
         if (e.code === 'KeyM') {
           const isMuted = audioManager.toggleMute();
           syncMuteUI(isMuted);
+          if (saveManager) saveManager.saveSettings({ isMuted });
         }
       });
     }
 
     // 2. Camera Controls
     if (cameraManager) {
+      if (saved) {
+        if (typeof saved.mouseSensitivity === 'number') {
+          cameraManager.setMouseSensitivity(saved.mouseSensitivity * 0.001);
+          if (this.settingMouseSens) this.settingMouseSens.value = saved.mouseSensitivity;
+          if (this.mouseSensNum) this.mouseSensNum.textContent = `${saved.mouseSensitivity.toFixed(1)}x`;
+        }
+        if (typeof saved.invertY === 'boolean') {
+          cameraManager.setInvertY(saved.invertY);
+          if (this.settingInvertY) this.settingInvertY.checked = saved.invertY;
+        }
+      }
+
       if (this.settingMouseSens) {
         this.settingMouseSens.oninput = (e) => {
           const val = parseFloat(e.target.value);
           if (this.mouseSensNum) this.mouseSensNum.textContent = `${val.toFixed(1)}x`;
           cameraManager.setMouseSensitivity(val * 0.001);
+          if (saveManager) saveManager.saveSettings({ mouseSensitivity: val });
         };
       }
 
       if (this.settingInvertY) {
         this.settingInvertY.onchange = (e) => {
           cameraManager.setInvertY(e.target.checked);
+          if (saveManager) saveManager.saveSettings({ invertY: e.target.checked });
         };
       }
     }
@@ -261,12 +376,23 @@ export class UIManager {
       { btn: this.gfxLowBtn, preset: 'low' }
     ];
 
+    if (saved?.graphicsPreset) {
+      gfxButtons.forEach(b => {
+        if (b.btn) {
+          if (b.preset === saved.graphicsPreset) b.btn.classList.add('active');
+          else b.btn.classList.remove('active');
+        }
+      });
+      if (typeof onSetGraphics === 'function') onSetGraphics(saved.graphicsPreset);
+    }
+
     gfxButtons.forEach(({ btn, preset }) => {
       if (btn) {
         btn.onclick = () => {
           gfxButtons.forEach(b => b.btn?.classList.remove('active'));
           btn.classList.add('active');
           if (typeof onSetGraphics === 'function') onSetGraphics(preset);
+          if (saveManager) saveManager.saveSettings({ graphicsPreset: preset });
         };
       }
     });
@@ -439,11 +565,13 @@ export class UIManager {
   }
 
   // ==================== PAUSE MENU ====================
-  setPaused(isPaused, onResume = null, onRestart = null, onOpenSettings = null, onMainMenu = null) {
+  setPaused(isPaused, onResume = null, onRestart = null, onOpenSettings = null, onMainMenu = null, onSaveGame = null, onLoadGame = null) {
     if (this.pauseScreen) {
       if (isPaused) {
         this.pauseScreen.classList.remove('hidden');
         if (this.resumeBtn && onResume) this.resumeBtn.onclick = onResume;
+        if (this.pauseSaveBtn && onSaveGame) this.pauseSaveBtn.onclick = onSaveGame;
+        if (this.pauseLoadBtn && onLoadGame) this.pauseLoadBtn.onclick = onLoadGame;
         if (this.pauseRestartBtn && onRestart) this.pauseRestartBtn.onclick = onRestart;
         if (this.pauseSettingsBtn) {
           this.pauseSettingsBtn.onclick = () => {

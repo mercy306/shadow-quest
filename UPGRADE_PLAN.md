@@ -134,3 +134,19 @@ Each upgrade phase must adhere to strict QA gates:
 3. **Save Schema Integrity**: Verify save, load, stage transition, death, and reload with invalid/missing JSON fallback.
 4. **Frame Rate Benchmark**: Maintain $\ge 60\text{ FPS}$ on standard desktop profiles.
 5. **Git Checkpoint Integrity**: Commit each phase independently with clean commit descriptions.
+
+---
+
+## 6. Implementation Log & Milestones
+
+### Phase 1, Milestone 1: Robust Persistent Save System ✅ COMPLETED
+- **Architecture**: `src/systems/SaveManager.js` using IndexedDB (`ShadowQuestDB` store `saves`) with automatic `localStorage` fallback.
+- **Schema**: Versioned `version: 1` storing player transform, health, level, xp, inventory, equipment, unlocked skills, discovered locations, collectibles, quest objectives, and user settings.
+- **Validation & Migrations**: Runtime integrity validation on every load; automatic migration function converting legacy or unversioned saves to schema v1.
+- **Transient State Protection**: Guarded save logic refusing to save during level transitions (`isTransitioning === true`), player defeat (`health <= 0`), or menu states.
+- **Multiplayer State Isolation**: Local saves strictly separate single-player progress from any network session state (`multiplayer: { isMultiplayer: false, sessionId: null, syncState: 'LOCAL_ONLY' }`).
+- **UI Integration**:
+  - Main menu: **Continue** (enabled with save metadata tooltip when save exists) and **New Game** buttons.
+  - Pause menu: **Save Game** (`#pause-save-btn`) and **Load Game** (`#pause-load-btn`) buttons.
+  - In-game HUD: Visual `#save-indicator` toast with pulse animation.
+- **Automated Verification**: `tests/save_system.test.js` executed via Headless Chrome CDP verifying all 9 requirement suites with 100% pass rate.

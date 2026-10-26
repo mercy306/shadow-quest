@@ -323,6 +323,20 @@ export class Game {
   }
 
   async startNewGame() {
+    this.levelManager.stageScores = [0, 0];
+    this.levelManager.cumulativeScore = 0;
+    await this.levelManager.loadLevel(0, true);
+    if (this.player) {
+      this.player.health = this.player.maxHealth;
+      this.player.level = 1;
+      this.player.xp = 0;
+      this.player.inventory = [
+        { id: 'health_potion', name: 'Ancient Elixir', count: 2, icon: '🧪' }
+      ];
+      this.player.equipment = { weapon: 'Iron Sword', armor: 'Adventurer Tunic' };
+      this.player.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
+      this.player.discoveredLocations = ['dark-forest'];
+    }
     this.startGame();
   }
 

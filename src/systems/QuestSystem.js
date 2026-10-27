@@ -13,6 +13,7 @@ export class QuestSystem {
     this.isEntranceUnlocked = false;
 
     this.sideQuests = new Map();
+    this.completedQuestIds = new Set();
     this.initSideQuests();
 
     this.onQuestCompletedCallbacks = [];
@@ -109,9 +110,15 @@ export class QuestSystem {
 
   completeSideQuest(id, player = null) {
     const quest = this.sideQuests.get(id);
-    if (!quest || quest.status !== 'READY_TO_TURN_IN') return false;
+    if (!quest) return false;
+    if (quest.status === 'COMPLETED' || this.completedQuestIds.has(id)) {
+      console.warn(`[QuestSystem] Quest '${id}' is already completed. One-time rewards cannot be re-awarded.`);
+      return false;
+    }
+    if (quest.status !== 'READY_TO_TURN_IN') return false;
 
     quest.complete();
+    this.completedQuestIds.add(id);
 
     // Distribute rewards
     if (player) {
@@ -142,6 +149,35 @@ export class QuestSystem {
       this.game.autoSave(`Quest: ${quest.title}`);
     }
     return true;
+  }
+
+  abandonSideQuest(id, player = null) {
+    const quest = this.sideQuests.get(id);
+    if (!quest) return { success: false, reason: 'QUEST_NOT_FOUND' };
+    if (quest.status === 'COMPLETED' || this.completedQuestIds.has(id)) {
+      return { success: false, reason: 'CANNOT_ABANDON_COMPLETED', message: 'Completed quests cannot be abandoned.' };
+    }
+    if (quest.status === 'AVAILABLE') {
+      return { success: false, reason: 'NOT_ACTIVE', message: 'Quest has not been accepted.' };
+    }
+
+    // Reset progress and return to AVAILABLE
+    quest.abandon();
+
+    // If retrieval quest, clear the retrieved item from player backpack
+    if (player && player.inventorySystem && quest.type === 'retrieval' && quest.targetId) {
+      const slotIdx = player.inventorySystem.slots.findIndex(s => s && s.item.id === quest.targetId);
+      if (slotIdx >= 0) {
+        player.inventorySystem.slots[slotIdx] = null;
+        player.inventorySystem.notifyChange();
+      }
+    }
+
+    if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+      this.uiManager.showCollectNotification(`⚠️ Abandoned Quest: ${quest.title}`);
+    }
+    this.updateSideQuestHUD();
+    return { success: true, quest };
   }
 
   updateSideQuestHUD() {
@@ -363,7 +399,8 @@ export class QuestSystem {
 
     return {
       ...baseState,
-      sideQuests: Array.from(this.sideQuests.values()).map(q => q.getState())
+      sideQuests: Array.from(this.sideQuests.values()).map(q => q.getState()),
+      completedQuestIds: Array.from(this.completedQuestIds)
     };
   }
 
@@ -391,11 +428,23 @@ export class QuestSystem {
       }
     }
 
+    // Restore completed quest IDs
+    if (Array.isArray(state.completedQuestIds)) {
+      this.completedQuestIds = new Set(state.completedQuestIds);
+    } else {
+      this.completedQuestIds = new Set();
+    }
+
     // Restore side quests
     if (Array.isArray(state.sideQuests)) {
       state.sideQuests.forEach(savedSq => {
         const sq = this.sideQuests.get(savedSq.id);
-        if (sq) sq.restoreState(savedSq);
+        if (sq) {
+          sq.restoreState(savedSq);
+          if (sq.status === 'COMPLETED') {
+            this.completedQuestIds.add(sq.id);
+          }
+        }
       });
       this.updateSideQuestHUD();
     }

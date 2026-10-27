@@ -54,6 +54,10 @@ export class DialogueManager {
 
       let greeting = 'Greetings, brave traveler. The ancient woods are shadowed by corruption, but your presence brings new hope to our people.';
 
+      if (qSys?.isEntranceUnlocked) {
+        greeting = 'The sanctuary portal is blazing with celestial light! The glade barrier has dissolved. Step through the Altar Portal whenever you are prepared to confront the Ancient Ruins!';
+      }
+
       // Check for ready turn-ins first!
       if (qGrimfang && qGrimfang.status === 'READY_TO_TURN_IN') {
         greeting = 'You have slain Grimfang! The howls of that terrible beast have ceased. The western hollow is safe once more. Take this reward, champion!';
@@ -89,7 +93,7 @@ export class DialogueManager {
         });
       }
 
-      // Check available quests
+      // In-progress or Available: Grimfang
       if (qGrimfang && qGrimfang.status === 'AVAILABLE') {
         choices.push({
           text: '📜 [Side Quest] "Do you need help with the dangers here?"',
@@ -121,8 +125,53 @@ export class DialogueManager {
             });
           }
         });
+      } else if (qGrimfang && qGrimfang.status === 'ACTIVE') {
+        choices.push({
+          text: '⚔️ [Quest Progress] "Where did you say Grimfang was seen?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'Grimfang prowls the mist-shrouded western hollow. Watch for dark claw marks along the ancient roots and prepare for a vicious ambush.',
+              choices: [
+                {
+                  text: 'I will hunt the beast down.',
+                  action: () => this.startDialogue(this.activeNPC, this.player)
+                },
+                {
+                  text: '⚠️ [Abandon Quest] "The danger is too great. I cannot continue."',
+                  action: () => {
+                    qSys.abandonSideQuest('side-bane-grimfang', this.player);
+                    this.renderNode({
+                      speaker: npc.name,
+                      title: npc.title,
+                      avatar: npc.avatar,
+                      text: 'A heavy choice, but survival comes first. Return to me if your resolve strengthens.',
+                      choices: [{ text: 'Farewell, Elder.', action: () => this.closeDialogue() }]
+                    });
+                  }
+                }
+              ]
+            });
+          }
+        });
+      } else if (qGrimfang && qGrimfang.status === 'COMPLETED') {
+        choices.push({
+          text: '🐺 "Has there been any sign of more shadow beasts?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'Thanks to your courage, Grimfang is slain and the western paths are quiet. Our scouts can breathe easy.',
+              choices: [{ text: 'Glad to help.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+            });
+          }
+        });
       }
 
+      // In-progress or Available: Sunken Grotto
       if (qGrotto && qGrotto.status === 'AVAILABLE') {
         choices.push({
           text: '🗺️ [Side Quest] "Tell me of the lost lore of this region."',
@@ -151,6 +200,47 @@ export class DialogueManager {
                   action: () => this.startDialogue(this.activeNPC, this.player)
                 }
               ]
+            });
+          }
+        });
+      } else if (qGrotto && qGrotto.status === 'ACTIVE') {
+        choices.push({
+          text: '🧭 [Quest Progress] "Any hints on finding the Sunken Grotto?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'Travel west toward the boundary cliffs. The grotto lies partially submerged beneath ancient rune arches.',
+              choices: [
+                { text: 'I will continue searching.', action: () => this.startDialogue(this.activeNPC, this.player) },
+                {
+                  text: '⚠️ [Abandon Quest] "I must abandon this expedition."',
+                  action: () => {
+                    qSys.abandonSideQuest('side-sunken-grotto', this.player);
+                    this.renderNode({
+                      speaker: npc.name,
+                      title: npc.title,
+                      avatar: npc.avatar,
+                      text: 'The grotto has slept for centuries; it will wait until you are prepared.',
+                      choices: [{ text: 'Understood.', action: () => this.closeDialogue() }]
+                    });
+                  }
+                }
+              ]
+            });
+          }
+        });
+      } else if (qGrotto && qGrotto.status === 'COMPLETED') {
+        choices.push({
+          text: '🏛️ "What will become of the Sunken Grotto now?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'Our scholars have already begun transcribing the sacred glyphs you uncovered. Your discovery will be remembered for generations.',
+              choices: [{ text: 'It was an honor.', action: () => this.startDialogue(this.activeNPC, this.player) }]
             });
           }
         });
@@ -285,6 +375,47 @@ export class DialogueManager {
                   action: () => this.startDialogue(this.activeNPC, this.player)
                 }
               ]
+            });
+          }
+        });
+      } else if (qSatchel && qSatchel.status === 'ACTIVE') {
+        choices.push({
+          text: '🎒 [Quest Progress] "Where exactly did you drop your satchel?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'Near the northwest collapsed stone archway. Keep your eyes peeled for a glowing leather bag among the roots.',
+              choices: [
+                { text: 'I am searching the ruins for it.', action: () => this.startDialogue(this.activeNPC, this.player) },
+                {
+                  text: '⚠️ [Abandon Quest] "I cannot search the ruins right now."',
+                  action: () => {
+                    qSys.abandonSideQuest('side-hermit-satchel', this.player);
+                    this.renderNode({
+                      speaker: npc.name,
+                      title: npc.title,
+                      avatar: npc.avatar,
+                      text: 'I understand... The horrors in those ruins are terrifying. Let me know if you muster the courage.',
+                      choices: [{ text: 'Farewell, Sylas.', action: () => this.closeDialogue() }]
+                    });
+                  }
+                }
+              ]
+            });
+          }
+        });
+      } else if (qSatchel && qSatchel.status === 'COMPLETED') {
+        choices.push({
+          text: '🌿 "How are the medicinal herbs holding up?"',
+          action: () => {
+            this.renderNode({
+              speaker: npc.name,
+              title: npc.title,
+              avatar: npc.avatar,
+              text: 'The sun-moss and star-orchids are drying splendidly. My gratitude remains eternal, traveler.',
+              choices: [{ text: 'May the forest protect you.', action: () => this.startDialogue(this.activeNPC, this.player) }]
             });
           }
         });

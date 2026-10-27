@@ -218,6 +218,13 @@ export class SideQuest {
     this.current = this.target;
   }
 
+  abandon() {
+    if (this.status === 'COMPLETED') return false;
+    this.status = 'AVAILABLE';
+    this.current = 0;
+    return true;
+  }
+
   getState() {
     return {
       id: this.id,

@@ -368,7 +368,7 @@ async function runNPCTests() {
         goldGained: g.player.gold - goldBefore,
         xpBefore: xpBefore,
         xpAfter: g.player.xp,
-        xpGained: g.player.xp - xpBefore,
+        xpGained: (g.player.totalXP !== undefined ? g.player.totalXP : g.player.xp) - xpBefore,
         allCompleted: g.questSystem.getAllSideQuests().every(q => q.status === 'COMPLETED')
       });
     `);

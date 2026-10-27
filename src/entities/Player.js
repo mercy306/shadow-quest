@@ -92,6 +92,7 @@ export class Player {
     // Progression & RPG Skill Tree System
     this.level = 1;
     this.xp = 0;
+    this.totalXP = 0;
     this.skillPoints = 0;
     this.spentSkillPoints = 0;
     this.skillTree = new SkillTreeSystem();
@@ -513,6 +514,7 @@ export class Player {
   addXP(amount) {
     if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return false;
 
+    this.totalXP = (this.totalXP || 0) + Math.floor(amount);
     this.xp = (this.xp || 0) + Math.floor(amount);
     let leveledUp = false;
 
@@ -675,6 +677,7 @@ export class Player {
     return {
       level: this.level,
       xp: this.xp,
+      totalXP: this.totalXP || this.xp,
       skillPoints: this.skillPoints || 0,
       spentSkillPoints: this.spentSkillPoints || 0,
       skillTree: this.skillTree ? this.skillTree.getSaveState() : {},
@@ -1155,6 +1158,7 @@ export class Player {
       isRunMode: this.isRunMode,
       level: this.level,
       xp: this.xp,
+      totalXP: this.totalXP || this.xp,
       skillPoints: this.skillPoints || 0,
       spentSkillPoints: this.spentSkillPoints || 0,
       skillTree: this.skillTree ? this.skillTree.getSaveState() : {},
@@ -1197,6 +1201,8 @@ export class Player {
 
     if (typeof state.level === 'number') this.level = state.level;
     if (typeof state.xp === 'number') this.xp = state.xp;
+    if (typeof state.totalXP === 'number') this.totalXP = state.totalXP;
+    else this.totalXP = state.xp || 0;
     if (typeof state.skillPoints === 'number') this.skillPoints = state.skillPoints;
     if (typeof state.spentSkillPoints === 'number') this.spentSkillPoints = state.spentSkillPoints;
     if (typeof state.gold === 'number') this.gold = state.gold;

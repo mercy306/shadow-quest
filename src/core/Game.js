@@ -16,6 +16,7 @@ import { NPCManager } from '../systems/NPCManager.js';
 import { DialogueManager } from '../systems/DialogueManager.js';
 import { MerchantManager } from '../systems/MerchantManager.js';
 import { MountManager } from '../entities/MountManager.js';
+import { PhotoModeManager } from '../systems/PhotoModeManager.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -39,6 +40,8 @@ export class Game {
     this.npcManager = null;
     this.dialogueManager = null;
     this.merchantManager = null;
+    this.mountManager = null;
+    this.photoModeManager = null;
     this.gameState = GameState.MAIN_MENU;
     this.currentGraphicsPreset = 'high';
   }
@@ -55,6 +58,7 @@ export class Game {
       // 2. Renderer setup with realistic modern post-processing/lighting defaults
       this.renderer = new THREE.WebGLRenderer({
         antialias: true,
+        preserveDrawingBuffer: true,
         powerPreference: 'high-performance'
       });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -258,6 +262,9 @@ export class Game {
       // Check if quicksave exists and update Continue button
       await this.refreshContinueButton();
 
+      // 13b. Dedicated Photo Mode System
+      this.photoModeManager = new PhotoModeManager(this);
+
       // 14. Pause & window resize listeners
       this.setupInputListeners();
       this.setupResizeHandler();
@@ -317,13 +324,19 @@ export class Game {
         if (this.gameState === GameState.PLAYING || this.isWorldMapOpen) {
           this.toggleWorldMap();
         }
+      } else if (e.code === 'KeyP') {
+        // Photo Mode toggle with 'P'
+        e.preventDefault();
+        this.togglePhotoMode();
       } else if (e.code === 'KeyH') {
         // Whistle for Mount / Recovery with 'H'
         if (this.gameState === GameState.PLAYING && this.mountManager && this.player) {
           this.mountManager.whistleMount(this.player);
         }
       } else if (e.code === 'Escape') {
-        if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
+        if (this.photoModeManager && this.photoModeManager.isActive) {
+          this.photoModeManager.exit();
+        } else if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
           this.closeDialogue();
         } else if (this.merchantManager && this.merchantManager.isShopOpen()) {
           this.closeShop();
@@ -459,8 +472,32 @@ export class Game {
     }
   }
 
+  togglePhotoMode() {
+    if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+      return;
+    }
+
+    if (this.isPaused) {
+      this.resumeGame();
+    }
+    if (this.isSkillsOpen) this.toggleSkills(false);
+    if (this.isInventoryOpen) this.toggleInventory(false);
+    if (this.isWorldMapOpen) this.toggleWorldMap(false);
+    if (this.dialogueManager && this.dialogueManager.isDialogueActive()) this.closeDialogue();
+    if (this.merchantManager && this.merchantManager.isShopOpen()) this.closeShop();
+
+    if (this.photoModeManager) {
+      this.photoModeManager.toggle();
+    }
+  }
+
   togglePause() {
     if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+      return;
+    }
+
+    if (this.photoModeManager && this.photoModeManager.isActive) {
+      this.photoModeManager.exit();
       return;
     }
 
@@ -478,7 +515,8 @@ export class Game {
         () => {},
         () => this.returnToMainMenu(),
         () => this.saveCurrentGame(),
-        () => this.loadSavedGame()
+        () => this.loadSavedGame(),
+        () => this.togglePhotoMode()
       );
     } else if (this.gameState === GameState.PAUSED) {
       this.resumeGame();
@@ -740,6 +778,12 @@ export class Game {
   };
 
   update(deltaTime) {
+    // 0. Dedicated Photo Mode: free camera exploration while gameplay simulation is safely frozen
+    if (this.photoModeManager && this.photoModeManager.isActive) {
+      this.photoModeManager.update(deltaTime);
+      return;
+    }
+
     // 1. Main menu mode: cinematic camera orbit & ambient world animation
     if (this.gameState === GameState.MAIN_MENU) {
       if (this.cameraManager) {

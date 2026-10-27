@@ -38,6 +38,17 @@ export class CameraManager {
     this.isLockEnabled = true;
     this.onLockChangeCallbacks = [];
 
+    // Photo Mode Free Camera State
+    this.isPhotoMode = false;
+    this.savedGameplayCamera = null;
+    this.photoCameraPos = new THREE.Vector3();
+    this.photoCameraYaw = 0;
+    this.photoCameraPitch = 0;
+    this.photoCameraRoll = 0;
+    this.photoSpeed = 9.0;
+    this.photoBoundsCenter = new THREE.Vector3();
+    this.photoMaxRadius = 32.0;
+
     this.camera.position.copy(this.currentPosition);
     this.camera.lookAt(this.currentLookTarget);
   }
@@ -233,6 +244,171 @@ export class CameraManager {
     this.currentPosition.copy(this.currentLookTarget).add(offset);
     this.camera.position.copy(this.currentPosition);
     this.camera.lookAt(this.currentLookTarget);
+  }
+
+  // ===== PHOTO MODE FREE CAMERA =====
+
+  startPhotoMode(player = null) {
+    if (this.isPhotoMode) return;
+
+    // 1. Save gameplay camera state
+    this.savedGameplayCamera = {
+      distance: this.distance,
+      targetDistance: this.targetDistance,
+      theta: this.theta,
+      phi: this.phi,
+      fov: this.camera.fov,
+      position: this.camera.position.clone(),
+      lookTarget: this.currentLookTarget.clone(),
+      lookAtOffset: this.lookAtOffset.clone(),
+      isRiding: this.isRiding
+    };
+
+    // 2. Initialize free camera at current camera location
+    this.photoCameraPos.copy(this.camera.position);
+
+    // Bounding center around player to prevent infinite void flight
+    if (player && typeof player.getPosition === 'function') {
+      this.photoBoundsCenter.copy(player.getPosition());
+    } else {
+      this.photoBoundsCenter.copy(this.currentLookTarget);
+    }
+
+    // Extract current camera yaw and pitch
+    const dir = new THREE.Vector3();
+    this.camera.getWorldDirection(dir);
+    this.photoCameraYaw = Math.atan2(dir.x, dir.z);
+    this.photoCameraPitch = Math.asin(Math.max(-0.99, Math.min(0.99, dir.y)));
+    this.photoCameraRoll = 0;
+
+    this.isPhotoMode = true;
+  }
+
+  exitPhotoMode() {
+    if (!this.isPhotoMode || !this.savedGameplayCamera) return;
+
+    // Restore gameplay camera state
+    const saved = this.savedGameplayCamera;
+    this.distance = saved.distance;
+    this.targetDistance = saved.targetDistance;
+    this.theta = saved.theta;
+    this.phi = saved.phi;
+    this.camera.fov = saved.fov;
+    this.camera.updateProjectionMatrix();
+
+    this.currentPosition.copy(saved.position);
+    this.currentLookTarget.copy(saved.lookTarget);
+    this.lookAtOffset.copy(saved.lookAtOffset);
+    this.isRiding = saved.isRiding;
+
+    this.camera.position.copy(this.currentPosition);
+    this.camera.lookAt(this.currentLookTarget);
+    this.camera.rotation.z = 0;
+
+    this.isPhotoMode = false;
+    this.savedGameplayCamera = null;
+  }
+
+  resetPhotoModeCamera(player = null) {
+    if (!this.isPhotoMode) return;
+
+    // Snap to default framing behind player
+    const center = player ? player.getPosition() : this.photoBoundsCenter;
+    const forward = (player && typeof player.getForwardVector === 'function')
+      ? player.getForwardVector()
+      : new THREE.Vector3(0, 0, -1);
+
+    this.photoCameraYaw = Math.atan2(forward.x, forward.z);
+    this.photoCameraPitch = -0.15;
+    this.photoCameraRoll = 0;
+
+    const defaultOffset = new THREE.Vector3(
+      -Math.sin(this.photoCameraYaw) * 5.5,
+      1.8,
+      -Math.cos(this.photoCameraYaw) * 5.5
+    );
+    this.photoCameraPos.copy(center).add(defaultOffset);
+
+    this.camera.fov = 60;
+    this.camera.updateProjectionMatrix();
+  }
+
+  setFOV(fov) {
+    this.camera.fov = THREE.MathUtils.clamp(fov, 18, 95);
+    this.camera.updateProjectionMatrix();
+  }
+
+  getFOV() {
+    return this.camera.fov;
+  }
+
+  setRoll(radians) {
+    this.photoCameraRoll = radians;
+  }
+
+  getRoll() {
+    return this.photoCameraRoll;
+  }
+
+  getRollDegrees() {
+    return THREE.MathUtils.radToDeg(this.photoCameraRoll);
+  }
+
+  updatePhotoMode(deltaTime, keys = {}, mouseDeltaX = 0, mouseDeltaY = 0) {
+    if (!this.isPhotoMode) return;
+
+    // 1. Mouse rotation (Yaw & Pitch)
+    if (mouseDeltaX !== 0 || mouseDeltaY !== 0) {
+      this.photoCameraYaw -= mouseDeltaX * this.mouseSensitivity * 1.2;
+      this.photoCameraPitch -= mouseDeltaY * this.mouseSensitivity * 1.2 * (this.invertY ? -1 : 1);
+      this.photoCameraPitch = THREE.MathUtils.clamp(this.photoCameraPitch, -Math.PI * 0.48, Math.PI * 0.48);
+    }
+
+    // 2. Camera Orientation Vectors
+    const cosPitch = Math.cos(this.photoCameraPitch);
+    const forward = new THREE.Vector3(
+      Math.sin(this.photoCameraYaw) * cosPitch,
+      Math.sin(this.photoCameraPitch),
+      Math.cos(this.photoCameraYaw) * cosPitch
+    ).normalize();
+
+    const right = new THREE.Vector3(
+      Math.cos(this.photoCameraYaw),
+      0,
+      -Math.sin(this.photoCameraYaw)
+    ).normalize();
+
+    const worldUp = new THREE.Vector3(0, 1, 0);
+
+    // 3. Movement input translation
+    const move = new THREE.Vector3();
+    const speed = this.photoSpeed * (keys.shift ? 2.2 : (keys.alt ? 0.4 : 1.0));
+
+    if (keys.forward) move.add(forward);
+    if (keys.backward) move.sub(forward);
+    if (keys.right) move.add(right);
+    if (keys.left) move.sub(right);
+    if (keys.up) move.add(worldUp);
+    if (keys.down) move.sub(worldUp);
+
+    if (move.lengthSq() > 0.001) {
+      move.normalize().multiplyScalar(speed * deltaTime);
+      this.photoCameraPos.add(move);
+
+      // Clamp within photo mode bounding radius around scene action
+      const distFromCenter = this.photoCameraPos.distanceTo(this.photoBoundsCenter);
+      if (distFromCenter > this.photoMaxRadius) {
+        const offset = this.photoCameraPos.clone().sub(this.photoBoundsCenter).normalize().multiplyScalar(this.photoMaxRadius);
+        this.photoCameraPos.copy(this.photoBoundsCenter).add(offset);
+      }
+    }
+
+    // 4. Update Three.js camera position and rotation matrix
+    this.camera.position.copy(this.photoCameraPos);
+
+    // Build rotation from yaw, pitch, roll
+    const euler = new THREE.Euler(this.photoCameraPitch, this.photoCameraYaw, this.photoCameraRoll, 'YXZ');
+    this.camera.quaternion.setFromEuler(euler);
   }
 
   onLockChange(callback) {

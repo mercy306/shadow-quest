@@ -210,6 +210,7 @@ export class UIManager {
     // Pause Screen
     this.pauseScreen = document.getElementById('pause-screen');
     this.resumeBtn = document.getElementById('resume-btn');
+    this.pausePhotoBtn = document.getElementById('pause-photo-btn');
     this.pauseSaveBtn = document.getElementById('pause-save-btn');
     this.pauseLoadBtn = document.getElementById('pause-load-btn');
     this.pauseRestartBtn = document.getElementById('pause-restart-btn');
@@ -2454,11 +2455,17 @@ export class UIManager {
   }
 
   // ==================== PAUSE MENU ====================
-  setPaused(isPaused, onResume = null, onRestart = null, onOpenSettings = null, onMainMenu = null, onSaveGame = null, onLoadGame = null) {
+  setPaused(isPaused, onResume = null, onRestart = null, onOpenSettings = null, onMainMenu = null, onSaveGame = null, onLoadGame = null, onPhotoMode = null) {
     if (this.pauseScreen) {
       if (isPaused) {
         this.pauseScreen.classList.remove('hidden');
         if (this.resumeBtn && onResume) this.resumeBtn.onclick = onResume;
+        if (this.pausePhotoBtn && onPhotoMode) {
+          this.pausePhotoBtn.onclick = () => {
+            this.hidePause();
+            onPhotoMode();
+          };
+        }
         if (this.pauseSaveBtn && onSaveGame) this.pauseSaveBtn.onclick = onSaveGame;
         if (this.pauseLoadBtn && onLoadGame) this.pauseLoadBtn.onclick = onLoadGame;
         if (this.pauseSlotsBtn) {

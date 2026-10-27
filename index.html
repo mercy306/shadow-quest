@@ -19,6 +19,18 @@
     <!-- Smooth Level Transition Overlay -->
     <div id="level-transition-overlay" class="level-transition-overlay"></div>
 
+    <!-- Photo Mode Cinematic Shutter Flash -->
+    <div id="photo-shutter-flash" class="photo-shutter-flash"></div>
+
+    <!-- Photo Mode Cinematic Letterbox Overlay (2.39:1 Anamorphic Widescreen Bars) -->
+    <div id="photo-letterbox-overlay" class="photo-letterbox-overlay hidden">
+      <div class="letterbox-bar letterbox-top"></div>
+      <div class="letterbox-bar letterbox-bottom"></div>
+    </div>
+
+    <!-- Photo Mode Depth of Field Blur Overlay -->
+    <div id="photo-dof-overlay" class="photo-dof-overlay hidden"></div>
+
     <!-- ==================== MAIN MENU ==================== -->
     <div id="main-menu" class="main-menu-overlay">
       <div class="menu-backdrop-gradient"></div>
@@ -671,6 +683,29 @@
       </div>
     </div>
 
+    <!-- ==================== PHOTO PREVIEW & DOWNLOAD MODAL ==================== -->
+    <div id="photo-preview-modal" class="game-modal hidden">
+      <div class="modal-card photo-preview-card">
+        <div class="modal-header">
+          <h2 class="modal-title">PHOTO CAPTURED</h2>
+          <button id="close-photo-preview-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+        <div class="modal-body photo-preview-body">
+          <div class="photo-preview-frame">
+            <img id="photo-preview-img" alt="Captured Screenshot" class="photo-preview-img" />
+          </div>
+          <div class="photo-preview-details">
+            <span id="photo-preview-meta" class="photo-preview-meta">ShadowQuest_Photo.png • 1920x1080</span>
+          </div>
+        </div>
+        <div class="modal-footer photo-preview-footer">
+          <button id="photo-preview-download-btn" class="modal-btn primary">
+            <span>💾 DOWNLOAD HIGH-RES PNG</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Location Discovery Floating Banner -->
     <div id="discovery-banner" class="discovery-banner hidden">
       <div class="discovery-banner-glow"></div>
@@ -779,6 +814,11 @@
             <span class="map-icon">🗺️</span>
           </button>
 
+          <!-- Photo Mode Toggle Button -->
+          <button id="photo-mode-toggle-btn" class="photo-mode-toggle-btn" title="Open Photo Mode (P)">
+            <span class="photo-icon">📷</span>
+          </button>
+
           <!-- Quick Audio Mute Toggle -->
           <button id="mute-btn" class="audio-toggle-btn" title="Toggle Audio (M)">
             <span id="mute-icon">🔊</span>
@@ -881,8 +921,138 @@
       </div>
 
       <div id="controls-hint">
-        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [V] Roll • [Left Click / F] Strike • [Q / R-Click] Heavy Spin • [K] Skills • [I] Inventory • [ESC] Pause</span>
+        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [V] Roll • [Left Click / F] Strike • [Q / R-Click] Heavy Spin • [K] Skills • [I] Inventory • [M] Map • [P] Photo • [ESC] Pause</span>
       </div>
+    </div>
+
+    <!-- ==================== PHOTO MODE OVERLAY ==================== -->
+    <div id="photo-mode-overlay" class="photo-mode-overlay hidden">
+      <!-- Rule of thirds & viewfinder frame -->
+      <div class="photo-viewfinder">
+        <div class="photo-rule-of-thirds">
+          <div class="grid-line grid-v1"></div>
+          <div class="grid-line grid-v2"></div>
+          <div class="grid-line grid-h1"></div>
+          <div class="grid-line grid-h2"></div>
+        </div>
+        <div class="photo-center-crosshair"></div>
+        <div class="photo-hud-tag">PHOTO MODE</div>
+      </div>
+
+      <!-- Controls Dock at Bottom -->
+      <div id="photo-controls-dock" class="photo-controls-dock">
+        <div class="photo-dock-header">
+          <div class="photo-dock-title">
+            <span class="photo-dock-icon">📷</span>
+            <h3>CINEMATIC PHOTO STUDIO</h3>
+          </div>
+          <div class="photo-dock-shortcuts">
+            <span>[Drag] Look • [WASD] Fly • [Q/E/Space] Elevate • [Wheel] Zoom • [H] Hide UI</span>
+          </div>
+          <button id="photo-btn-hide-ui" class="photo-tool-btn" title="Hide Photo UI (H / Tab)">
+            <span>👁️ HIDE UI</span>
+          </button>
+        </div>
+
+        <div class="photo-controls-grid">
+          <!-- Column 1: Lens & Framing -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">LENS & FRAMING</div>
+            
+            <div class="photo-slider-row">
+              <label for="photo-slider-fov">Field of View (Zoom)</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-fov" min="20" max="90" step="1" value="60" class="photo-range" />
+                <span id="photo-val-fov" class="photo-val">60°</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-roll">Camera Roll (Dutch Angle)</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-roll" min="-35" max="35" step="1" value="0" class="photo-range" />
+                <span id="photo-val-roll" class="photo-val">0°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Atmosphere & Lighting -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">ATMOSPHERE & GRADING</div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-exposure">Exposure / Brightness</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-exposure" min="0.4" max="2.2" step="0.05" value="1.0" class="photo-range" />
+                <span id="photo-val-exposure" class="photo-val">1.00x</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-select-filter">Artistic Color Filter</label>
+              <div class="photo-select-wrap">
+                <select id="photo-select-filter" class="photo-select">
+                  <option value="none">Natural (Default)</option>
+                  <option value="vibrant">Vibrant Fantasy</option>
+                  <option value="noir">Dark Noir (B&W)</option>
+                  <option value="sunset">Golden Sunset</option>
+                  <option value="mystic">Mystic Moonlight</option>
+                  <option value="dramatic">Cinematic Contrast</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Cinematics & Focus -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">CINEMATICS & FOCUS</div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-focus">Focus Distance</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-focus" min="1.0" max="30.0" step="0.5" value="5.0" class="photo-range" />
+                <span id="photo-val-focus" class="photo-val">5.0m</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-blur">Depth of Field Blur</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-blur" min="0.0" max="1.0" step="0.05" value="0" class="photo-range" />
+                <span id="photo-val-blur" class="photo-val">0%</span>
+              </div>
+            </div>
+
+            <div class="photo-checkbox-row">
+              <label for="photo-toggle-letterbox" class="photo-checkbox-label">
+                <input type="checkbox" id="photo-toggle-letterbox" class="photo-checkbox" />
+                <span>2.39:1 Cinematic Letterbox Bars</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="photo-dock-actions">
+          <div class="photo-dock-actions-left">
+            <button id="photo-btn-reset" class="photo-action-btn secondary">
+              <span>↺ RESET CAMERA</span>
+            </button>
+          </div>
+          <div class="photo-dock-actions-right">
+            <button id="photo-btn-exit" class="photo-action-btn danger">
+              <span>✕ EXIT PHOTO MODE [P/ESC]</span>
+            </button>
+            <button id="photo-btn-capture" class="photo-action-btn primary capture-glow">
+              <span>📸 CAPTURE PHOTO [ENTER]</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Show UI Pill Button (visible when UI is hidden) -->
+      <button id="photo-show-ui-pill" class="photo-show-ui-pill hidden">
+        <span>👁️ Show Controls [H]</span>
+      </button>
     </div>
 
     <!-- ==================== PAUSE SCREEN ==================== -->
@@ -893,6 +1063,7 @@
 
         <div class="pause-actions">
           <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
+          <button id="pause-photo-btn" class="pause-btn">📷 PHOTO MODE</button>
           <button id="pause-save-btn" class="pause-btn save-btn">💾 QUICK SAVE</button>
           <button id="pause-slots-btn" class="pause-btn save-btn">📁 SAVE / LOAD SLOTS</button>
           <button id="pause-load-btn" class="pause-btn load-btn">📂 QUICK LOAD</button>

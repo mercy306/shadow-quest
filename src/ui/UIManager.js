@@ -148,6 +148,29 @@ export class UIManager {
     this.pauseRestartBtn = document.getElementById('pause-restart-btn');
     this.pauseSettingsBtn = document.getElementById('pause-settings-btn');
     this.pauseMenuBtn = document.getElementById('pause-menu-btn');
+    this.pauseSlotsBtn = document.getElementById('pause-slots-btn');
+
+    // Confirmation Modal
+    this.modalConfirm = document.getElementById('modal-confirm');
+    this.confirmModalTitle = document.getElementById('confirm-modal-title');
+    this.confirmModalMsg = document.getElementById('confirm-modal-msg');
+    this.confirmModalOkBtn = document.getElementById('confirm-modal-ok-btn');
+    this.confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+    this.closeConfirmBtn = document.getElementById('close-confirm-btn');
+
+    // Save Slots Modal
+    this.modalSaveSlots = document.getElementById('modal-save-slots');
+    this.saveSlotsTitle = document.getElementById('save-slots-title');
+    this.saveSlotsModeBadge = document.getElementById('save-slots-mode-badge');
+    this.closeSaveSlotsBtn = document.getElementById('close-save-slots-btn');
+    this.tabSaveModeBtn = document.getElementById('tab-save-mode-btn');
+    this.tabLoadModeBtn = document.getElementById('tab-load-mode-btn');
+    this.saveSlotsContainer = document.getElementById('save-slots-container');
+    this.saveRecoveryBanner = document.getElementById('save-recovery-banner');
+    this.recoveryDesc = document.getElementById('recovery-desc');
+    this.recoveryActionBtn = document.getElementById('recovery-action-btn');
+    this.saveSlotsMode = 'save';
+    this.activeGameInstance = null;
 
     // Save Status Indicator
     this.saveIndicator = document.getElementById('save-indicator');
@@ -246,6 +269,8 @@ export class UIManager {
     if (this.saveIndicatorIcon) {
       if (type === 'error') {
         this.saveIndicatorIcon.textContent = '⚠️';
+      } else if (type === 'autosave') {
+        this.saveIndicatorIcon.textContent = '💾';
       } else if (message.includes('LOAD')) {
         this.saveIndicatorIcon.textContent = '📂';
       } else {
@@ -256,6 +281,10 @@ export class UIManager {
     this.saveIndicator.className = 'save-indicator';
     if (type === 'error') {
       this.saveIndicator.classList.add('error');
+    } else if (type === 'autosave') {
+      this.saveIndicator.classList.add('autosave');
+    } else if (type === 'warning') {
+      this.saveIndicator.classList.add('warning');
     }
 
     this.saveIndicator.style.animation = 'none';
@@ -287,9 +316,21 @@ export class UIManager {
     if (this.closeMerchantBtn) {
       this.closeMerchantBtn.onclick = () => this.closeMerchantModal();
     }
+    if (this.closeConfirmBtn) {
+      this.closeConfirmBtn.onclick = () => this.closeModal(this.modalConfirm);
+    }
+    if (this.closeSaveSlotsBtn) {
+      this.closeSaveSlotsBtn.onclick = () => this.closeSaveSlotsModal();
+    }
+    if (this.tabSaveModeBtn) {
+      this.tabSaveModeBtn.onclick = () => this.setSaveSlotsMode('save');
+    }
+    if (this.tabLoadModeBtn) {
+      this.tabLoadModeBtn.onclick = () => this.setSaveSlotsMode('load');
+    }
 
     // Close on backdrop click
-    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalDialogue, this.modalMerchant].forEach(modal => {
+    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalDialogue, this.modalMerchant, this.modalConfirm, this.modalSaveSlots].forEach(modal => {
       if (modal) {
         modal.onclick = (e) => {
           if (e.target === modal) {
@@ -637,6 +678,274 @@ export class UIManager {
 
   closeModal(modal) {
     if (modal) modal.classList.add('hidden');
+  }
+
+  // ==================== CONFIRMATION MODAL ====================
+  showConfirmation(title, message, confirmBtnText = 'CONFIRM', isDanger = false) {
+    return new Promise(resolve => {
+      if (!this.modalConfirm) {
+        resolve(window.confirm(`${title}\n\n${message}`));
+        return;
+      }
+
+      if (this.confirmModalTitle) this.confirmModalTitle.textContent = title;
+      if (this.confirmModalMsg) this.confirmModalMsg.textContent = message;
+      if (this.confirmModalOkBtn) {
+        this.confirmModalOkBtn.textContent = confirmBtnText;
+        this.confirmModalOkBtn.className = `confirm-action-btn ${isDanger ? 'danger' : 'primary'}`;
+      }
+
+      this.openModal(this.modalConfirm);
+
+      const cleanup = (result) => {
+        this.closeModal(this.modalConfirm);
+        if (this.confirmModalOkBtn) this.confirmModalOkBtn.onclick = null;
+        if (this.confirmModalCancelBtn) this.confirmModalCancelBtn.onclick = null;
+        if (this.closeConfirmBtn) this.closeConfirmBtn.onclick = null;
+        resolve(result);
+      };
+
+      if (this.confirmModalOkBtn) {
+        this.confirmModalOkBtn.onclick = () => cleanup(true);
+      }
+      if (this.confirmModalCancelBtn) {
+        this.confirmModalCancelBtn.onclick = () => cleanup(false);
+      }
+      if (this.closeConfirmBtn) {
+        this.closeConfirmBtn.onclick = () => cleanup(false);
+      }
+    });
+  }
+
+  // ==================== SAVE / LOAD SLOTS MODAL ====================
+  async openSaveSlotsModal(game, mode = 'save') {
+    this.activeGameInstance = game;
+    this.saveSlotsMode = mode;
+    this.updateSaveSlotsTabUI();
+    this.openModal(this.modalSaveSlots);
+    await this.renderSaveSlots();
+  }
+
+  closeSaveSlotsModal() {
+    this.closeModal(this.modalSaveSlots);
+  }
+
+  async setSaveSlotsMode(mode) {
+    this.saveSlotsMode = mode;
+    this.updateSaveSlotsTabUI();
+    await this.renderSaveSlots();
+  }
+
+  updateSaveSlotsTabUI() {
+    if (this.tabSaveModeBtn) {
+      if (this.saveSlotsMode === 'save') {
+        this.tabSaveModeBtn.classList.add('active');
+      } else {
+        this.tabSaveModeBtn.classList.remove('active');
+      }
+    }
+    if (this.tabLoadModeBtn) {
+      if (this.saveSlotsMode === 'load') {
+        this.tabLoadModeBtn.classList.add('active');
+      } else {
+        this.tabLoadModeBtn.classList.remove('active');
+      }
+    }
+    if (this.saveSlotsModeBadge) {
+      this.saveSlotsModeBadge.textContent = this.saveSlotsMode === 'save' ? 'SAVE ADVENTURE' : 'LOAD ADVENTURE';
+    }
+  }
+
+  async renderSaveSlots() {
+    if (!this.saveSlotsContainer || !this.activeGameInstance?.saveManager) return;
+    this.saveSlotsContainer.innerHTML = '';
+
+    const game = this.activeGameInstance;
+    const slots = await game.saveManager.listAllSlots();
+
+    let hasCorruptedSlot = false;
+    let corruptedSlotId = null;
+
+    slots.forEach(slot => {
+      const card = document.createElement('div');
+      card.className = `save-slot-card ${slot.isAutosave ? 'autosave' : (slot.id === 'quicksave' ? 'quicksave' : 'manual')}`;
+
+      if (slot.isCorrupted) {
+        card.classList.add('corrupted');
+        hasCorruptedSlot = true;
+        corruptedSlotId = slot.id;
+      } else if (!slot.exists) {
+        card.classList.add('empty');
+      }
+
+      // Left info col
+      const infoCol = document.createElement('div');
+      infoCol.className = 'save-slot-info-col';
+
+      // Header row
+      const headerRow = document.createElement('div');
+      headerRow.className = 'save-slot-header-row';
+
+      const title = document.createElement('div');
+      title.className = 'save-slot-title';
+      title.textContent = slot.name;
+
+      const tag = document.createElement('span');
+      tag.className = 'save-slot-tag';
+      if (slot.isCorrupted) {
+        tag.className += ' tag-corrupted';
+        tag.textContent = 'CORRUPTED';
+      } else if (slot.isAutosave) {
+        tag.className += ' tag-autosave';
+        tag.textContent = 'AUTOSAVE';
+      } else if (slot.id === 'quicksave') {
+        tag.className += ' tag-quicksave';
+        tag.textContent = 'QUICKSAVE';
+      } else {
+        tag.className += ' tag-manual';
+        tag.textContent = 'MANUAL';
+      }
+
+      headerRow.appendChild(title);
+      headerRow.appendChild(tag);
+      infoCol.appendChild(headerRow);
+
+      if (slot.isCorrupted) {
+        const errorDesc = document.createElement('div');
+        errorDesc.className = 'save-slot-meta-row';
+        errorDesc.style.color = '#fca5a5';
+        errorDesc.textContent = `Integrity Failure: ${slot.corruptionReason || 'Invalid save schema'}`;
+        infoCol.appendChild(errorDesc);
+
+        const dateRow = document.createElement('div');
+        dateRow.className = 'save-slot-date';
+        dateRow.textContent = `Quarantined timestamp: ${slot.dateFormatted}`;
+        infoCol.appendChild(dateRow);
+      } else if (slot.exists) {
+        const metaRow = document.createElement('div');
+        metaRow.className = 'save-slot-meta-row';
+        metaRow.innerHTML = `
+          <span class="save-slot-meta-item">Stage: <strong>${slot.stageName}</strong></span>
+          <span class="save-slot-meta-item">Hero Lv.<strong>${slot.level}</strong></span>
+          <span class="save-slot-meta-item">HP: <strong>${slot.health}/${slot.maxHealth}</strong></span>
+          <span class="save-slot-meta-item">Gold: <strong>${slot.gold}G</strong></span>
+          <span class="save-slot-meta-item">Score: <strong>${slot.score}</strong></span>
+        `;
+        infoCol.appendChild(metaRow);
+
+        const dateRow = document.createElement('div');
+        dateRow.className = 'save-slot-date';
+        dateRow.textContent = `Saved: ${slot.dateFormatted} ${slot.autosaveReason ? `• [${slot.autosaveReason}]` : ''}`;
+        infoCol.appendChild(dateRow);
+      } else {
+        const emptyRow = document.createElement('div');
+        emptyRow.className = 'save-slot-meta-row';
+        emptyRow.style.color = '#64748b';
+        emptyRow.textContent = 'Empty save slot ready for progression.';
+        infoCol.appendChild(emptyRow);
+      }
+
+      // Right action col
+      const actionsCol = document.createElement('div');
+      actionsCol.className = 'save-slot-actions';
+
+      if (this.saveSlotsMode === 'save') {
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'slot-btn save';
+        saveBtn.textContent = slot.exists ? 'OVERWRITE' : 'SAVE HERE';
+
+        if (slot.isAutosave) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'SYSTEM ONLY';
+        } else {
+          saveBtn.onclick = async () => {
+            if (slot.exists) {
+              const confirmOverwrite = await this.showConfirmation(
+                'OVERWRITE SAVE FILE?',
+                `Slot '${slot.name}' contains existing progress (${slot.stageName}, Lv.${slot.level}). Are you sure you wish to overwrite it?`,
+                'OVERWRITE',
+                true
+              );
+              if (!confirmOverwrite) return;
+            }
+
+            const res = await game.saveManager.saveGame(game, slot.id, {
+              toastMessage: `PROGRESS SAVED TO ${slot.name.toUpperCase()}`
+            });
+            if (res.success) {
+              await this.renderSaveSlots();
+              await game.refreshContinueButton();
+            }
+          };
+        }
+        actionsCol.appendChild(saveBtn);
+      } else {
+        // Load mode
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'slot-btn primary';
+        loadBtn.textContent = 'LOAD SAVE';
+        loadBtn.disabled = !slot.exists || slot.isCorrupted;
+
+        loadBtn.onclick = async () => {
+          this.closeSaveSlotsModal();
+          this.hidePause();
+          const res = await game.saveManager.loadGame(game, slot.id);
+          if (res.success) {
+            game.resumeGame();
+          }
+        };
+        actionsCol.appendChild(loadBtn);
+
+        // Delete button
+        if (slot.exists && !slot.isAutosave) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'slot-btn danger';
+          deleteBtn.textContent = '✕';
+          deleteBtn.title = 'Delete Save File';
+
+          deleteBtn.onclick = async () => {
+            const confirmed = await this.showConfirmation(
+              'DELETE SAVE FILE?',
+              `Are you sure you want to permanently delete the save in '${slot.name}'?`,
+              'DELETE SAVE',
+              true
+            );
+            if (confirmed) {
+              await game.saveManager.deleteSave(slot.id);
+              await this.renderSaveSlots();
+              await game.refreshContinueButton();
+            }
+          };
+          actionsCol.appendChild(deleteBtn);
+        }
+      }
+
+      card.appendChild(infoCol);
+      card.appendChild(actionsCol);
+      this.saveSlotsContainer.appendChild(card);
+    });
+
+    // Handle Corrupted Recovery Banner
+    if (this.saveRecoveryBanner) {
+      if (hasCorruptedSlot) {
+        this.saveRecoveryBanner.classList.remove('hidden');
+        if (this.recoveryActionBtn) {
+          this.recoveryActionBtn.onclick = async () => {
+            const targetSlot = corruptedSlotId || QUICK_SAVE_SLOT;
+            const res = await game.saveManager.recoverFromAutosave(targetSlot);
+            if (res.success) {
+              this.showSaveIndicator('RECOVERED PROGRESS FROM AUTOSAVE', 'success');
+              await this.renderSaveSlots();
+              await game.refreshContinueButton();
+            } else {
+              this.showSaveIndicator(`RECOVERY FAILED: ${res.reason}`, 'error');
+            }
+          };
+        }
+      } else {
+        this.saveRecoveryBanner.classList.add('hidden');
+      }
+    }
   }
 
   showMainMenu() {
@@ -1280,6 +1589,12 @@ export class UIManager {
         if (this.resumeBtn && onResume) this.resumeBtn.onclick = onResume;
         if (this.pauseSaveBtn && onSaveGame) this.pauseSaveBtn.onclick = onSaveGame;
         if (this.pauseLoadBtn && onLoadGame) this.pauseLoadBtn.onclick = onLoadGame;
+        if (this.pauseSlotsBtn) {
+          this.pauseSlotsBtn.onclick = () => {
+            const g = window.game || window.__GAME__ || this.activeGameInstance;
+            this.openSaveSlotsModal(g, 'save');
+          };
+        }
         if (this.pauseRestartBtn && onRestart) this.pauseRestartBtn.onclick = onRestart;
         if (this.pauseSettingsBtn) {
           this.pauseSettingsBtn.onclick = () => {

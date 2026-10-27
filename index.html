@@ -354,6 +354,57 @@
       </div>
     </div>
 
+    <!-- ==================== CONFIRMATION MODAL ==================== -->
+    <div id="modal-confirm" class="game-modal hidden">
+      <div class="modal-card confirm-modal-card">
+        <div class="modal-header">
+          <h2 id="confirm-modal-title" class="modal-title">CONFIRMATION</h2>
+          <button id="close-confirm-btn" class="modal-close-btn" title="Cancel">✕</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-modal-msg" class="confirm-modal-msg">Are you sure you wish to proceed?</p>
+          <div class="confirm-actions-row">
+            <button id="confirm-modal-ok-btn" class="confirm-action-btn primary">CONFIRM</button>
+            <button id="confirm-modal-cancel-btn" class="confirm-action-btn secondary">CANCEL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SAVE / LOAD SLOTS MODAL ==================== -->
+    <div id="modal-save-slots" class="game-modal hidden">
+      <div class="modal-card save-slots-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 id="save-slots-title" class="modal-title">SAVE & LOAD ADVENTURE</h2>
+            <span id="save-slots-mode-badge" class="save-slots-mode-badge">SAVE GAME</span>
+          </div>
+          <button id="close-save-slots-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body save-slots-modal-body">
+          <div class="save-slots-tabs">
+            <button id="tab-save-mode-btn" class="save-slot-tab active">💾 SAVE GAME</button>
+            <button id="tab-load-mode-btn" class="save-slot-tab">📂 LOAD GAME</button>
+          </div>
+
+          <div id="save-slots-container" class="save-slots-container">
+            <!-- Dynamically populated save slots -->
+          </div>
+
+          <!-- Corrupted Save Recovery Banner -->
+          <div id="save-recovery-banner" class="save-recovery-banner hidden">
+            <div class="recovery-icon">⚠️</div>
+            <div class="recovery-content">
+              <div class="recovery-title">CORRUPTED SAVE FILE QUARANTINED</div>
+              <div id="recovery-desc" class="recovery-desc">A corrupted save file was safely isolated to protect your progress. You can recover progression from your latest autosave checkpoint without losing data.</div>
+            </div>
+            <button id="recovery-action-btn" class="recovery-action-btn">RESTORE FROM AUTOSAVE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
@@ -497,8 +548,9 @@
 
         <div class="pause-actions">
           <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
-          <button id="pause-save-btn" class="pause-btn save-btn">💾 SAVE GAME</button>
-          <button id="pause-load-btn" class="pause-btn load-btn">📂 LOAD GAME</button>
+          <button id="pause-save-btn" class="pause-btn save-btn">💾 QUICK SAVE</button>
+          <button id="pause-slots-btn" class="pause-btn save-btn">📁 SAVE / LOAD SLOTS</button>
+          <button id="pause-load-btn" class="pause-btn load-btn">📂 QUICK LOAD</button>
           <button id="pause-restart-btn" class="pause-btn secondary">RESTART LEVEL</button>
           <button id="pause-settings-btn" class="pause-btn secondary">SETTINGS</button>
           <button id="pause-menu-btn" class="pause-btn danger">RETURN TO MAIN MENU</button>

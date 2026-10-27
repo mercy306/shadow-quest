@@ -114,6 +114,7 @@ export class Player {
     // Initial forest spawn coordinates
     this.spawnX = 0;
     this.spawnZ = 2;
+    this.lastSafePosition = { x: 0, y: 0.8, z: 2, rotationY: Math.PI };
     this.groundToTerrain(this.spawnX, this.spawnZ);
 
     this.scene.add(this.mesh);
@@ -226,6 +227,7 @@ export class Player {
     this.position.set(x, groundY, z);
     this.verticalVelocity = 0;
     this.isGrounded = true;
+    this.lastSafePosition = { x, y: groundY, z, rotationY: this.mesh ? this.mesh.rotation.y : 0 };
   }
 
   /**
@@ -752,6 +754,15 @@ export class Player {
       }
     }
 
+    if (this.isGrounded && this.health > 0 && this.position.y > -5) {
+      this.lastSafePosition = {
+        x: this.position.x,
+        y: this.position.y,
+        z: this.position.z,
+        rotationY: this.mesh ? this.mesh.rotation.y : 0
+      };
+    }
+
     // 3. Animation State Selection & Blending
     if (this.animController) {
       if (this.isGrounded) {
@@ -800,13 +811,29 @@ export class Player {
    * Captures the full player state for persistent storage
    */
   getSaveState() {
+    let safePos = { x: this.position.x, y: this.position.y, z: this.position.z };
+    let safeRotY = this.rotation.y;
+
+    // Save player position where safe (if falling or mid-air, use last grounded safe point)
+    if (!this.isGrounded || this.position.y < -5) {
+      if (this.lastSafePosition && typeof this.lastSafePosition.x === 'number') {
+        safePos = { ...this.lastSafePosition };
+        safeRotY = this.lastSafePosition.rotationY ?? this.rotation.y;
+      } else {
+        const groundY = this.physicsWorld
+          ? this.physicsWorld.getGroundHeight(this.position.x, this.position.z, this.position.y)
+          : (this.environment && typeof this.environment.getTerrainHeight === 'function' ? this.environment.getTerrainHeight(this.position.x, this.position.z) : 0);
+        safePos.y = groundY;
+      }
+    }
+
     return {
       position: {
-        x: Number(this.position.x.toFixed(3)),
-        y: Number(this.position.y.toFixed(3)),
-        z: Number(this.position.z.toFixed(3))
+        x: Number(safePos.x.toFixed(3)),
+        y: Number(safePos.y.toFixed(3)),
+        z: Number(safePos.z.toFixed(3))
       },
-      rotationY: Number(this.rotation.y.toFixed(3)),
+      rotationY: Number(safeRotY.toFixed(3)),
       health: Math.max(1, Math.min(this.maxHealth, Math.ceil(this.health))),
       maxHealth: this.maxHealth,
       baseMaxHealth: this.baseMaxHealth,

@@ -10,6 +10,18 @@ export const DB_VERSION = 1;
 export const STORE_SAVES = 'saves';
 export const SETTINGS_KEY = 'shadow_quest_settings_v1';
 export const QUICK_SAVE_SLOT = 'quicksave';
+export const AUTOSAVE_SLOT = 'autosave';
+export const MANUAL_SLOT_1 = 'slot_1';
+export const MANUAL_SLOT_2 = 'slot_2';
+export const MANUAL_SLOT_3 = 'slot_3';
+
+export const ALL_SAVE_SLOTS = [
+  { id: AUTOSAVE_SLOT, name: 'Autosave Checkpoint', isAutosave: true },
+  { id: QUICK_SAVE_SLOT, name: 'Quick Save', isAutosave: false },
+  { id: MANUAL_SLOT_1, name: 'Save Slot 1', isAutosave: false },
+  { id: MANUAL_SLOT_2, name: 'Save Slot 2', isAutosave: false },
+  { id: MANUAL_SLOT_3, name: 'Save Slot 3', isAutosave: false }
+];
 
 export class SaveManager {
   constructor() {
@@ -82,9 +94,55 @@ export class SaveManager {
   }
 
   /**
+   * Sanitizes save data to ensure strict serializability and prevent runtime leaks
+   */
+  sanitizeSerializable(data) {
+    const isRuntimeObject = (val) => {
+      if (!val || typeof val !== 'object') return false;
+      if (val.isObject3D || val.isMesh || val.isGroup || val.isBufferGeometry || val.isMaterial || val.isTexture) return true;
+      if (typeof Element !== 'undefined' && val instanceof Element) return true;
+      if (typeof AudioNode !== 'undefined' && val instanceof AudioNode) return true;
+      if (typeof AudioContext !== 'undefined' && val instanceof AudioContext) return true;
+      return false;
+    };
+
+    const clean = (val, seen = new Set()) => {
+      if (val === null || val === undefined) return val;
+      if (typeof val === 'function') return undefined;
+      if (typeof val !== 'object') return val;
+      if (isRuntimeObject(val)) return undefined;
+      if (seen.has(val)) return undefined;
+      seen.add(val);
+
+      if (Array.isArray(val)) {
+        return val.map(item => clean(item, seen)).filter(item => item !== undefined);
+      }
+
+      const out = {};
+      for (const [k, v] of Object.entries(val)) {
+        if (typeof v === 'function') continue;
+        if (isRuntimeObject(v)) continue;
+        const cleaned = clean(v, seen);
+        if (cleaned !== undefined) {
+          out[k] = cleaned;
+        }
+      }
+      return out;
+    };
+
+    try {
+      const sanitizedObj = clean(data);
+      return JSON.parse(JSON.stringify(sanitizedObj));
+    } catch (err) {
+      console.error('[SaveManager] Non-serializable runtime reference detected:', err);
+      throw new Error(`Non-serializable object in save state: ${err.message}`);
+    }
+  }
+
+  /**
    * Serializes the full current game state into the versioned schema
    */
-  captureGameState(game, slot = QUICK_SAVE_SLOT) {
+  captureGameState(game, slot = QUICK_SAVE_SLOT, options = {}) {
     const player = game.player;
     const levelMgr = game.levelManager;
     const questSys = game.questSystem;
@@ -103,7 +161,7 @@ export class SaveManager {
 
     const now = Date.now();
 
-    const saveData = {
+    const rawData = {
       version: SAVE_SCHEMA_VERSION,
       slot: slot,
       timestamp: now,
@@ -113,7 +171,8 @@ export class SaveManager {
         stageName: currentStage.name,
         badgeText: currentStage.badgeText,
         score: cumulativeScore + (currentQuest ? currentQuest.score : 0),
-        saveDateFormatted: new Date(now).toLocaleString()
+        saveDateFormatted: new Date(now).toLocaleString(),
+        autosaveReason: options.autosaveReason || null
       },
       player: player ? player.getSaveState() : {
         position: { x: 0, y: 0.8, z: 2 },
@@ -150,11 +209,13 @@ export class SaveManager {
       multiplayer: {
         isMultiplayer: false,
         sessionId: null,
-        syncState: 'LOCAL_ONLY'
+        syncState: 'LOCAL_ONLY',
+        authoritativeServer: null,
+        notice: 'Multiplayer progression is strictly isolated and validated server-side.'
       }
     };
 
-    return saveData;
+    return this.sanitizeSerializable(rawData);
   }
 
   /**
@@ -189,6 +250,11 @@ export class SaveManager {
 
     if (!data.quest || typeof data.quest !== 'object') {
       return { valid: false, error: 'Missing quest state in save data.' };
+    }
+
+    // Multiplayer integrity check: client cannot author authoritative multiplayer progression
+    if (data.multiplayer && data.multiplayer.isMultiplayer === true && !data.multiplayer.authoritativeServer) {
+      return { valid: false, error: 'Multiplayer progression must be validated by the server.' };
     }
 
     return { valid: true };
@@ -363,9 +429,163 @@ export class SaveManager {
   }
 
   /**
+   * Check whether any valid save exists in any slot
+   */
+  async hasAnySave() {
+    for (let i = 0; i < ALL_SAVE_SLOTS.length; i++) {
+      const slotId = ALL_SAVE_SLOTS[i].id;
+      if (await this.hasSave(slotId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Finds the slot with the most recent valid timestamp
+   */
+  async getLatestSaveSlot() {
+    let latestSlot = null;
+    let latestTime = -1;
+
+    for (let i = 0; i < ALL_SAVE_SLOTS.length; i++) {
+      const slotId = ALL_SAVE_SLOTS[i].id;
+      try {
+        const raw = await this.readFromStorage(slotId);
+        if (!raw) continue;
+        const migrated = this.migrateSaveData(raw);
+        const valid = this.validateSaveData(migrated);
+        if (valid.valid) {
+          const ts = typeof migrated.timestamp === 'number' ? migrated.timestamp : 0;
+          if (ts > latestTime) {
+            latestTime = ts;
+            latestSlot = slotId;
+          }
+        }
+      } catch (e) {}
+    }
+
+    return latestSlot || QUICK_SAVE_SLOT;
+  }
+
+  /**
+   * Returns metadata and status for all predefined save slots
+   */
+  async listAllSlots() {
+    const results = [];
+    for (let i = 0; i < ALL_SAVE_SLOTS.length; i++) {
+      const slotCfg = ALL_SAVE_SLOTS[i];
+      const slotId = slotCfg.id;
+      try {
+        const raw = await this.readFromStorage(slotId);
+        if (!raw) {
+          results.push({
+            id: slotId,
+            name: slotCfg.name,
+            isAutosave: slotCfg.isAutosave,
+            exists: false
+          });
+          continue;
+        }
+
+        const migrated = this.migrateSaveData(raw);
+        const validation = this.validateSaveData(migrated);
+
+        if (!validation.valid) {
+          results.push({
+            id: slotId,
+            name: slotCfg.name,
+            isAutosave: slotCfg.isAutosave,
+            exists: true,
+            isCorrupted: true,
+            corruptionReason: validation.error,
+            timestamp: raw.timestamp || Date.now(),
+            dateFormatted: raw.timestamp ? new Date(raw.timestamp).toLocaleString() : 'Unknown'
+          });
+          continue;
+        }
+
+        const meta = migrated.meta || {};
+        results.push({
+          id: slotId,
+          name: slotCfg.name,
+          isAutosave: slotCfg.isAutosave,
+          exists: true,
+          isCorrupted: false,
+          version: migrated.version,
+          timestamp: migrated.timestamp,
+          dateFormatted: new Date(migrated.timestamp).toLocaleString(),
+          stageIndex: migrated.world?.currentLevelIndex ?? meta.stageIndex ?? 0,
+          stageName: meta.stageName || (migrated.world?.currentLevelIndex === 1 ? 'The Ancient Ruins' : 'The Dark Forest'),
+          badgeText: meta.badgeText || '',
+          score: meta.score ?? (migrated.world?.cumulativeScore || 0),
+          level: migrated.player?.level || 1,
+          health: migrated.player?.health || 100,
+          maxHealth: migrated.player?.maxHealth || 100,
+          gold: migrated.player?.gold || 0,
+          autosaveReason: meta.autosaveReason || null
+        });
+      } catch (err) {
+        results.push({
+          id: slotId,
+          name: slotCfg.name,
+          isAutosave: slotCfg.isAutosave,
+          exists: true,
+          isCorrupted: true,
+          corruptionReason: err.message
+        });
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Quarantines a corrupted save instead of silently deleting it
+   */
+  async quarantineCorruptedSave(slot, reason = 'Unknown corruption') {
+    try {
+      const raw = await this.readFromStorage(slot);
+      if (raw) {
+        const backupKey = `sq_corrupted_${slot}_${Date.now()}`;
+        try {
+          localStorage.setItem(backupKey, JSON.stringify({ raw, reason, quarantinedAt: Date.now() }));
+          console.warn(`[SaveManager] Quarantined corrupted save for slot '${slot}' to '${backupKey}'`);
+        } catch (e) {}
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Recovers a slot from the latest valid autosave checkpoint
+   */
+  async recoverFromAutosave(targetSlot = QUICK_SAVE_SLOT) {
+    try {
+      const autosaveData = await this.readFromStorage(AUTOSAVE_SLOT);
+      if (!autosaveData) {
+        return { success: false, reason: 'No autosave checkpoint available for recovery.' };
+      }
+      const migrated = this.migrateSaveData(autosaveData);
+      const validation = this.validateSaveData(migrated);
+      if (!validation.valid) {
+        return { success: false, reason: `Autosave is also corrupted: ${validation.error}` };
+      }
+      migrated.slot = targetSlot;
+      migrated.meta = {
+        ...migrated.meta,
+        recoveredFrom: AUTOSAVE_SLOT,
+        recoveredAt: Date.now()
+      };
+      await this.writeToStorage(targetSlot, migrated);
+      return { success: true, slot: targetSlot };
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  }
+
+  /**
    * Save the game state to a slot
    */
-  async saveGame(game, slot = QUICK_SAVE_SLOT) {
+  async saveGame(game, slot = QUICK_SAVE_SLOT, options = {}) {
     const canSaveResult = this.canSave(game);
     if (!canSaveResult.allowed) {
       console.warn('[SaveManager] Save rejected:', canSaveResult.reason);
@@ -373,7 +593,7 @@ export class SaveManager {
     }
 
     try {
-      const saveData = this.captureGameState(game, slot);
+      const saveData = this.captureGameState(game, slot, options);
       const validation = this.validateSaveData(saveData);
 
       if (!validation.valid) {
@@ -384,7 +604,11 @@ export class SaveManager {
 
       // Trigger visual save notification toast
       if (game.uiManager && typeof game.uiManager.showSaveIndicator === 'function') {
-        game.uiManager.showSaveIndicator('GAME PROGRESS SAVED', 'success');
+        if (slot === AUTOSAVE_SLOT) {
+          game.uiManager.showSaveIndicator(options.autosaveReason ? `AUTOSAVED: ${options.autosaveReason}` : 'CHECKPOINT AUTOSAVED', 'autosave');
+        } else {
+          game.uiManager.showSaveIndicator(options.toastMessage || 'GAME PROGRESS SAVED', 'success');
+        }
       }
 
       console.log(`[SaveManager] Successfully saved progress to slot '${slot}'.`);
@@ -415,10 +639,11 @@ export class SaveManager {
       const validation = this.validateSaveData(migrated);
       if (!validation.valid) {
         console.error('[SaveManager] Corrupted save data detected:', validation.error);
+        await this.quarantineCorruptedSave(slot, validation.error);
         if (game.uiManager && typeof game.uiManager.showSaveIndicator === 'function') {
           game.uiManager.showSaveIndicator('CORRUPTED SAVE DATA', 'error');
         }
-        return { success: false, reason: validation.error };
+        return { success: false, reason: validation.error, isCorrupted: true, slot };
       }
 
       // Restore Level and World

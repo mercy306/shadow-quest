@@ -16,6 +16,7 @@ export class QuestSystem {
     this.initSideQuests();
 
     this.onQuestCompletedCallbacks = [];
+    this.game = null;
 
     // Auto-wire collectible manager if provided
     if (this.collectibleManager && typeof this.collectibleManager.onCollect === 'function') {
@@ -76,6 +77,10 @@ export class QuestSystem {
     }));
   }
 
+  setGame(game) {
+    this.game = game;
+  }
+
   getSideQuest(id) {
     return this.sideQuests.get(id);
   }
@@ -133,6 +138,9 @@ export class QuestSystem {
     }
 
     this.updateSideQuestHUD();
+    if (this.game && typeof this.game.autoSave === 'function') {
+      this.game.autoSave(`Quest: ${quest.title}`);
+    }
     return true;
   }
 
@@ -233,6 +241,11 @@ export class QuestSystem {
       // 3. UI Notification banner
       if (this.uiManager && typeof this.uiManager.showEntranceUnlockedBanner === 'function') {
         this.uiManager.showEntranceUnlockedBanner(config.unlockMessage || 'BARRIER UNLOCKED - Enter the Portal!');
+      }
+
+      // 4. Autosave checkpoint
+      if (this.game && typeof this.game.autoSave === 'function') {
+        this.game.autoSave('Ruins Portal Unlocked');
       }
     });
 

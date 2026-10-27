@@ -120,6 +120,7 @@ export class Game {
         this.environment,
         this.audioManager
       );
+      this.questSystem.setGame(this);
 
       // 11. Combat System (wired to player, enemies, questSystem, audio, UI, VFX)
       this.combatSystem = new CombatSystem(
@@ -421,23 +422,36 @@ export class Game {
 
   async refreshContinueButton() {
     try {
-      const hasSave = await this.saveManager.hasSave(QUICK_SAVE_SLOT);
+      const hasAny = await this.saveManager.hasAnySave();
       let metaText = '';
-      if (hasSave) {
-        const meta = await this.saveManager.getSaveMetadata(QUICK_SAVE_SLOT);
+      if (hasAny) {
+        const latestSlot = await this.saveManager.getLatestSaveSlot();
+        const meta = await this.saveManager.getSaveMetadata(latestSlot);
         if (meta) {
           metaText = `${meta.stageName || 'Stage'} • ${meta.score || 0} PTS`;
         }
       }
-      this.uiManager.setContinueButtonEnabled(hasSave, metaText);
-      return hasSave;
+      this.uiManager.setContinueButtonEnabled(hasAny, metaText);
+      return hasAny;
     } catch (e) {
       this.uiManager.setContinueButtonEnabled(false);
       return false;
     }
   }
 
-  async startNewGame() {
+  async startNewGame(force = false) {
+    if (!force && this.saveManager && await this.saveManager.hasAnySave()) {
+      if (this.uiManager && typeof this.uiManager.showConfirmation === 'function') {
+        const confirmed = await this.uiManager.showConfirmation(
+          'START A NEW JOURNEY?',
+          'An existing saved adventure was discovered. Embarking on a new game will reset active progress to Stage 1. Are you sure you wish to proceed?',
+          'EMBARK ON NEW QUEST',
+          true
+        );
+        if (!confirmed) return;
+      }
+    }
+
     this.levelManager.stageScores = [0, 0];
     this.levelManager.cumulativeScore = 0;
     if (this.levelManager.currentLevelIndex !== 0) {
@@ -469,14 +483,15 @@ export class Game {
   }
 
   async continueSavedGame() {
-    const hasSave = await this.saveManager.hasSave(QUICK_SAVE_SLOT);
+    const slotToLoad = await this.saveManager.getLatestSaveSlot();
+    const hasSave = await this.saveManager.hasSave(slotToLoad);
     if (!hasSave) {
       console.warn('[Game] No save file found, starting new adventure.');
-      this.startNewGame();
+      this.startNewGame(true);
       return;
     }
 
-    const result = await this.saveManager.loadGame(this, QUICK_SAVE_SLOT);
+    const result = await this.saveManager.loadGame(this, slotToLoad);
     if (result.success) {
       this.resumeFromMenuOrEnd();
       // Start audio
@@ -486,20 +501,37 @@ export class Game {
       }
     } else {
       console.error('[Game] Error loading save, falling back to new adventure:', result.reason);
-      this.startNewGame();
+      this.startNewGame(true);
     }
   }
 
-  async saveCurrentGame() {
-    return await this.saveManager.saveGame(this, QUICK_SAVE_SLOT);
+  async saveCurrentGame(slot = QUICK_SAVE_SLOT, options = {}) {
+    return await this.saveManager.saveGame(this, slot, options);
   }
 
-  async loadSavedGame() {
-    const result = await this.saveManager.loadGame(this, QUICK_SAVE_SLOT);
+  async loadSavedGame(slot = QUICK_SAVE_SLOT) {
+    const result = await this.saveManager.loadGame(this, slot);
     if (result.success) {
       this.resumeGame();
     }
     return result;
+  }
+
+  async autoSave(reason = 'Checkpoint reached') {
+    if (!this.saveManager) return;
+    const canSaveRes = this.saveManager.canSave(this);
+    if (!canSaveRes.allowed) {
+      return;
+    }
+
+    try {
+      const res = await this.saveManager.saveGame(this, 'autosave', { autosaveReason: reason });
+      if (res && res.success) {
+        await this.refreshContinueButton();
+      }
+    } catch (e) {
+      console.warn('[Game] Non-fatal autosave issue:', e);
+    }
   }
 
   setGraphicsQuality(preset) {

@@ -166,6 +166,10 @@ export class LevelManager {
 
         console.log(`[LevelManager] Successfully loaded Stage ${targetIndex + 1}: ${stageConfig.name}`);
 
+        if (this.hasInitiallyLoaded && this.game && typeof this.game.autoSave === 'function') {
+          this.game.autoSave(`Entered ${stageConfig.name}`);
+        }
+
       } catch (err) {
         console.error('[LevelManager] Error loading level:', err);
       } finally {

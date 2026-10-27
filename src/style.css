@@ -2363,3 +2363,375 @@ kbd {
   background: linear-gradient(135deg, #047857, #059669);
   transform: translateY(-1px);
 }
+
+/* ==================== CONFIRMATION MODAL ==================== */
+.confirm-modal-card {
+  max-width: 480px;
+  width: 90%;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 158, 11, 0.2);
+}
+
+.confirm-modal-msg {
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.confirm-actions-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.confirm-action-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.confirm-action-btn.primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+.confirm-action-btn.primary:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.confirm-action-btn.danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+.confirm-action-btn.danger:hover {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  transform: translateY(-1px);
+}
+
+.confirm-action-btn.secondary {
+  background: rgba(51, 65, 85, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.confirm-action-btn.secondary:hover {
+  background: rgba(71, 85, 105, 0.9);
+  color: #ffffff;
+}
+
+/* ==================== SAVE / LOAD SLOTS MODAL ==================== */
+.save-slots-modal-card {
+  max-width: 680px;
+  width: 92%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.save-slots-mode-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.save-slots-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 18px 24px 24px;
+}
+
+.save-slots-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.save-slot-tab {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.save-slot-tab:hover {
+  background: rgba(51, 65, 85, 0.8);
+  color: #f1f5f9;
+}
+
+.save-slot-tab.active {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.save-slots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.save-slot-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.save-slot-card:hover {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+.save-slot-card.autosave {
+  border-left: 4px solid #a855f7;
+}
+
+.save-slot-card.quicksave {
+  border-left: 4px solid #38bdf8;
+}
+
+.save-slot-card.manual {
+  border-left: 4px solid #10b981;
+}
+
+.save-slot-card.corrupted {
+  border-left: 4px solid #ef4444;
+  background: rgba(45, 10, 10, 0.6);
+}
+
+.save-slot-card.empty {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.save-slot-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.save-slot-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.save-slot-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.save-slot-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.save-slot-tag.tag-autosave {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.save-slot-tag.tag-quicksave {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.save-slot-tag.tag-manual {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.save-slot-tag.tag-corrupted {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.save-slot-meta-row {
+  display: flex;
+  gap: 14px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.save-slot-meta-item strong {
+  color: #cbd5e1;
+}
+
+.save-slot-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.save-slot-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.slot-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.slot-btn.primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+
+.slot-btn.primary:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.slot-btn.save {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.slot-btn.save:hover {
+  background: linear-gradient(135deg, #047857, #059669);
+  transform: translateY(-1px);
+}
+
+.slot-btn.danger {
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 8px 12px;
+}
+
+.slot-btn.danger:hover {
+  background: rgba(220, 38, 38, 0.5);
+  color: #ffffff;
+}
+
+.slot-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Save Recovery Banner */
+.save-recovery-banner {
+  background: rgba(45, 10, 10, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.recovery-icon {
+  font-size: 1.6rem;
+}
+
+.recovery-content {
+  flex: 1;
+}
+
+.recovery-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f87171;
+  letter-spacing: 0.08em;
+}
+
+.recovery-desc {
+  font-size: 0.8rem;
+  color: #fca5a5;
+  margin-top: 2px;
+}
+
+.recovery-action-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.recovery-action-btn:hover {
+  background: linear-gradient(135deg, #9333ea, #6d28d9);
+  transform: translateY(-1px);
+}
+
+/* Save Indicator Styles */
+.save-indicator.autosave {
+  background: rgba(88, 28, 135, 0.95);
+  border-color: #c084fc;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+}
+
+.save-indicator.warning {
+  background: rgba(120, 53, 15, 0.95);
+  border-color: #f59e0b;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+}
+
+.save-indicator.error {
+  background: rgba(127, 29, 29, 0.95);
+  border-color: #ef4444;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}

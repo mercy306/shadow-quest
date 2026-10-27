@@ -156,8 +156,24 @@
               <div class="control-label">Jump</div>
             </div>
             <div class="control-card">
+              <div class="key-badge"><kbd>V</kbd> / <kbd>Alt</kbd></div>
+              <div class="control-label">Combat Dodge Roll (i-Frames)</div>
+            </div>
+            <div class="control-card">
               <div class="key-badge"><kbd>Left Click</kbd> / <kbd>F</kbd></div>
               <div class="control-label">Sword Attack / Stealth Takedown</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Q</kbd> / <kbd>Right Click</kbd></div>
+              <div class="control-label">Heavy Spin Slash (Special Attack)</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>K</kbd></div>
+              <div class="control-label">Skill Tree & Talents</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>I</kbd> / <kbd>Tab</kbd></div>
+              <div class="control-label">Inventory & Equipment</div>
             </div>
             <div class="control-card">
               <div class="key-badge"><kbd>Mouse</kbd></div>
@@ -408,6 +424,121 @@
       </div>
     </div>
 
+    <!-- ==================== SKILL TREE & PROGRESSION MODAL ==================== -->
+    <div id="modal-skills" class="game-modal hidden">
+      <div class="modal-card skills-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">TALENT & SKILL TREE</h2>
+            <span id="skills-level-badge" class="skills-badge level-badge">⭐ HERO LEVEL 1</span>
+            <span id="skills-sp-badge" class="skills-badge sp-badge">🌟 0 SKILL POINTS</span>
+            <span id="skills-xp-badge" class="skills-badge xp-badge">XP: 0 / 100</span>
+          </div>
+          <button id="close-skills-btn" class="modal-close-btn" title="Close Skill Tree (K / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body skills-modal-body">
+          <!-- 3 Branch Columns Container -->
+          <div class="skill-branches-container">
+            <!-- Branch 1: Sword Mastery -->
+            <div class="skill-branch-col" data-branch="sword_mastery">
+              <div class="branch-header">
+                <span class="branch-icon">⚔️</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">SWORD MASTERY</h3>
+                  <span class="branch-desc">Melee offense, spin whirlwind, strike speed</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-sword">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+
+            <!-- Branch 2: Survival -->
+            <div class="skill-branch-col" data-branch="survival">
+              <div class="branch-header">
+                <span class="branch-icon">🛡️</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">SURVIVAL</h3>
+                  <span class="branch-desc">Maximum health, armor mitigation, vital regeneration</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-survival">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+
+            <!-- Branch 3: Mobility -->
+            <div class="skill-branch-col" data-branch="mobility">
+              <div class="branch-header">
+                <span class="branch-icon">⚡</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">MOBILITY</h3>
+                  <span class="branch-desc">Sprint agility, dodge roll i-frames, kill stamina surge</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-mobility">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Skill Detail & Upgrade Inspector Drawer -->
+          <div class="skill-inspector-panel" id="skill-inspector-panel">
+            <div class="inspector-header">
+              <span id="inspector-skill-icon" class="inspector-icon">⚔️</span>
+              <div class="inspector-title-wrap">
+                <h4 id="inspector-skill-name" class="inspector-name">Select a Skill</h4>
+                <div class="inspector-badges">
+                  <span id="inspector-branch-tag" class="inspector-tag branch">SWORD MASTERY</span>
+                  <span id="inspector-rank-tag" class="inspector-tag rank">RANK 0 / 3</span>
+                  <span id="inspector-status-tag" class="inspector-tag status">AVAILABLE</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="inspector-body">
+              <p id="inspector-desc" class="inspector-desc">Click on any skill node above to inspect its details, prerequisites, and combat enhancements.</p>
+              
+              <div class="inspector-bonus-boxes">
+                <div class="bonus-box current-rank">
+                  <span class="bonus-box-label">CURRENT RANK BONUS</span>
+                  <p id="inspector-current-bonus" class="bonus-box-text">None (Locked)</p>
+                </div>
+                <div class="bonus-box next-rank">
+                  <span class="bonus-box-label">NEXT RANK BONUS</span>
+                  <p id="inspector-next-bonus" class="bonus-box-text">+12 Attack Damage</p>
+                </div>
+              </div>
+
+              <div id="inspector-prereq-wrap" class="inspector-prereq-wrap hidden">
+                <span class="prereq-icon">🔒</span>
+                <span id="inspector-prereq-text" class="prereq-text">Requires Sword Precision Rank 1</span>
+              </div>
+            </div>
+
+            <div class="inspector-footer">
+              <button id="skill-upgrade-btn" class="skill-upgrade-btn primary" disabled>
+                <span class="upgrade-btn-icon">⚡</span> UPGRADE SKILL (1 SP)
+              </button>
+              <div id="skill-upgrade-feedback" class="skill-upgrade-feedback"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skill Tree Modal Footer with Respec -->
+        <div class="modal-footer skills-modal-footer">
+          <div class="respec-info-wrap">
+            <span class="respec-title">🔄 REASSIGN TALENTS:</span>
+            <span class="respec-desc">Refunds 100% of spent skill points. Costs 100 Gold.</span>
+          </div>
+          <button id="skills-respec-btn" class="skills-respec-btn danger">
+            <span>🪙 RESET ALL SKILLS (100 G)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
@@ -417,12 +548,22 @@
         </header>
 
         <!-- Player Health & Status -->
-        <div id="player-health-bar" class="player-health-bar">
-          <span class="health-icon">❤️</span>
-          <div class="health-track">
-            <div id="health-fill" class="health-fill"></div>
+        <div class="vital-bars-container">
+          <div id="player-health-bar" class="player-health-bar">
+            <span class="health-icon">❤️</span>
+            <div class="health-track">
+              <div id="health-fill" class="health-fill"></div>
+            </div>
+            <span id="health-text" class="health-text">100 / 100</span>
           </div>
-          <span id="health-text" class="health-text">100 / 100</span>
+
+          <div id="player-stamina-bar" class="player-stamina-bar" title="Hero Stamina (Sprint, Roll, Heavy Attack)">
+            <span class="stamina-icon">⚡</span>
+            <div class="stamina-track">
+              <div id="stamina-fill" class="stamina-fill"></div>
+            </div>
+            <span id="stamina-text" class="stamina-text">100 / 100</span>
+          </div>
         </div>
 
         <!-- Movement Stance & Run Mode Indicator -->
@@ -445,6 +586,15 @@
         </div>
 
         <div class="top-bar-right">
+          <!-- Hero Level & XP Mini Badge -->
+          <div id="hud-level-badge" class="level-badge" title="Hero Level & Experience">
+            <span class="level-star">⭐</span>
+            <span id="hud-level-text" class="level-text">LVL 1</span>
+            <div class="xp-mini-track" title="XP Progress to Next Level">
+              <div id="hud-xp-fill" class="xp-fill"></div>
+            </div>
+          </div>
+
           <!-- Player Currency Counter -->
           <div id="hud-gold-counter" class="gold-counter-badge" title="Hero Currency">
             <span class="gold-icon">🪙</span>
@@ -455,6 +605,12 @@
             <span class="crystal-icon">💎</span>
             <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
           </div>
+
+          <!-- Skill Tree Toggle Button -->
+          <button id="skills-toggle-btn" class="skills-toggle-btn" title="Open Skill Tree (K)">
+            <span class="skills-btn-icon">🌳</span>
+            <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
+          </button>
 
           <!-- Inventory & Equipment Toggle Button -->
           <button id="inventory-toggle-btn" class="inventory-toggle-btn" title="Open Inventory & Equipment (I)">
@@ -539,7 +695,7 @@
       </div>
 
       <div id="controls-hint">
-        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [Left Click / F] Attack • [I] Inventory • [M] Mute • [ESC] Pause</span>
+        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [V] Roll • [Left Click / F] Strike • [Q / R-Click] Heavy Spin • [K] Skills • [I] Inventory • [ESC] Pause</span>
       </div>
     </div>
 

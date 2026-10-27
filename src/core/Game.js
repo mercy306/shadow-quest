@@ -33,6 +33,7 @@ export class Game {
     this.isRunning = false;
     this.isPaused = false;
     this.isInventoryOpen = false;
+    this.isSkillsOpen = false;
     this.npcManager = null;
     this.dialogueManager = null;
     this.merchantManager = null;
@@ -191,6 +192,13 @@ export class Game {
         onToggleInventory: (open) => this.toggleInventory(open)
       });
 
+      // Complete Skill Tree UI Setup
+      this.uiManager.setupSkillTree({
+        player: this.player,
+        onToggleSkills: (open) => this.toggleSkills(open)
+      });
+      this.player.onToggleSkillsCallback = () => this.toggleSkills();
+
       // Apply initial saved settings
       this.saveManager.applySettings(this, this.saveManager.loadSettings());
 
@@ -244,11 +252,19 @@ export class Game {
         if (this.gameState === GameState.PLAYING || this.isInventoryOpen) {
           this.toggleInventory();
         }
+      } else if (e.code === 'KeyK') {
+        // Skill Tree toggle with 'K'
+        e.preventDefault();
+        if (this.gameState === GameState.PLAYING || this.isSkillsOpen) {
+          this.toggleSkills();
+        }
       } else if (e.code === 'Escape') {
         if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
           this.closeDialogue();
         } else if (this.merchantManager && this.merchantManager.isShopOpen()) {
           this.closeShop();
+        } else if (this.isSkillsOpen) {
+          this.toggleSkills(false);
         } else if (this.isInventoryOpen) {
           this.toggleInventory(false);
         } else {
@@ -292,6 +308,33 @@ export class Game {
     }
   }
 
+  toggleSkills(forceState = null) {
+    if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+      return;
+    }
+
+    const shouldOpen = (forceState !== null) ? forceState : !this.isSkillsOpen;
+    if (shouldOpen === this.isSkillsOpen) return;
+
+    this.isSkillsOpen = shouldOpen;
+
+    if (shouldOpen) {
+      if (this.isInventoryOpen) this.toggleInventory(false);
+      this.player.isEnabled = false;
+      this.cameraManager.setLockEnabled(false);
+      this.cameraManager.exitPointerLock();
+      this.uiManager.openSkillTree();
+    } else {
+      this.uiManager.closeSkillTree();
+      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isInventoryOpen) {
+        this.player.isEnabled = true;
+        this.cameraManager.setLockEnabled(true);
+        this.clock.getDelta();
+        this.cameraManager.requestPointerLock();
+      }
+    }
+  }
+
   toggleInventory(forceState = null) {
     if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
       return;
@@ -303,6 +346,7 @@ export class Game {
     this.isInventoryOpen = shouldOpen;
 
     if (shouldOpen) {
+      if (this.isSkillsOpen) this.toggleSkills(false);
       // Pause single-player inputs and unlock mouse for inventory
       this.player.isEnabled = false;
       this.cameraManager.setLockEnabled(false);
@@ -310,7 +354,7 @@ export class Game {
       this.uiManager.openInventory();
     } else {
       this.uiManager.closeInventory();
-      if (this.gameState === GameState.PLAYING && !this.isPaused) {
+      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isSkillsOpen) {
         this.player.isEnabled = true;
         this.cameraManager.setLockEnabled(true);
         this.clock.getDelta();

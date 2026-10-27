@@ -179,9 +179,14 @@ export class SaveManager {
         rotationY: Math.PI,
         health: 100,
         maxHealth: 100,
+        stamina: 100,
+        maxStamina: 100,
         isRunMode: true,
         level: 1,
         xp: 0,
+        skillPoints: 0,
+        spentSkillPoints: 0,
+        skillTree: {},
         inventory: [{ id: 'health_potion', name: 'Ancient Elixir', count: 2, icon: '🧪' }],
         equipment: { weapon: 'Iron Sword', armor: 'Adventurer Tunic' },
         unlockedSkills: ['sword_slash', 'fast_sprint', 'ground_roll'],
@@ -284,6 +289,9 @@ export class SaveManager {
       }
       if (!data.player.level) data.player.level = 1;
       if (!data.player.xp) data.player.xp = 0;
+      if (typeof data.player.skillPoints !== 'number') data.player.skillPoints = Math.max(0, (data.player.level || 1) - 1);
+      if (typeof data.player.spentSkillPoints !== 'number') data.player.spentSkillPoints = 0;
+      if (!data.player.skillTree) data.player.skillTree = {};
       if (!data.world) data.world = { currentLevelIndex: 0, stageScores: [0, 0], cumulativeScore: 0 };
       if (!data.quest) {
         data.quest = {
@@ -301,6 +309,12 @@ export class SaveManager {
       if (!data.multiplayer) {
         data.multiplayer = { isMultiplayer: false, sessionId: null, syncState: 'LOCAL_ONLY' };
       }
+    }
+
+    if (data.player) {
+      if (typeof data.player.skillPoints !== 'number') data.player.skillPoints = Math.max(0, (data.player.level || 1) - 1);
+      if (typeof data.player.spentSkillPoints !== 'number') data.player.spentSkillPoints = 0;
+      if (!data.player.skillTree) data.player.skillTree = {};
     }
 
     // Future version migrations (e.g. v1 -> v2) would follow sequentially here
@@ -692,6 +706,12 @@ export class SaveManager {
         game.uiManager.updateGold(game.player.gold);
         if (typeof game.uiManager.refreshInventoryUI === 'function') {
           game.uiManager.refreshInventoryUI();
+        }
+        if (typeof game.uiManager.updateProgressionUI === 'function') {
+          game.uiManager.updateProgressionUI(game.player);
+        }
+        if (typeof game.uiManager.refreshSkillTreeUI === 'function') {
+          game.uiManager.refreshSkillTreeUI();
         }
       }
 

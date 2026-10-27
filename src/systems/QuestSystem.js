@@ -126,7 +126,11 @@ export class QuestSystem {
         player.inventorySystem.addGold(quest.rewards.gold);
       }
       if (quest.rewards.xp) {
-        player.xp = (player.xp || 0) + quest.rewards.xp;
+        if (typeof player.addXP === 'function') {
+          player.addXP(quest.rewards.xp);
+        } else {
+          player.xp = (player.xp || 0) + quest.rewards.xp;
+        }
       }
       if (quest.rewards.itemId && player.inventorySystem) {
         const item = player.inventorySystem.createItem(quest.rewards.itemId);
@@ -328,6 +332,9 @@ export class QuestSystem {
   onCrystalCollected(crystal) {
     if (this.currentQuest) {
       this.currentQuest.onCrystalCollected(crystal);
+    }
+    if (this.game && this.game.player && typeof this.game.player.addXP === 'function') {
+      this.game.player.addXP(25);
     }
   }
 

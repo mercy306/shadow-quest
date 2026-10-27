@@ -1,3 +1,5 @@
+import { SKILL_DEFINITIONS, SKILL_BRANCHES, RESPEC_GOLD_COST } from '../systems/SkillTreeSystem.js';
+
 export class UIManager {
   constructor() {
     this.loadingScreen = document.getElementById('loading-screen');
@@ -21,12 +23,44 @@ export class UIManager {
     this.modalInventory = document.getElementById('modal-inventory');
     this.modalDialogue = document.getElementById('modal-dialogue');
     this.modalMerchant = document.getElementById('modal-merchant');
+    this.modalSkills = document.getElementById('modal-skills');
     this.closeSettingsBtn = document.getElementById('close-settings-btn');
     this.closeControlsBtn = document.getElementById('close-controls-btn');
     this.closeCreditsBtn = document.getElementById('close-credits-btn');
     this.closeInventoryBtn = document.getElementById('close-inventory-btn');
     this.closeDialogueBtn = document.getElementById('close-dialogue-btn');
     this.closeMerchantBtn = document.getElementById('close-merchant-btn');
+    this.closeSkillsBtn = document.getElementById('close-skills-btn');
+
+    // Skill Tree & Progression UI Elements
+    this.skillsToggleBtn = document.getElementById('skills-toggle-btn');
+    this.hudSpBadge = document.getElementById('hud-sp-badge');
+    this.hudLevelText = document.getElementById('hud-level-text');
+    this.hudXpFill = document.getElementById('hud-xp-fill');
+    this.playerStaminaBar = document.getElementById('player-stamina-bar');
+    this.staminaFill = document.getElementById('stamina-fill');
+    this.staminaText = document.getElementById('stamina-text');
+    this.skillsLevelBadge = document.getElementById('skills-level-badge');
+    this.skillsSpBadge = document.getElementById('skills-sp-badge');
+    this.skillsXpBadge = document.getElementById('skills-xp-badge');
+    this.branchNodesSword = document.getElementById('branch-nodes-sword');
+    this.branchNodesSurvival = document.getElementById('branch-nodes-survival');
+    this.branchNodesMobility = document.getElementById('branch-nodes-mobility');
+    this.inspectorSkillIcon = document.getElementById('inspector-skill-icon');
+    this.inspectorSkillName = document.getElementById('inspector-skill-name');
+    this.inspectorBranchTag = document.getElementById('inspector-branch-tag');
+    this.inspectorRankTag = document.getElementById('inspector-rank-tag');
+    this.inspectorStatusTag = document.getElementById('inspector-status-tag');
+    this.inspectorDesc = document.getElementById('inspector-desc');
+    this.inspectorCurrentBonus = document.getElementById('inspector-current-bonus');
+    this.inspectorNextBonus = document.getElementById('inspector-next-bonus');
+    this.inspectorPrereqWrap = document.getElementById('inspector-prereq-wrap');
+    this.inspectorPrereqText = document.getElementById('inspector-prereq-text');
+    this.skillUpgradeBtn = document.getElementById('skill-upgrade-btn');
+    this.skillUpgradeFeedback = document.getElementById('skill-upgrade-feedback');
+    this.skillsRespecBtn = document.getElementById('skills-respec-btn');
+    this.selectedSkillId = 'sword_precision';
+    this.onToggleSkillsCallback = null;
 
     // Dialogue UI Elements
     this.dialogueAvatar = document.getElementById('dialogue-avatar');
@@ -316,6 +350,9 @@ export class UIManager {
     if (this.closeMerchantBtn) {
       this.closeMerchantBtn.onclick = () => this.closeMerchantModal();
     }
+    if (this.closeSkillsBtn) {
+      this.closeSkillsBtn.onclick = () => this.closeSkillTree();
+    }
     if (this.closeConfirmBtn) {
       this.closeConfirmBtn.onclick = () => this.closeModal(this.modalConfirm);
     }
@@ -330,12 +367,14 @@ export class UIManager {
     }
 
     // Close on backdrop click
-    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalDialogue, this.modalMerchant, this.modalConfirm, this.modalSaveSlots].forEach(modal => {
+    [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalSkills, this.modalDialogue, this.modalMerchant, this.modalConfirm, this.modalSaveSlots].forEach(modal => {
       if (modal) {
         modal.onclick = (e) => {
           if (e.target === modal) {
             if (modal === this.modalInventory) {
               this.closeInventory();
+            } else if (modal === this.modalSkills) {
+              this.closeSkillTree();
             } else if (modal === this.modalDialogue) {
               this.closeDialogueModal();
             } else if (modal === this.modalMerchant) {
@@ -426,6 +465,316 @@ export class UIManager {
 
   isInventoryOpen() {
     return this.modalInventory && !this.modalInventory.classList.contains('hidden');
+  }
+
+  // ==================== SKILL TREE & PROGRESSION UI ====================
+  setupSkillTree({ player, onToggleSkills }) {
+    this.playerRef = player;
+    this.onToggleSkillsCallback = onToggleSkills;
+
+    if (this.skillsToggleBtn) {
+      this.skillsToggleBtn.onclick = () => {
+        if (typeof this.onToggleSkillsCallback === 'function') {
+          this.onToggleSkillsCallback();
+        } else {
+          this.toggleSkillTree();
+        }
+      };
+    }
+
+    if (this.skillUpgradeBtn) {
+      this.skillUpgradeBtn.onclick = () => this.upgradeSelectedSkill();
+    }
+
+    if (this.skillsRespecBtn) {
+      this.skillsRespecBtn.onclick = () => this.respecSkills();
+    }
+
+    this.refreshSkillTreeUI();
+  }
+
+  toggleSkillTree(force = null) {
+    if (force === true || (force === null && !this.isSkillTreeOpen())) {
+      this.openSkillTree();
+    } else {
+      this.closeSkillTree();
+    }
+  }
+
+  openSkillTree() {
+    if (this.modalSkills) {
+      this.openModal(this.modalSkills);
+      this.refreshSkillTreeUI();
+    }
+  }
+
+  closeSkillTree() {
+    if (this.modalSkills) {
+      this.closeModal(this.modalSkills);
+      if (typeof this.onToggleSkillsCallback === 'function') {
+        this.onToggleSkillsCallback(false);
+      }
+    }
+  }
+
+  isSkillTreeOpen() {
+    return this.modalSkills && !this.modalSkills.classList.contains('hidden');
+  }
+
+  selectSkill(skillId) {
+    this.selectedSkillId = skillId;
+    this.refreshSkillTreeUI();
+  }
+
+  refreshSkillTreeUI() {
+    if (!this.playerRef) return;
+    const player = this.playerRef;
+    const tree = player.skillTree;
+    if (!tree) return;
+
+    const availableSP = player.skillPoints || 0;
+    const currentLevel = player.level || 1;
+    const currentXP = player.xp || 0;
+    const nextXP = typeof player.getXPThresholdForLevel === 'function' ? player.getXPThresholdForLevel(currentLevel) : 100;
+
+    // 1. Header & Badges
+    if (this.skillsLevelBadge) {
+      this.skillsLevelBadge.textContent = `⭐ HERO LEVEL ${currentLevel}`;
+    }
+    if (this.skillsSpBadge) {
+      this.skillsSpBadge.textContent = `🌟 ${availableSP} SKILL POINT${availableSP === 1 ? '' : 'S'}`;
+    }
+    if (this.skillsXpBadge) {
+      this.skillsXpBadge.textContent = `XP: ${currentXP} / ${nextXP}`;
+    }
+
+    // Update HUD SP badge
+    if (this.hudSpBadge) {
+      if (availableSP > 0) {
+        this.hudSpBadge.textContent = `${availableSP} SP`;
+        this.hudSpBadge.classList.remove('hidden');
+      } else {
+        this.hudSpBadge.classList.add('hidden');
+      }
+    }
+
+    // 2. Render Branch Nodes
+    const branchContainers = {
+      [SKILL_BRANCHES.SWORD_MASTERY]: this.branchNodesSword,
+      [SKILL_BRANCHES.SURVIVAL]: this.branchNodesSurvival,
+      [SKILL_BRANCHES.MOBILITY]: this.branchNodesMobility
+    };
+
+    for (const [branchKey, container] of Object.entries(branchContainers)) {
+      if (!container) continue;
+      container.innerHTML = '';
+
+      const branchSkills = Object.values(SKILL_DEFINITIONS).filter(s => s.branch === branchKey);
+      branchSkills.forEach(skill => {
+        const rank = tree.getRank(skill.id);
+        const check = tree.canUpgrade(skill.id, player);
+        const isSelected = this.selectedSkillId === skill.id;
+
+        const card = document.createElement('div');
+        card.className = `skill-node-card ${isSelected ? 'selected' : ''}`;
+        
+        let statusBadgeClass = 'locked';
+        let statusBadgeText = 'LOCKED';
+
+        if (rank >= skill.maxRank) {
+          card.classList.add('maxed');
+          statusBadgeClass = 'maxed';
+          statusBadgeText = 'MAX RANK';
+        } else if (rank > 0) {
+          card.classList.add('upgraded');
+          statusBadgeClass = 'upgraded';
+          statusBadgeText = `RANK ${rank}/${skill.maxRank}`;
+        } else if (check.allowed) {
+          card.classList.add('available');
+          statusBadgeClass = 'available';
+          statusBadgeText = 'AVAILABLE';
+        } else {
+          card.classList.add('locked');
+          statusBadgeClass = 'locked';
+          statusBadgeText = 'LOCKED';
+        }
+
+        card.innerHTML = `
+          <div class="node-icon-box">${skill.icon}</div>
+          <div class="node-info">
+            <div class="node-name">${skill.name}</div>
+            <div class="node-rank-tag">Rank ${rank} / ${skill.maxRank}</div>
+          </div>
+          <span class="node-status-badge ${statusBadgeClass}">${statusBadgeText}</span>
+        `;
+
+        card.onclick = () => this.selectSkill(skill.id);
+        container.appendChild(card);
+      });
+    }
+
+    // 3. Render Inspector Pane for Selected Skill
+    const selectedDef = SKILL_DEFINITIONS[this.selectedSkillId] || SKILL_DEFINITIONS.sword_precision;
+    if (selectedDef) {
+      const curRank = tree.getRank(selectedDef.id);
+      const check = tree.canUpgrade(selectedDef.id, player);
+
+      if (this.inspectorSkillIcon) this.inspectorSkillIcon.textContent = selectedDef.icon;
+      if (this.inspectorSkillName) this.inspectorSkillName.textContent = selectedDef.name;
+      if (this.inspectorBranchTag) {
+        this.inspectorBranchTag.textContent = selectedDef.branch.replace('_', ' ').toUpperCase();
+      }
+      if (this.inspectorRankTag) {
+        this.inspectorRankTag.textContent = `RANK ${curRank} / ${selectedDef.maxRank}`;
+      }
+      if (this.inspectorStatusTag) {
+        if (curRank >= selectedDef.maxRank) {
+          this.inspectorStatusTag.textContent = 'MAX RANK';
+          this.inspectorStatusTag.className = 'inspector-tag status maxed';
+        } else if (check.allowed) {
+          this.inspectorStatusTag.textContent = 'READY TO LEARN';
+          this.inspectorStatusTag.className = 'inspector-tag status available';
+        } else {
+          this.inspectorStatusTag.textContent = curRank > 0 ? 'PARTIAL RANK' : 'LOCKED';
+          this.inspectorStatusTag.className = 'inspector-tag status locked';
+        }
+      }
+
+      if (this.inspectorDesc) this.inspectorDesc.textContent = selectedDef.description;
+
+      // Current Rank Text
+      if (this.inspectorCurrentBonus) {
+        if (curRank > 0 && selectedDef.rankBonuses[curRank - 1]) {
+          this.inspectorCurrentBonus.textContent = selectedDef.rankBonuses[curRank - 1].text;
+          this.inspectorCurrentBonus.style.color = '#f8fafc';
+        } else {
+          this.inspectorCurrentBonus.textContent = 'None (Skill Locked)';
+          this.inspectorCurrentBonus.style.color = '#94a3b8';
+        }
+      }
+
+      // Next Rank Text
+      if (this.inspectorNextBonus) {
+        if (curRank < selectedDef.maxRank && selectedDef.rankBonuses[curRank]) {
+          this.inspectorNextBonus.textContent = selectedDef.rankBonuses[curRank].text;
+          this.inspectorNextBonus.style.color = '#38bdf8';
+        } else {
+          this.inspectorNextBonus.textContent = 'Maximum Rank Achieved';
+          this.inspectorNextBonus.style.color = '#34d399';
+        }
+      }
+
+      // Prerequisite Warning
+      if (this.inspectorPrereqWrap && this.inspectorPrereqText) {
+        if (selectedDef.prerequisite) {
+          const prereqDef = SKILL_DEFINITIONS[selectedDef.prerequisite.skillId];
+          const prereqRank = tree.getRank(selectedDef.prerequisite.skillId);
+          const met = prereqRank >= selectedDef.prerequisite.rank;
+          if (!met) {
+            this.inspectorPrereqWrap.classList.remove('hidden');
+            this.inspectorPrereqText.textContent = `Prerequisite: Requires ${prereqDef?.name || selectedDef.prerequisite.skillId} Rank ${selectedDef.prerequisite.rank} (Current: ${prereqRank})`;
+          } else {
+            this.inspectorPrereqWrap.classList.add('hidden');
+          }
+        } else {
+          this.inspectorPrereqWrap.classList.add('hidden');
+        }
+      }
+
+      // Upgrade Action Button
+      if (this.skillUpgradeBtn) {
+        if (curRank >= selectedDef.maxRank) {
+          this.skillUpgradeBtn.disabled = true;
+          this.skillUpgradeBtn.innerHTML = `<span>✔️ MAX RANK REACHED</span>`;
+          if (this.skillUpgradeFeedback) this.skillUpgradeFeedback.textContent = 'This talent has reached its maximum potency.';
+        } else if (check.allowed) {
+          this.skillUpgradeBtn.disabled = false;
+          this.skillUpgradeBtn.innerHTML = `<span class="upgrade-btn-icon">⚡</span> UPGRADE SKILL (${selectedDef.costPerRank} SP)`;
+          if (this.skillUpgradeFeedback) this.skillUpgradeFeedback.textContent = `Spend ${selectedDef.costPerRank} SP to enhance ${selectedDef.name}.`;
+        } else {
+          this.skillUpgradeBtn.disabled = true;
+          this.skillUpgradeBtn.innerHTML = `<span class="upgrade-btn-icon">🔒</span> UPGRADE LOCKED`;
+          if (this.skillUpgradeFeedback) this.skillUpgradeFeedback.textContent = check.reason;
+        }
+      }
+    }
+  }
+
+  upgradeSelectedSkill() {
+    if (!this.playerRef || !this.selectedSkillId) return;
+    const tree = this.playerRef.skillTree;
+    if (!tree) return;
+
+    const res = tree.upgradeSkill(this.selectedSkillId, this.playerRef);
+    if (res.success) {
+      const def = SKILL_DEFINITIONS[this.selectedSkillId];
+      this.showCollectNotification(`✨ Upgraded ${def?.name || this.selectedSkillId} to Rank ${res.newRank}!`);
+      this.refreshSkillTreeUI();
+      this.refreshInventoryUI();
+    } else {
+      this.showCollectNotification(`⚠️ ${res.reason}`, 'warning');
+    }
+  }
+
+  respecSkills() {
+    if (!this.playerRef) return;
+    const tree = this.playerRef.skillTree;
+    if (!tree) return;
+
+    this.showConfirmation(
+      'RESET ALL TALENTS',
+      `Are you sure you wish to reset all allocated skill branches for ${RESPEC_GOLD_COST} Gold? All spent skill points will be refunded.`,
+      () => {
+        const res = tree.respec(this.playerRef, RESPEC_GOLD_COST);
+        if (res.success) {
+          this.showCollectNotification(`🔄 Skills Reset! Refunded ${res.refundedPoints} Skill Points.`);
+          this.updateGold(this.playerRef.gold);
+          this.refreshSkillTreeUI();
+          this.refreshInventoryUI();
+        } else {
+          this.showCollectNotification(`⚠️ ${res.reason}`, 'warning');
+        }
+      }
+    );
+  }
+
+  updatePlayerStamina(stamina, maxStamina) {
+    if (this.staminaFill && this.staminaText) {
+      const pct = Math.max(0, Math.min(100, (stamina / maxStamina) * 100));
+      this.staminaFill.style.width = `${pct}%`;
+      this.staminaText.textContent = `${Math.ceil(stamina)} / ${maxStamina}`;
+    }
+  }
+
+  updateProgressionUI(player = this.playerRef) {
+    if (!player) return;
+    const curLevel = player.level || 1;
+    const curXP = player.xp || 0;
+    const threshold = typeof player.getXPThresholdForLevel === 'function' ? player.getXPThresholdForLevel(curLevel) : 100;
+    const pct = Math.min(100, Math.round((curXP / threshold) * 100));
+
+    if (this.hudLevelText) {
+      this.hudLevelText.textContent = `LVL ${curLevel}`;
+    }
+    if (this.hudXpFill) {
+      this.hudXpFill.style.width = `${pct}%`;
+    }
+    if (this.hudSpBadge) {
+      const sp = player.skillPoints || 0;
+      if (sp > 0) {
+        this.hudSpBadge.textContent = `${sp} SP`;
+        this.hudSpBadge.classList.remove('hidden');
+      } else {
+        this.hudSpBadge.classList.add('hidden');
+      }
+    }
+    if (this.statValLevel) {
+      this.statValLevel.textContent = `Level ${curLevel} (${curXP} / ${threshold} XP)`;
+    }
+  }
+
+  showLevelUpNotification(level, sp) {
+    this.showCollectNotification(`🌟 LEVEL UP! You reached Level ${level}! (+1 Skill Point)`, 'success');
   }
 
   unequipSlot(slotName) {

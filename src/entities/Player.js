@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
+import { SkillTreeSystem } from '../systems/SkillTreeSystem.js';
 
 export class Player {
   constructor(scene, environment = null, physicsWorld = null) {
@@ -51,20 +52,49 @@ export class Player {
     this.lastWPressTime = 0;
     this.isDoubleTapSprint = false;
 
+    // Stamina System
+    this.baseMaxStamina = 100;
+    this.maxStamina = 100;
+    this.stamina = 100;
+    this.staminaRegenRate = 22; // points per sec
+    this.staminaRegenDelayTimer = 0;
+    this.staminaDrainPerSecSprint = 15;
+    this.dodgeRollStaminaCost = 25;
+    this.isRolling = false;
+    this.rollTimer = 0;
+    this.rollDuration = 0.35;
+    this.rollSpeed = 13.0;
+    this.rollDirection = new THREE.Vector3(0, 0, -1);
+
+    // Special Attack System (Heavy Spin Slash)
+    this.isHeavyAttacking = false;
+    this.heavyAttackTimer = 0;
+    this.heavyAttackDuration = 0.5;
+    this.heavyAttackCooldown = 4.5;
+    this.heavyAttackCooldownTimer = 0;
+    this.heavyAttackStaminaCost = 30;
+    this.hasDealtDamageThisHeavyAttack = false;
+
+    // Combat tracking
+    this.timeSinceLastCombat = 10.0;
+
     // Base Character Stats
     this.baseMaxHealth = 100;
     this.baseDamage = 25;
     this.baseDefense = 0;
 
-    // Effective Combat Stats (Base + Equipment bonuses)
+    // Effective Combat Stats (Base + Equipment + Skill bonuses)
     this.maxHealth = 100;
     this.health = 100;
     this.damage = 40;
     this.defense = 0;
 
-    // Progression & Skills
+    // Progression & RPG Skill Tree System
     this.level = 1;
     this.xp = 0;
+    this.skillPoints = 0;
+    this.spentSkillPoints = 0;
+    this.skillTree = new SkillTreeSystem();
     this.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
     this.discoveredLocations = ['dark-forest'];
 
@@ -72,6 +102,7 @@ export class Player {
     this.inventorySystem = new InventorySystem();
     this.inventory = [];
     this.onInteractCallback = null;
+    this.onToggleSkillsCallback = null;
     this.recalculateStats();
 
     this.isInvulnerable = false;
@@ -304,6 +335,20 @@ export class Player {
         case 'ControlRight':
           this.toggleCrouch();
           break;
+        case 'KeyV':
+        case 'AltLeft':
+        case 'AltRight':
+          this.triggerDodgeRoll();
+          break;
+        case 'KeyQ':
+        case 'KeyR':
+          this.triggerHeavyAttack();
+          break;
+        case 'KeyK':
+          if (typeof this.onToggleSkillsCallback === 'function') {
+            this.onToggleSkillsCallback();
+          }
+          break;
         case 'KeyF':
           this.triggerAttack();
           break;
@@ -357,10 +402,21 @@ export class Player {
       }
     });
 
-    // Left click attacks when pointer locked
+    // Left click attacks; right click heavy attacks when pointer locked
     window.addEventListener('mousedown', (e) => {
-      if (e.button === 0 && document.pointerLockElement) {
-        this.triggerAttack();
+      if (document.pointerLockElement) {
+        if (e.button === 0) {
+          this.triggerAttack();
+        } else if (e.button === 2) {
+          e.preventDefault();
+          this.triggerHeavyAttack();
+        }
+      }
+    });
+
+    window.addEventListener('contextmenu', (e) => {
+      if (document.pointerLockElement) {
+        e.preventDefault();
       }
     });
   }
@@ -392,24 +448,198 @@ export class Player {
   recalculateStats() {
     if (!this.inventorySystem) return;
 
-    const bonuses = this.inventorySystem.getEquipmentBonuses();
+    const equipBonuses = this.inventorySystem.getEquipmentBonuses();
+    const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : {
+      damage: 0,
+      maxHealth: 0,
+      defense: 0,
+      sprintSpeedMultiplier: 1.0,
+      sprintStaminaDrainReduction: 0,
+      rollStaminaReduction: 0,
+      rollIFrameBonus: 0,
+      unlocksHeavyAttack: false,
+      heavyDamageMult: 2.2,
+      heavyCooldown: 4.5,
+      attackCooldownReduction: 0,
+      outOfCombatRegen: 0,
+      staminaOnKill: 0
+    };
 
-    this.maxHealth = this.baseMaxHealth + bonuses.maxHealth;
-    this.damage = this.baseDamage + bonuses.damage;
-    this.defense = this.baseDefense + bonuses.defense;
+    const prevMaxHealth = this.maxHealth;
+    this.maxHealth = this.baseMaxHealth + equipBonuses.maxHealth + (skillBonuses.maxHealth || 0);
+    this.damage = this.baseDamage + equipBonuses.damage + (skillBonuses.damage || 0);
+    this.defense = this.baseDefense + equipBonuses.defense + (skillBonuses.defense || 0);
+
+    // If max health increased from skill/equipment, heal for the difference
+    if (this.maxHealth > prevMaxHealth && prevMaxHealth > 0) {
+      this.health = Math.min(this.maxHealth, this.health + (this.maxHealth - prevMaxHealth));
+    } else {
+      this.health = Math.min(this.maxHealth, this.health);
+    }
 
     const buffMultiplier = this.speedBuffTimer > 0 ? this.speedBuffMultiplier : 1.0;
-    const equipSpeed = 1.0 + bonuses.speedBonus;
+    const equipSpeed = 1.0 + equipBonuses.speedBonus;
+    const skillSprintMult = skillBonuses.sprintSpeedMultiplier || 1.0;
+
     this.walkSpeed = this.baseWalkSpeed * buffMultiplier * equipSpeed;
     this.runSpeed = this.baseRunSpeed * buffMultiplier * equipSpeed;
-    this.sprintSpeed = this.baseSprintSpeed * buffMultiplier * equipSpeed;
+    this.sprintSpeed = this.baseSprintSpeed * buffMultiplier * equipSpeed * skillSprintMult;
     this.crouchSpeed = this.baseCrouchSpeed * buffMultiplier * equipSpeed;
 
-    this.health = Math.min(this.maxHealth, this.health);
+    this.heavyAttackCooldown = skillBonuses.heavyCooldown || 4.5;
+    this.attackCooldown = Math.max(0.28, 0.45 - (skillBonuses.attackCooldownReduction || 0));
 
     if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
       this.uiManager.updatePlayerHealth(this.health, this.maxHealth);
     }
+    if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+      this.uiManager.updatePlayerStamina(this.stamina, this.maxStamina);
+    }
+    if (this.uiManager && typeof this.uiManager.updateProgressionUI === 'function') {
+      this.uiManager.updateProgressionUI(this);
+    }
+  }
+
+  /**
+   * Required XP threshold to advance to next level
+   */
+  getXPThresholdForLevel(lvl = this.level) {
+    return Math.floor(100 * Math.pow(lvl, 1.45));
+  }
+
+  /**
+   * Earn experience points from valid gameplay actions
+   */
+  addXP(amount) {
+    if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return false;
+
+    this.xp = (this.xp || 0) + Math.floor(amount);
+    let leveledUp = false;
+
+    let threshold = this.getXPThresholdForLevel(this.level);
+    while (this.xp >= threshold) {
+      this.xp -= threshold;
+      this.level += 1;
+      this.skillPoints = (this.skillPoints || 0) + 1;
+      leveledUp = true;
+
+      // Full restorative surge upon level up
+      this.health = this.maxHealth;
+      this.stamina = this.maxStamina;
+
+      threshold = this.getXPThresholdForLevel(this.level);
+    }
+
+    this.recalculateStats();
+
+    if (leveledUp) {
+      if (this.audioManager && typeof this.audioManager.playVictoryFanfare === 'function') {
+        this.audioManager.playVictoryFanfare();
+      }
+      if (this.vfxManager && typeof this.vfxManager.spawnImpactSparks === 'function') {
+        this.vfxManager.spawnImpactSparks(this.position, 45, 0x38bdf8);
+      }
+      if (this.uiManager && typeof this.uiManager.showLevelUpNotification === 'function') {
+        this.uiManager.showLevelUpNotification(this.level, this.skillPoints);
+      }
+    }
+
+    if (this.uiManager && typeof this.uiManager.updateProgressionUI === 'function') {
+      this.uiManager.updateProgressionUI(this);
+    }
+
+    return leveledUp;
+  }
+
+  triggerDodgeRoll() {
+    if (!this.isEnabled || this.health <= 0 || this.isRolling) return false;
+
+    const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : { rollStaminaReduction: 0, rollIFrameBonus: 0 };
+    const rollCost = Math.max(5, Math.round(this.dodgeRollStaminaCost * (1 - (skillBonuses.rollStaminaReduction || 0))));
+
+    if (this.stamina < rollCost) {
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification('⚠️ Not enough Stamina to dodge roll!');
+      }
+      return false;
+    }
+
+    this.stamina -= rollCost;
+    this.staminaRegenDelayTimer = 0.8;
+    this.isRolling = true;
+    this.rollTimer = 0;
+
+    // Roll along input move direction or player facing forward
+    if (this._moveDir.lengthSq() > 0.01) {
+      this.rollDirection.copy(this._moveDir).normalize();
+    } else {
+      this.rollDirection.copy(this.getForwardVector()).normalize();
+    }
+
+    // Invulnerability window: base 0.35s + skill rank bonus
+    const iframeDuration = this.rollDuration + (skillBonuses.rollIFrameBonus || 0);
+    this.isInvulnerable = true;
+    this.invulnerableTimer = Math.max(this.invulnerableTimer, iframeDuration);
+
+    if (this.audioManager && typeof this.audioManager.playJump === 'function') {
+      this.audioManager.playJump();
+    }
+    if (this.vfxManager && typeof this.vfxManager.spawnFootstepDust === 'function') {
+      this.vfxManager.spawnFootstepDust(this.position, true);
+    }
+
+    if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+      this.uiManager.updatePlayerStamina(this.stamina, this.maxStamina);
+    }
+
+    return true;
+  }
+
+  triggerHeavyAttack() {
+    if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.isHeavyAttacking) return false;
+
+    const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : { unlocksHeavyAttack: false };
+    if (!skillBonuses.unlocksHeavyAttack) {
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification('🔒 Unlock Heavy Spin Slash in the Skill Tree (K)!');
+      }
+      return false;
+    }
+
+    if (this.heavyAttackCooldownTimer > 0) {
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification(`⏳ Heavy Spin Slash is cooling down (${this.heavyAttackCooldownTimer.toFixed(1)}s)!`);
+      }
+      return false;
+    }
+
+    if (this.stamina < this.heavyAttackStaminaCost) {
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification('⚠️ Not enough Stamina for Heavy Spin Slash!');
+      }
+      return false;
+    }
+
+    this.stamina -= this.heavyAttackStaminaCost;
+    this.staminaRegenDelayTimer = 1.2;
+    this.isHeavyAttacking = true;
+    this.heavyAttackTimer = 0;
+    this.hasDealtDamageThisHeavyAttack = false;
+    this.heavyAttackCooldownTimer = this.heavyAttackCooldown;
+    this.timeSinceLastCombat = 0;
+
+    if (this.audioManager && typeof this.audioManager.playSwordSlash === 'function') {
+      this.audioManager.playSwordSlash();
+    }
+    if (this.vfxManager && typeof this.vfxManager.spawnImpactSparks === 'function') {
+      this.vfxManager.spawnImpactSparks(this.position, 35, 0x38bdf8);
+    }
+
+    if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+      this.uiManager.updatePlayerStamina(this.stamina, this.maxStamina);
+    }
+
+    return true;
   }
 
   toggleCrouch(force = null) {
@@ -445,9 +675,14 @@ export class Player {
     return {
       level: this.level,
       xp: this.xp,
+      skillPoints: this.skillPoints || 0,
+      spentSkillPoints: this.spentSkillPoints || 0,
+      skillTree: this.skillTree ? this.skillTree.getSaveState() : {},
       health: this.health,
       maxHealth: this.maxHealth,
       baseMaxHealth: this.baseMaxHealth,
+      stamina: Math.round(this.stamina),
+      maxStamina: this.maxStamina,
       damage: this.damage,
       baseDamage: this.baseDamage,
       defense: this.defense,
@@ -461,6 +696,8 @@ export class Player {
 
   takeDamage(amount) {
     if (!this.isEnabled || this.isInvulnerable || this.health <= 0) return;
+
+    this.timeSinceLastCombat = 0;
 
     // Defense mitigates incoming physical damage smoothly
     const reduction = this.defense > 0 ? this.defense / (this.defense + 50) : 0;
@@ -496,6 +733,7 @@ export class Player {
   triggerAttack(audioManager = this.audioManager) {
     if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.attackCooldownTimer > 0) return;
 
+    this.timeSinceLastCombat = 0;
     this.isAttacking = true;
     this.hasDealtDamageThisSwing = false;
     this.attackTimer = 0;
@@ -546,11 +784,77 @@ export class Player {
     if (this.attackCooldownTimer > 0) {
       this.attackCooldownTimer -= deltaTime;
     }
+    if (this.heavyAttackCooldownTimer > 0) {
+      this.heavyAttackCooldownTimer -= deltaTime;
+    }
     if (this.invulnerableTimer > 0) {
       this.invulnerableTimer -= deltaTime;
       if (this.invulnerableTimer <= 0) {
         this.isInvulnerable = false;
       }
+    }
+
+    // Dodge roll execution
+    if (this.isRolling) {
+      this.rollTimer += deltaTime;
+      const rollStep = this.rollSpeed * deltaTime;
+      this.position.x += this.rollDirection.x * rollStep;
+      this.position.z += this.rollDirection.z * rollStep;
+      if (this.physicsWorld) {
+        this.physicsWorld.resolveCollisions(this.position, this.radius, this.height);
+      }
+      if (this.model) {
+        const rollAngle = Math.atan2(this.rollDirection.x, this.rollDirection.z);
+        this.model.rotation.y = rollAngle;
+      }
+      if (this.rollTimer >= this.rollDuration) {
+        this.isRolling = false;
+      }
+    }
+
+    // Heavy spin slash execution
+    if (this.isHeavyAttacking) {
+      this.heavyAttackTimer += deltaTime;
+      const progress = this.heavyAttackTimer / this.heavyAttackDuration;
+      if (this.model) {
+        this.model.rotation.y += (Math.PI * 2 / this.heavyAttackDuration) * deltaTime;
+      }
+      if (this.sword) {
+        this.sword.mesh.rotation.set(Math.PI / 2, progress * Math.PI * 2, -Math.PI / 2);
+      }
+      if (this.heavyAttackTimer >= this.heavyAttackDuration) {
+        this.isHeavyAttacking = false;
+        if (this.sword) {
+          this.sword.mesh.rotation.set(Math.PI / 2, 0, -Math.PI / 2);
+        }
+      }
+    }
+
+    // Active skill tree bonuses & regeneration
+    const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : {};
+
+    // Out-of-combat Health Regeneration (Second Wind skill)
+    this.timeSinceLastCombat += deltaTime;
+    if (skillBonuses.outOfCombatRegen > 0 && this.timeSinceLastCombat >= (skillBonuses.regenDelay || 4.0) && this.health < this.maxHealth) {
+      this.heal(skillBonuses.outOfCombatRegen * deltaTime);
+    }
+
+    // Sprint Stamina drain & Stamina Regeneration
+    if (this.isSprinting) {
+      const drain = this.staminaDrainPerSecSprint * (1 - (skillBonuses.sprintStaminaDrainReduction || 0)) * deltaTime;
+      this.stamina = Math.max(0, this.stamina - drain);
+      this.staminaRegenDelayTimer = 0.8;
+      if (this.stamina <= 0) {
+        this.isSprinting = false;
+      }
+    } else if (this.staminaRegenDelayTimer > 0) {
+      this.staminaRegenDelayTimer -= deltaTime;
+    } else if (!this.isRolling) {
+      this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRegenRate * deltaTime);
+    }
+
+    if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+      this.uiManager.updatePlayerStamina(this.stamina, this.maxStamina);
     }
 
     // Inventory timers (e.g. potion cooldowns)
@@ -842,6 +1146,8 @@ export class Player {
       health: Math.max(1, Math.min(this.maxHealth, Math.ceil(this.health))),
       maxHealth: this.maxHealth,
       baseMaxHealth: this.baseMaxHealth,
+      stamina: Math.round(this.stamina),
+      maxStamina: this.maxStamina,
       damage: this.damage,
       baseDamage: this.baseDamage,
       defense: this.defense,
@@ -849,6 +1155,9 @@ export class Player {
       isRunMode: this.isRunMode,
       level: this.level,
       xp: this.xp,
+      skillPoints: this.skillPoints || 0,
+      spentSkillPoints: this.spentSkillPoints || 0,
+      skillTree: this.skillTree ? this.skillTree.getSaveState() : {},
       gold: this.gold,
       inventory: this.inventorySystem.getSaveState(),
       legacyInventory: Array.isArray(this.inventory) ? [...this.inventory] : [],
@@ -888,9 +1197,16 @@ export class Player {
 
     if (typeof state.level === 'number') this.level = state.level;
     if (typeof state.xp === 'number') this.xp = state.xp;
+    if (typeof state.skillPoints === 'number') this.skillPoints = state.skillPoints;
+    if (typeof state.spentSkillPoints === 'number') this.spentSkillPoints = state.spentSkillPoints;
     if (typeof state.gold === 'number') this.gold = state.gold;
     if (Array.isArray(state.unlockedSkills)) this.unlockedSkills = state.unlockedSkills;
     if (Array.isArray(state.discoveredLocations)) this.discoveredLocations = state.discoveredLocations;
+
+    // Restore skill tree state
+    if (state.skillTree && this.skillTree) {
+      this.skillTree.restoreSaveState(state.skillTree);
+    }
 
     // Restore inventory and equipment
     if (state.inventory) {
@@ -907,13 +1223,20 @@ export class Player {
       this.inventory = this.inventorySystem.slots.filter(Boolean);
     }
 
-    // Recompute stats from base + restored equipment
+    // Recompute stats from base + restored equipment + skills
     this.recalculateStats();
 
     if (typeof state.health === 'number') {
       this.health = Math.max(1, Math.min(this.maxHealth, state.health));
       if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
         this.uiManager.updatePlayerHealth(this.health, this.maxHealth);
+      }
+    }
+
+    if (typeof state.stamina === 'number') {
+      this.stamina = Math.max(0, Math.min(this.maxStamina, state.stamina));
+      if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+        this.uiManager.updatePlayerStamina(this.stamina, this.maxStamina);
       }
     }
 

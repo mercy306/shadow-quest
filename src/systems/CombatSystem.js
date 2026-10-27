@@ -94,15 +94,7 @@ export class CombatSystem {
 
             // If enemy died from this blow
             if (wasAlive && !enemy.isAlive()) {
-              if (this.audioManager && typeof this.audioManager.playEnemyDeath === 'function') {
-                this.audioManager.playEnemyDeath();
-              }
-              if (this.vfxManager) {
-                this.vfxManager.spawnImpactSparks(enemy.position, 40, 0xa855f7);
-              }
-              if (this.questSystem) {
-                this.questSystem.onEnemyDefeated(enemy);
-              }
+              this.handleEnemyDefeat(enemy, isTakedown);
             }
           }
         }
@@ -110,6 +102,60 @@ export class CombatSystem {
 
       if (hitAny) {
         this.player.hasDealtDamageThisSwing = true;
+      }
+    }
+
+    // 1b. Check player Heavy Spin Slash hitbox against surrounding enemies (360-degree, 3.6m reach)
+    if (this.player.isHeavyAttacking && !this.player.hasDealtDamageThisHeavyAttack) {
+      const playerPos = this.player.getPosition();
+      const heavyReach = 3.6;
+      const enemies = this.enemyManager.getEnemies();
+      const skillBonuses = this.player.skillTree ? this.player.skillTree.getBonuses() : {};
+      const mult = skillBonuses.heavyDamageMult || 2.2;
+      const heavyDamage = Math.round(this.player.damage * mult);
+
+      let hitAny = false;
+
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
+        if (!enemy.isAlive()) continue;
+
+        const dx = enemy.position.x - playerPos.x;
+        const dz = enemy.position.z - playerPos.z;
+        const dist = Math.hypot(dx, dz);
+
+        if (dist <= heavyReach) {
+          hitAny = true;
+          const wasAlive = enemy.isAlive();
+          enemy.takeDamage(heavyDamage);
+
+          if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
+            this.audioManager.playSwordHit();
+          }
+
+          if (this.vfxManager) {
+            const hitPos = new THREE.Vector3(
+              playerPos.x + dx * 0.7,
+              enemy.position.y + 1.2,
+              playerPos.z + dz * 0.7
+            );
+            this.vfxManager.spawnImpactSparks(hitPos, 35, 0x38bdf8);
+            this.vfxManager.flashEnemyHit(enemy);
+            this.vfxManager.spawnDamageNumber(enemy.position, `HEAVY -${heavyDamage}`, true);
+          }
+
+          if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+            this.uiManager.showCollectNotification(`🌀 Spin Slash hit ${enemy.name}! -${heavyDamage} HP`);
+          }
+
+          if (wasAlive && !enemy.isAlive()) {
+            this.handleEnemyDefeat(enemy, false);
+          }
+        }
+      }
+
+      if (hitAny) {
+        this.player.hasDealtDamageThisHeavyAttack = true;
       }
     }
 
@@ -212,6 +258,44 @@ export class CombatSystem {
         const enemiesScore = (quest.objEnemies?.current || 0) * 300;
         const crystalsScore = (quest.objCrystals?.current || 0) * 200;
         this.uiManager.updateScore(enemiesScore + crystalsScore);
+      }
+    }
+  }
+
+  handleEnemyDefeat(enemy, isTakedown = false) {
+    if (!enemy) return;
+
+    if (this.audioManager && typeof this.audioManager.playEnemyDeath === 'function') {
+      this.audioManager.playEnemyDeath();
+    }
+    if (this.vfxManager) {
+      this.vfxManager.spawnImpactSparks(enemy.position, 45, 0xa855f7);
+    }
+    if (this.questSystem) {
+      this.questSystem.onEnemyDefeated(enemy);
+    }
+
+    // Award XP to player based on enemy grade & takedown bonus
+    if (this.player && typeof this.player.addXP === 'function') {
+      const isBoss = enemy.isBoss || enemy.id === 'grimfang-alpha';
+      const baseXP = isBoss ? 150 : 60;
+      const bonusXP = isTakedown ? 40 : 0;
+      const totalXP = baseXP + bonusXP;
+      this.player.addXP(totalXP);
+
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification(`⚔️ ${enemy.name || 'Foe'} Defeated! +${totalXP} XP`);
+      }
+    }
+
+    // Adrenaline Surge skill: restore 35 stamina on kill
+    if (this.player && this.player.skillTree) {
+      const bonuses = this.player.skillTree.getBonuses();
+      if (bonuses.staminaOnKill > 0) {
+        this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + bonuses.staminaOnKill);
+        if (this.uiManager && typeof this.uiManager.updatePlayerStamina === 'function') {
+          this.uiManager.updatePlayerStamina(this.player.stamina, this.player.maxStamina);
+        }
       }
     }
   }

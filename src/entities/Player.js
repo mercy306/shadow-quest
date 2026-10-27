@@ -553,6 +553,11 @@ export class Player {
       }
     }
 
+    // Inventory timers (e.g. potion cooldowns)
+    if (this.inventorySystem) {
+      this.inventorySystem.update(deltaTime);
+    }
+
     // Consumable speed buff timer
     if (this.speedBuffTimer > 0) {
       this.speedBuffTimer -= deltaTime;

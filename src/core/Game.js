@@ -187,6 +187,7 @@ export class Game {
       // Complete Inventory & Equipment UI Setup
       this.uiManager.setupInventory({
         player: this.player,
+        collectibleManager: this.collectibleManager,
         onToggleInventory: (open) => this.toggleInventory(open)
       });
 

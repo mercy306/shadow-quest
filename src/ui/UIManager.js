@@ -350,9 +350,11 @@ export class UIManager {
   }
 
   // ==================== INVENTORY & EQUIPMENT UI ====================
-  setupInventory({ player, onToggleInventory }) {
+  setupInventory({ player, collectibleManager, onToggleInventory }) {
     this.playerRef = player;
+    this.collectibleManagerRef = collectibleManager;
     this.onToggleInventoryCallback = onToggleInventory;
+    this.movingSourceSlotIndex = null;
 
     if (this.inventoryToggleBtn) {
       this.inventoryToggleBtn.onclick = () => {
@@ -415,6 +417,7 @@ export class UIManager {
     if (this.modalInventory) {
       this.closeModal(this.modalInventory);
       this.selectedInventorySlotIndex = null;
+      this.movingSourceSlotIndex = null;
       if (typeof this.onToggleInventoryCallback === 'function') {
         this.onToggleInventoryCallback(false);
       }
@@ -449,6 +452,14 @@ export class UIManager {
     if (this.equipWeaponName) {
       this.equipWeaponName.textContent = eq.weapon ? eq.weapon.name : 'Empty Slot';
       this.equipWeaponName.className = `equip-slot-name ${eq.weapon ? 'rarity-' + eq.weapon.rarity : ''}`;
+      const weaponSlotEl = document.getElementById('equip-slot-weapon');
+      if (weaponSlotEl) {
+        if (eq.weapon) {
+          weaponSlotEl.title = `${eq.weapon.name} (${(eq.weapon.rarity || 'common').toUpperCase()})\n+${eq.weapon.stats?.damage || 0} Attack Damage\n${eq.weapon.description || ''}`;
+        } else {
+          weaponSlotEl.title = 'Weapon Slot (Empty)';
+        }
+      }
     }
     if (this.equipWeaponStat) {
       this.equipWeaponStat.textContent = eq.weapon?.stats?.damage ? `+${eq.weapon.stats.damage} DMG` : 'None';
@@ -460,6 +471,16 @@ export class UIManager {
     if (this.equipArmorName) {
       this.equipArmorName.textContent = eq.armor ? eq.armor.name : 'Empty Slot';
       this.equipArmorName.className = `equip-slot-name ${eq.armor ? 'rarity-' + eq.armor.rarity : ''}`;
+      const armorSlotEl = document.getElementById('equip-slot-armor');
+      if (armorSlotEl) {
+        if (eq.armor) {
+          const def = eq.armor.stats?.defense || 0;
+          const hp = eq.armor.stats?.maxHealth ? `, +${eq.armor.stats.maxHealth} HP` : '';
+          armorSlotEl.title = `${eq.armor.name} (${(eq.armor.rarity || 'common').toUpperCase()})\n+${def} Defense${hp}\n${eq.armor.description || ''}`;
+        } else {
+          armorSlotEl.title = 'Armor Slot (Empty)';
+        }
+      }
     }
     if (this.equipArmorStat) {
       this.equipArmorStat.textContent = eq.armor?.stats?.defense ? `+${eq.armor.stats.defense} DEF` : 'None';
@@ -471,6 +492,14 @@ export class UIManager {
     if (this.equipTrinketName) {
       this.equipTrinketName.textContent = eq.trinket ? eq.trinket.name : 'Empty Slot';
       this.equipTrinketName.className = `equip-slot-name ${eq.trinket ? 'rarity-' + eq.trinket.rarity : ''}`;
+      const trinketSlotEl = document.getElementById('equip-slot-trinket');
+      if (trinketSlotEl) {
+        if (eq.trinket) {
+          trinketSlotEl.title = `${eq.trinket.name} (${(eq.trinket.rarity || 'common').toUpperCase()})\n${eq.trinket.description || ''}`;
+        } else {
+          trinketSlotEl.title = 'Relic / Trinket Slot (Empty)';
+        }
+      }
     }
     if (this.equipTrinketStat) {
       let trinketStr = 'None';
@@ -522,7 +551,7 @@ export class UIManager {
     // 4. Slots Grid
     if (this.invSlotsGrid) {
       this.invSlotsGrid.innerHTML = '';
-      const category = this.currentInventoryCategory;
+      const category = this.currentInventoryCategory || 'all';
 
       for (let i = 0; i < inv.capacity; i++) {
         const slotData = inv.slots[i];
@@ -533,6 +562,9 @@ export class UIManager {
         if (this.selectedInventorySlotIndex === i) {
           slotEl.classList.add('selected');
         }
+        if (this.movingSourceSlotIndex === i) {
+          slotEl.classList.add('moving-source');
+        }
 
         if (slotData && slotData.item) {
           const item = slotData.item;
@@ -540,15 +572,34 @@ export class UIManager {
           // Filter matching
           let isMatch = false;
           if (category === 'all') isMatch = true;
-          else if (category === 'equipment' && (item.type === 'weapon' || item.type === 'armor' || item.type === 'trinket')) isMatch = true;
+          else if (category === 'weapon' && item.type === 'weapon') isMatch = true;
+          else if (category === 'armor' && item.type === 'armor') isMatch = true;
           else if (category === 'consumable' && item.type === 'consumable') isMatch = true;
-          else if (category === 'material' && (item.type === 'material' || item.type === 'quest')) isMatch = true;
+          else if (category === 'material' && item.type === 'material') isMatch = true;
+          else if (category === 'quest' && item.type === 'quest') isMatch = true;
+          else if (category === 'collectible' && item.type === 'collectible') isMatch = true;
+          else if (category === 'equipment' && (item.type === 'weapon' || item.type === 'armor' || item.type === 'trinket')) isMatch = true;
 
           if (!isMatch) {
             slotEl.style.opacity = '0.25';
           }
 
           slotEl.classList.add(`rarity-${item.rarity || 'common'}`);
+
+          // Rich Tooltip
+          let tooltip = `${item.name} [${(item.rarity || 'common').toUpperCase()} ${item.type.toUpperCase()}]`;
+          if (slotData.quantity > 1) tooltip += ` x${slotData.quantity}`;
+          if (item.stats) {
+            const statStrs = [];
+            if (item.stats.damage) statStrs.push(`+${item.stats.damage} DMG`);
+            if (item.stats.defense) statStrs.push(`+${item.stats.defense} DEF`);
+            if (item.stats.maxHealth) statStrs.push(`+${item.stats.maxHealth} Max HP`);
+            if (item.stats.heal) statStrs.push(`Restores ${item.stats.heal} HP`);
+            if (statStrs.length) tooltip += `\n${statStrs.join(', ')}`;
+          }
+          if (item.value) tooltip += `\nValue: ${item.value} Gold`;
+          if (item.description) tooltip += `\n${item.description}`;
+          slotEl.title = tooltip;
 
           const icon = document.createElement('div');
           icon.className = 'inv-slot-icon';
@@ -561,9 +612,33 @@ export class UIManager {
             count.textContent = slotData.quantity;
             slotEl.appendChild(count);
           }
+        } else {
+          slotEl.title = `Backpack Slot ${i + 1} (Empty)`;
         }
 
-        slotEl.onclick = () => {
+        slotEl.onclick = (e) => {
+          if (this.movingSourceSlotIndex !== null) {
+            const fromIdx = this.movingSourceSlotIndex;
+            this.movingSourceSlotIndex = null;
+            if (fromIdx !== i) {
+              const res = inv.moveOrMergeItem(fromIdx, i);
+              if (res.success) {
+                this.showCollectNotification(`Moved item to slot ${i + 1}`);
+              }
+            }
+            this.selectedInventorySlotIndex = i;
+            this.refreshInventoryUI();
+            return;
+          }
+
+          if (e.shiftKey && this.selectedInventorySlotIndex !== null && this.selectedInventorySlotIndex !== i) {
+            const fromIdx = this.selectedInventorySlotIndex;
+            inv.moveOrMergeItem(fromIdx, i);
+            this.selectedInventorySlotIndex = i;
+            this.refreshInventoryUI();
+            return;
+          }
+
           this.selectedInventorySlotIndex = i;
           this.refreshInventoryUI();
         };
@@ -585,7 +660,8 @@ export class UIManager {
       return;
     }
 
-    const slot = this.playerRef.inventorySystem.slots[idx];
+    const inv = this.playerRef.inventorySystem;
+    const slot = inv.slots[idx];
     const item = slot.item;
     const rarity = item.rarity || 'common';
 
@@ -605,14 +681,91 @@ export class UIManager {
       }
     }
 
+    // Side-by-Side Gear Comparison Box
+    let comparisonHtml = '';
+    if (isEquippable) {
+      const equippedItem = inv.equipment[item.type];
+      const diffs = [];
+
+      if (item.type === 'weapon') {
+        const currentDmg = equippedItem?.stats?.damage || 0;
+        const newDmg = item.stats?.damage || 0;
+        const diff = newDmg - currentDmg;
+        const sign = diff > 0 ? `+${diff}` : `${diff}`;
+        const cls = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+        diffs.push(`<span class="diff-tag ${cls}">${sign} ATK DMG (vs ${currentDmg} current)</span>`);
+      } else if (item.type === 'armor') {
+        const currentDef = equippedItem?.stats?.defense || 0;
+        const newDef = item.stats?.defense || 0;
+        const diffDef = newDef - currentDef;
+        const signDef = diffDef > 0 ? `+${diffDef}` : `${diffDef}`;
+        const clsDef = diffDef > 0 ? 'positive' : (diffDef < 0 ? 'negative' : 'neutral');
+        diffs.push(`<span class="diff-tag ${clsDef}">${signDef} DEF (vs ${currentDef} current)</span>`);
+
+        const currentHp = equippedItem?.stats?.maxHealth || 0;
+        const newHp = item.stats?.maxHealth || 0;
+        if (newHp > 0 || currentHp > 0) {
+          const diffHp = newHp - currentHp;
+          const signHp = diffHp > 0 ? `+${diffHp}` : `${diffHp}`;
+          const clsHp = diffHp > 0 ? 'positive' : (diffHp < 0 ? 'negative' : 'neutral');
+          diffs.push(`<span class="diff-tag ${clsHp}">${signHp} Max HP (vs ${currentHp} current)</span>`);
+        }
+      } else if (item.type === 'trinket') {
+        if (item.stats?.damage || equippedItem?.stats?.damage) {
+          const diff = (item.stats?.damage || 0) - (equippedItem?.stats?.damage || 0);
+          const cls = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+          diffs.push(`<span class="diff-tag ${cls}">${diff > 0 ? '+' : ''}${diff} ATK DMG</span>`);
+        }
+        if (item.stats?.defense || equippedItem?.stats?.defense) {
+          const diff = (item.stats?.defense || 0) - (equippedItem?.stats?.defense || 0);
+          const cls = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+          diffs.push(`<span class="diff-tag ${cls}">${diff > 0 ? '+' : ''}${diff} DEF</span>`);
+        }
+        if (item.stats?.maxHealth || equippedItem?.stats?.maxHealth) {
+          const diff = (item.stats?.maxHealth || 0) - (equippedItem?.stats?.maxHealth || 0);
+          const cls = diff > 0 ? 'positive' : (diff < 0 ? 'negative' : 'neutral');
+          diffs.push(`<span class="diff-tag ${cls}">${diff > 0 ? '+' : ''}${diff} Max HP</span>`);
+        }
+      }
+
+      comparisonHtml = `
+        <div class="item-comparison-box">
+          <div class="comparison-header">
+            <span>⚖️ GEAR COMPARISON</span>
+            <span class="comparison-slot-tag">${item.type.toUpperCase()}</span>
+          </div>
+          <div class="comparison-row">
+            <span class="comparison-label">Equipped:</span>
+            <span class="comparison-current">${equippedItem ? equippedItem.name : '(Empty Slot)'}</span>
+          </div>
+          <div class="comparison-diffs">
+            ${diffs.length > 0 ? diffs.join('') : '<span class="diff-tag neutral">Equal Attributes</span>'}
+          </div>
+        </div>
+      `;
+    }
+
+    const sellPrice = Math.floor((item.value || 0) * 0.5);
+    const valueHtml = `
+      <div class="details-value-row">
+        <span>💰 Value: <strong>${item.value || 0} Gold</strong></span>
+        <span class="details-sell-note">(Merchant Sell Price: ${sellPrice} Gold)</span>
+      </div>
+    `;
+
     let actionsHtml = '<div class="details-actions">';
     if (isEquippable) {
       actionsHtml += `<button class="inv-action-btn equip" id="inv-action-equip">⚔️ EQUIP ITEM</button>`;
     }
     if (isConsumable) {
-      actionsHtml += `<button class="inv-action-btn use" id="inv-action-use">🧪 DRINK / USE</button>`;
+      const remainingCd = typeof inv.getRemainingPotionCooldown === 'function' ? inv.getRemainingPotionCooldown(item) : (inv.potionCooldown || 0);
+      const cdActive = remainingCd > 0;
+      actionsHtml += `<button class="inv-action-btn use" id="inv-action-use" ${cdActive ? 'disabled' : ''}>🧪 ${cdActive ? `COOLDOWN (${remainingCd.toFixed(1)}s)` : 'DRINK / USE'}</button>`;
     }
-    actionsHtml += `<button class="inv-action-btn drop" id="inv-action-drop">DISCARD (1)</button>`;
+    actionsHtml += `<button class="inv-action-btn move" id="inv-action-move">${this.movingSourceSlotIndex === idx ? '✕ CANCEL MOVE' : '⇄ MOVE / SWAP'}</button>`;
+    if (item.type !== 'quest') {
+      actionsHtml += `<button class="inv-action-btn drop" id="inv-action-drop">⬇️ DROP ITEM (1)</button>`;
+    }
     actionsHtml += '</div>';
 
     this.invItemDetails.innerHTML = `
@@ -628,6 +781,8 @@ export class UIManager {
         </div>
         <p class="details-desc">${item.description || 'An artifact found in the ancient ruins.'}</p>
         ${statsHtml}
+        ${comparisonHtml}
+        ${valueHtml}
         ${actionsHtml}
       </div>
     `;
@@ -657,16 +812,32 @@ export class UIManager {
       };
     }
 
+    const moveBtn = document.getElementById('inv-action-move');
+    if (moveBtn) {
+      moveBtn.onclick = () => {
+        if (this.movingSourceSlotIndex === idx) {
+          this.movingSourceSlotIndex = null;
+          this.showCollectNotification('Move cancelled.');
+        } else {
+          this.movingSourceSlotIndex = idx;
+          this.showCollectNotification(`Click any slot to move or stack "${item.name}".`);
+        }
+        this.refreshInventoryUI();
+      };
+    }
+
     const dropBtn = document.getElementById('inv-action-drop');
     if (dropBtn) {
       dropBtn.onclick = () => {
-        const res = this.playerRef.inventorySystem.removeItemAt(idx, 1);
-        if (res) {
-          this.showCollectNotification(`Discarded 1x ${res.item.name}`);
+        const res = this.playerRef.inventorySystem.dropItem(idx, 1, this.playerRef, this.collectibleManagerRef);
+        if (res.success) {
+          this.showCollectNotification(res.message);
           if (!this.playerRef.inventorySystem.slots[idx]) {
             this.selectedInventorySlotIndex = null;
           }
           this.refreshInventoryUI();
+        } else {
+          this.showCollectNotification(res.message || 'Cannot drop item.', 'warning');
         }
       };
     }

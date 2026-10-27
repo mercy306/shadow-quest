@@ -9,8 +9,10 @@ export const ItemType = {
   ARMOR: 'armor',
   TRINKET: 'trinket',
   CONSUMABLE: 'consumable',
+  POTION: 'consumable',
   MATERIAL: 'material',
-  QUEST: 'quest'
+  QUEST: 'quest',
+  COLLECTIBLE: 'collectible'
 };
 
 export const ItemRarity = {
@@ -227,6 +229,30 @@ export const ITEM_DATABASE = {
     description: 'Sacred parchment containing translations of the ancient ruins architecture.',
     value: 0,
     stackable: false
+  },
+
+  // --- COLLECTIBLES ---
+  shadow_crystal_shard: {
+    id: 'shadow_crystal_shard',
+    name: 'Shadow Crystal Shard',
+    type: ItemType.COLLECTIBLE,
+    rarity: ItemRarity.RARE,
+    icon: '💠',
+    description: 'A pure extracted facet of ancient shadow crystal. Highly sought after by collectors and merchants.',
+    value: 120,
+    stackable: true,
+    maxStack: 10
+  },
+  ancient_celestial_sigil: {
+    id: 'ancient_celestial_sigil',
+    name: 'Celestial Guardian Sigil',
+    type: ItemType.COLLECTIBLE,
+    rarity: ItemRarity.LEGENDARY,
+    icon: '🔯',
+    description: 'A pristine golden token carried by the high archons of the Ancient Sanctum.',
+    value: 300,
+    stackable: true,
+    maxStack: 5
   }
 };
 
@@ -241,6 +267,13 @@ export class InventorySystem {
       weapon: null,
       armor: null,
       trinket: null
+    };
+
+    this.potionCooldown = 0;
+    this.potionCooldownDuration = 1.5;
+    this.potionCooldowns = {
+      heal: 0,
+      stamina: 0
     };
 
     this.onChangeCallbacks = [];
@@ -294,6 +327,10 @@ export class InventorySystem {
 
     this.addItem('healing_potion', 2);
     this.addItem('stamina_potion', 1);
+  }
+
+  getItemDefinition(itemId) {
+    return ITEM_DATABASE[itemId] || null;
   }
 
   createItem(itemId) {
@@ -425,6 +462,101 @@ export class InventorySystem {
     return { item: removedItem, quantity: removeCount };
   }
 
+  update(deltaTime = 0.016) {
+    if (this.potionCooldown > 0) {
+      this.potionCooldown = Math.max(0, this.potionCooldown - deltaTime);
+    }
+    for (const key of Object.keys(this.potionCooldowns)) {
+      if (this.potionCooldowns[key] > 0) {
+        this.potionCooldowns[key] = Math.max(0, this.potionCooldowns[key] - deltaTime);
+      }
+    }
+  }
+
+  getRemainingPotionCooldown(item) {
+    if (!item) return this.potionCooldown;
+    const key = item.stats?.heal ? 'heal' : (item.stats?.speedBoost ? 'stamina' : item.id);
+    return this.potionCooldowns[key] || 0;
+  }
+
+  moveOrMergeItem(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= this.capacity || toIndex < 0 || toIndex >= this.capacity || fromIndex === toIndex) {
+      return { success: false, reason: 'INVALID_SLOTS' };
+    }
+
+    const sourceSlot = this.slots[fromIndex];
+    if (!sourceSlot) {
+      return { success: false, reason: 'SOURCE_EMPTY' };
+    }
+
+    const targetSlot = this.slots[toIndex];
+
+    if (!targetSlot) {
+      // Simple move to empty slot
+      this.slots[toIndex] = sourceSlot;
+      this.slots[fromIndex] = null;
+      this.notifyChange();
+      return { success: true, action: 'MOVED' };
+    }
+
+    // Merge stackable items if identical ID
+    if (sourceSlot.item.id === targetSlot.item.id && sourceSlot.item.stackable) {
+      const maxStack = targetSlot.item.maxStack || 99;
+      const space = maxStack - targetSlot.quantity;
+      if (space > 0) {
+        const transfer = Math.min(space, sourceSlot.quantity);
+        targetSlot.quantity += transfer;
+        sourceSlot.quantity -= transfer;
+        if (sourceSlot.quantity <= 0) {
+          this.slots[fromIndex] = null;
+        }
+        this.notifyChange();
+        return { success: true, action: 'MERGED', transferred: transfer };
+      }
+    }
+
+    // Swap items between the two slots
+    this.slots[toIndex] = sourceSlot;
+    this.slots[fromIndex] = targetSlot;
+    this.notifyChange();
+    return { success: true, action: 'SWAPPED' };
+  }
+
+  swapItems(fromIndex, toIndex) {
+    return this.moveOrMergeItem(fromIndex, toIndex);
+  }
+
+  dropItem(slotIndex, quantity = 1, player = null, collectibleManager = null) {
+    if (slotIndex < 0 || slotIndex >= this.capacity || !this.slots[slotIndex]) {
+      return { success: false, reason: 'EMPTY_SLOT' };
+    }
+
+    const slot = this.slots[slotIndex];
+    const item = slot.item;
+
+    if (item.type === ItemType.QUEST) {
+      return { success: false, reason: 'CANNOT_DROP_QUEST_ITEM', message: 'Quest items cannot be discarded.' };
+    }
+
+    const dropQty = Math.min(slot.quantity, Math.max(1, quantity));
+    const droppedItemId = item.id;
+
+    slot.quantity -= dropQty;
+    if (slot.quantity <= 0) {
+      this.slots[slotIndex] = null;
+    }
+
+    // Spawn pickup in world at player position if managers available
+    if (player && collectibleManager && typeof collectibleManager.spawnItemPickup === 'function') {
+      const dropPos = player.getPosition ? player.getPosition() : player.position;
+      const dropId = `dropped-${droppedItemId}-${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+      collectibleManager.spawnItemPickup(dropId, droppedItemId, dropPos.x, dropPos.z, dropQty);
+    }
+
+    this.notifyChange();
+    return { success: true, item: item, quantity: dropQty, message: `Dropped ${dropQty}x ${item.name}.` };
+  }
+
   equipItem(slotIndex, player = null) {
     if (slotIndex < 0 || slotIndex >= this.capacity || !this.slots[slotIndex]) {
       return { success: false, reason: 'EMPTY_SLOT' };
@@ -494,7 +626,7 @@ export class InventorySystem {
     return { success: true, unequipped: item };
   }
 
-  useConsumable(slotIndex, player = null) {
+  useConsumable(slotIndex, player = null, ignoreCooldown = false) {
     if (slotIndex < 0 || slotIndex >= this.capacity || !this.slots[slotIndex]) {
       return { success: false, reason: 'EMPTY_SLOT' };
     }
@@ -504,6 +636,17 @@ export class InventorySystem {
 
     if (item.type !== ItemType.CONSUMABLE) {
       return { success: false, reason: 'NOT_CONSUMABLE' };
+    }
+
+    const cdKey = item.stats?.heal ? 'heal' : (item.stats?.speedBoost ? 'stamina' : item.id);
+    const remainingCd = this.potionCooldowns[cdKey] || 0;
+
+    if (!ignoreCooldown && remainingCd > 0) {
+      return {
+        success: false,
+        reason: 'ON_COOLDOWN',
+        message: `${item.name} is on cooldown (${remainingCd.toFixed(1)}s remaining).`
+      };
     }
 
     let effectApplied = false;
@@ -548,6 +691,8 @@ export class InventorySystem {
     }
 
     if (effectApplied) {
+      this.potionCooldowns[cdKey] = this.potionCooldownDuration;
+      this.potionCooldown = this.potionCooldownDuration;
       slot.quantity -= 1;
       if (slot.quantity <= 0) {
         this.slots[slotIndex] = null;

@@ -57,7 +57,10 @@ export class CombatSystem {
           if (dot > 0.2) { // ~78-degree forward cone
             hitAny = true;
             const wasAlive = enemy.isAlive();
-            enemy.takeDamage(this.player.damage);
+            const isTakedown = Boolean(enemy.isEligibleForTakedown);
+            const damageToDeal = isTakedown ? Math.max(9999, enemy.health * 2) : this.player.damage;
+
+            enemy.takeDamage(damageToDeal);
 
             // Audio feedback
             if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
@@ -71,13 +74,22 @@ export class CombatSystem {
                 enemy.position.y + 1.2,
                 playerPos.z + dz * 0.6
               );
-              this.vfxManager.spawnImpactSparks(hitPos, 22, 0xffbb33);
+              const sparkColor = isTakedown ? 0xc084fc : 0xffbb33;
+              const sparkCount = isTakedown ? 40 : 22;
+              this.vfxManager.spawnImpactSparks(hitPos, sparkCount, sparkColor);
               this.vfxManager.flashEnemyHit(enemy);
-              this.vfxManager.spawnDamageNumber(enemy.position, this.player.damage, false);
+              this.vfxManager.spawnDamageNumber(enemy.position, isTakedown ? 'CRIT TAKEDOWN!' : this.player.damage, isTakedown);
             }
 
             if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
-              this.uiManager.showCollectNotification(`Hit ${enemy.name}! -${this.player.damage} HP`);
+              if (isTakedown) {
+                this.uiManager.showCollectNotification(`🗡️ STEALTH TAKEDOWN on ${enemy.name}! +500 PTS`);
+                if (this.questSystem && this.questSystem.currentQuest) {
+                  this.questSystem.currentQuest.score = (this.questSystem.currentQuest.score || 0) + 500;
+                }
+              } else {
+                this.uiManager.showCollectNotification(`Hit ${enemy.name}! -${this.player.damage} HP`);
+              }
             }
 
             // If enemy died from this blow
@@ -169,9 +181,9 @@ export class CombatSystem {
       }
 
       // 5. Contextual Interaction Prompts
+      const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
       const hasNPCPrompt = this.npcManager && this.npcManager.getActiveInteractable();
       if (!hasNPCPrompt) {
-        const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
         if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
           const exitDist = Math.hypot(
             playerPos.x - this.questSystem.exitLocation.x,
@@ -179,11 +191,15 @@ export class CombatSystem {
           );
           if (exitDist <= 8.0) {
             this.uiManager.showInteractionPrompt('Ancient Altar Portal is UNLOCKED — Step into the light to ascend!');
+          } else if (closestEnemy && closestEnemy.isEligibleForTakedown) {
+            this.uiManager.showInteractionPrompt('[F / Left Click] 🗡️ STEALTH TAKEDOWN');
           } else if (closestEnemy && closestDist <= 3.5) {
             this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
           } else {
             this.uiManager.hideInteractionPrompt();
           }
+        } else if (closestEnemy && closestEnemy.isEligibleForTakedown) {
+          this.uiManager.showInteractionPrompt('[F / Left Click] 🗡️ STEALTH TAKEDOWN');
         } else if (closestEnemy && closestDist <= 3.5) {
           this.uiManager.showInteractionPrompt('[Left Click / F] Strike Guardian');
         } else {

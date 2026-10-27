@@ -10,6 +10,7 @@ export class Vegetation {
 
     // Seeded PRNG for deterministic placement
     this.seed = 123456;
+    this.coverZones = [];
 
     this.initMaterials();
     this.initTrees();
@@ -307,11 +308,28 @@ export class Vegetation {
       dummy.scale.set(s * 1.3, s * 0.8, s * 1.2);
       dummy.updateMatrix();
       bushMesh.setMatrixAt(placed, dummy.matrix);
+      this.coverZones.push({ x, z, radius: s * 1.5 });
       placed++;
     }
 
     bushMesh.instanceMatrix.needsUpdate = true;
     this.scene.add(bushMesh);
+  }
+
+  /**
+   * Checks whether coordinates (x, z) are within concealment range of tall bushes or foliage.
+   */
+  isNearCover(x, z, checkRadius = 1.8) {
+    for (let i = 0; i < this.coverZones.length; i++) {
+      const zone = this.coverZones[i];
+      const dx = x - zone.x;
+      const dz = z - zone.z;
+      const maxDist = zone.radius + checkRadius;
+      if (dx * dx + dz * dz <= maxDist * maxDist) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

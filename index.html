@@ -144,8 +144,12 @@
               <div class="control-label">Fast Sprint Boost</div>
             </div>
             <div class="control-card">
-              <div class="key-badge"><kbd>Caps</kbd> / <kbd>C</kbd></div>
+              <div class="key-badge"><kbd>Caps</kbd></div>
               <div class="control-label">Toggle Walk / Run</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>C</kbd> / <kbd>Ctrl</kbd></div>
+              <div class="control-label">Crouch / Sneak (Silent)</div>
             </div>
             <div class="control-card">
               <div class="key-badge"><kbd>Space</kbd></div>
@@ -153,7 +157,7 @@
             </div>
             <div class="control-card">
               <div class="key-badge"><kbd>Left Click</kbd> / <kbd>F</kbd></div>
-              <div class="control-label">Sword Attack</div>
+              <div class="control-label">Sword Attack / Stealth Takedown</div>
             </div>
             <div class="control-card">
               <div class="key-badge"><kbd>Mouse</kbd></div>
@@ -368,10 +372,16 @@
         </div>
 
         <!-- Movement Stance & Run Mode Indicator -->
-        <div id="movement-stance-badge" class="movement-stance-badge" title="Press CapsLock or C to toggle Walk/Run; hold Shift to Sprint">
+        <div id="movement-stance-badge" class="movement-stance-badge" title="Press C/Ctrl to Crouch/Sneak; hold Shift to Sprint">
           <span id="stance-icon" class="stance-icon">🏃</span>
           <span id="stance-label" class="stance-label">RUNNING</span>
-          <span class="stance-hint">Shift: Sprint • Caps: Walk</span>
+          <span class="stance-hint">C: Crouch • Shift: Sprint</span>
+        </div>
+
+        <!-- Stealth Awareness Indicator -->
+        <div id="stealth-indicator-badge" class="stealth-indicator-badge" title="Hero Stealth Visibility">
+          <span id="stealth-eye-icon" class="stealth-eye-icon">👁️</span>
+          <span id="stealth-status-text" class="stealth-status-text">HIDDEN</span>
         </div>
 
         <!-- Live Score Counter -->

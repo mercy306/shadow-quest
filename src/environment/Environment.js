@@ -185,4 +185,11 @@ export class Environment {
     }
     return 0;
   }
+
+  isNearCover(x, z) {
+    if (this.vegetation && typeof this.vegetation.isNearCover === 'function') {
+      return this.vegetation.isNearCover(x, z);
+    }
+    return false;
+  }
 }

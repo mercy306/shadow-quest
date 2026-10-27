@@ -10,9 +10,10 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
 |---|---|---|
 | **Run / Move** | `W` `A` `S` `D` / Arrow Keys | Camera-relative running locomotion (default) |
 | **Sprint Boost** | `Shift` (Hold) or `Double-tap W` | Fast sprint boost ($10.5\text{ m/s}$) with camera FOV speed punch & dust |
-| **Toggle Walk / Run** | `Caps Lock` / `C` | Toggle between deliberate Walk mode ($4.0\text{ m/s}$) and Run mode |
+| **Crouch / Sneak** | `C` / `Ctrl` | Silent crouched movement ($2.2\text{ m/s}$) lowering profile and noise |
+| **Toggle Walk / Run** | `Caps Lock` | Toggle between deliberate Walk mode ($4.0\text{ m/s}$) and Run mode |
 | **Jump** | `Space` | Jump with gravity curve and ground landing detection |
-| **Attack** | `Left Click` / `F` | Swing sword with trail VFX and hit detection |
+| **Attack / Takedown**| `Left Click` / `F` | Swing sword in combat or execute instant Stealth Takedown from behind |
 | **Interact / Talk** | `E` | Talk to nearby NPCs, accept quests, and trade |
 | **Inventory / Gear** | `I` / `Tab` | Open backpack, equipment slots, and character stats |
 | **Look / Aim** | `Mouse` | Orbit camera around player with pitch clamping |
@@ -58,6 +59,17 @@ A realistic 3D third-person action-adventure game built with **Three.js** and **
   - Visual save notification indicator toast with pulse animation.
   - Protection against saving transient states (e.g., during level transitions or player defeat).
   - Strict isolation between local single-player saves and future multiplayer states.
+- **Stealth Mechanics & Enemy Awareness**:
+  - Crouch / sneak mode (<kbd>C</kbd> or <kbd>Ctrl</kbd>) reducing height profile to $1.2\text{m}$ and movement noise to $0.8\text{m}$.
+  - Realistic movement noise propagation scaling across stationary ($0\text{m}$), crouched ($0.8\text{m}$), walking ($4.0\text{m}$), running ($9.5\text{m}$), sprinting ($15.5\text{m}$), and stone surfaces ($+25\%$).
+  - Enemy forward vision cone ($115^\circ$ FOV) with distance attenuation. Enemies cannot visually spot targets outside their FOV unless within close sensory proximity ($1.5\text{m}$).
+  - Line-of-sight obstruction checking (`hasLineOfSight`) via `PhysicsWorld`, with terrain crests, ruins walls, pillars, and rocks blocking detection.
+  - Foliage cover concealment in 80 forest bushes reducing enemy detection range by 60%.
+  - Multi-tier enemy awareness meter ($0\%$ to $100\%$) transitioning across `UNAWARE`, `SUSPICIOUS`, `ALERTED`, `ENGAGED`, `SEARCHING`, and `RETURNING`.
+  - Noise-based investigation: enemies halt, face sounds, and investigate the player's last known position.
+  - Breaking line of sight triggers a timed search phase before smoothly returning to patrol.
+  - Contextual **Stealth Takedown** (`[F / Left Click] 🗡️ STEALTH TAKEDOWN`) when behind unaware enemies, granting instant critical elimination, shadow particle effects, and $+500\text{ PTS}$ bonus.
+  - In-game HUD stealth badge (`HIDDEN`, `SNEAKING`, `COVER`, `CAUTION`, `DETECTED`) and dynamic overhead enemy canvas awareness meters.
 - **Interactive NPCs & Dynamic Dialogue**:
   - Three distinct friendly NPCs: **Elder Kaelen** (Quest Giver), **Valen** (Traveling Merchant), and **Sylas** (Forest Hermit).
   - Rigged 3D models with skeletal animations (`Idle`, `Wave`, `agree`), proximity detection, and facing orientation towards the player.

@@ -122,10 +122,10 @@ export class EnemyManager {
     await Promise.all(this.enemies.map(e => e.init()));
   }
 
-  update(deltaTime, playerPosition, isCombatActive = true) {
-    const targetPos = isCombatActive ? playerPosition : null;
+  update(deltaTime, playerOrPosition, isCombatActive = true) {
+    const target = isCombatActive ? playerOrPosition : null;
     for (let i = 0; i < this.enemies.length; i++) {
-      this.enemies[i].update(deltaTime, targetPos);
+      this.enemies[i].update(deltaTime, target);
     }
   }
 

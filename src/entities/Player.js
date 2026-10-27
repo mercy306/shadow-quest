@@ -29,11 +29,13 @@ export class Player {
     this.baseWalkSpeed = 4.0;
     this.baseRunSpeed = 7.5;
     this.baseSprintSpeed = 10.5;
+    this.baseCrouchSpeed = 2.2;
     this.rotationSpeed = 14.0;
 
     this.walkSpeed = this.baseWalkSpeed;
     this.runSpeed = this.baseRunSpeed;
     this.sprintSpeed = this.baseSprintSpeed;
+    this.crouchSpeed = this.baseCrouchSpeed;
 
     // Temporary consumable buffs
     this.speedBuffMultiplier = 1.0;
@@ -42,6 +44,9 @@ export class Player {
     // Movement mode: Run by default on WASD!
     this.isRunMode = true;
     this.isSprinting = false;
+    this.isCrouching = false;
+    this.isHidingInFoliage = false;
+    this.currentNoiseRadius = 0;
     this.footstepTimer = 0;
     this.lastWPressTime = 0;
     this.isDoubleTapSprint = false;
@@ -287,11 +292,15 @@ export class Player {
           this.keys.run = true;
           break;
         case 'CapsLock':
-        case 'KeyC':
           this.isRunMode = !this.isRunMode;
           if (this.uiManager && typeof this.uiManager.updateMovementStance === 'function') {
-            this.uiManager.updateMovementStance(this.isRunMode ? 'run' : 'walk');
+            this.uiManager.updateMovementStance(this.isCrouching ? 'crouch' : (this.isRunMode ? 'run' : 'walk'));
           }
+          break;
+        case 'KeyC':
+        case 'ControlLeft':
+        case 'ControlRight':
+          this.toggleCrouch();
           break;
         case 'KeyF':
           this.triggerAttack();
@@ -392,12 +401,36 @@ export class Player {
     this.walkSpeed = this.baseWalkSpeed * buffMultiplier * equipSpeed;
     this.runSpeed = this.baseRunSpeed * buffMultiplier * equipSpeed;
     this.sprintSpeed = this.baseSprintSpeed * buffMultiplier * equipSpeed;
+    this.crouchSpeed = this.baseCrouchSpeed * buffMultiplier * equipSpeed;
 
     this.health = Math.min(this.maxHealth, this.health);
 
     if (this.uiManager && typeof this.uiManager.updatePlayerHealth === 'function') {
       this.uiManager.updatePlayerHealth(this.health, this.maxHealth);
     }
+  }
+
+  toggleCrouch(force = null) {
+    this.isCrouching = force !== null ? force : !this.isCrouching;
+    this.height = this.isCrouching ? 1.2 : 1.8;
+
+    if (this.model) {
+      if (this.isCrouching) {
+        this.model.scale.set(1.0, 0.72, 1.0);
+        this.model.position.y = -0.15;
+      } else {
+        this.model.scale.set(1.0, 1.0, 1.0);
+        this.model.position.y = 0;
+      }
+    }
+
+    if (this.uiManager && typeof this.uiManager.updateMovementStance === 'function') {
+      this.uiManager.updateMovementStance(this.isCrouching ? 'crouch' : (this.isRunMode ? 'run' : 'walk'));
+    }
+  }
+
+  getNoiseRadius() {
+    return this.currentNoiseRadius;
   }
 
   applySpeedBuff(multiplier = 1.25, duration = 15) {
@@ -576,7 +609,9 @@ export class Player {
       const isShiftHeld = this.keys.shift || this.keys.run;
       const isDoubleTap = this.isDoubleTapSprint;
 
-      if (this.isRunMode) {
+      if (this.isCrouching) {
+        moveState = 'crouch';
+      } else if (this.isRunMode) {
         moveState = (isShiftHeld || isDoubleTap) ? 'sprint' : 'run';
       } else {
         moveState = isShiftHeld ? 'run' : 'walk';
@@ -584,7 +619,12 @@ export class Player {
 
       this.isSprinting = (moveState === 'sprint');
 
-      if (moveState === 'sprint') {
+      if (moveState === 'crouch') {
+        currentSpeed = this.crouchSpeed; // 2.2 m/s
+        targetClip = 'Walk';
+        animScale = 0.6;
+        stepInterval = 0.65;
+      } else if (moveState === 'sprint') {
         currentSpeed = this.sprintSpeed; // 10.5 m/s
         targetClip = 'Run';
         animScale = 1.35;
@@ -649,8 +689,39 @@ export class Player {
       }
 
       if (this.uiManager && typeof this.uiManager.updateMovementStance === 'function') {
-        this.uiManager.updateMovementStance(this.isRunMode ? 'run' : 'walk');
+        this.uiManager.updateMovementStance(this.isCrouching ? 'crouch' : (this.isRunMode ? 'run' : 'walk'));
       }
+    }
+
+    // Stealth Noise & Cover Environment Integration
+    let noise = 0;
+    if (isMoving) {
+      if (moveState === 'crouch') {
+        noise = 0.8;
+      } else if (moveState === 'walk') {
+        noise = 4.0;
+      } else if (moveState === 'run') {
+        noise = 9.5;
+      } else if (moveState === 'sprint') {
+        noise = 15.5;
+      }
+    }
+    // Surface noise modifier (e.g. stepping on stone ruins platform)
+    if (this.physicsWorld && this.physicsWorld.platforms) {
+      for (let i = 0; i < this.physicsWorld.platforms.length; i++) {
+        if (this.physicsWorld.platforms[i].isPointInside(this.position.x, this.position.z)) {
+          noise *= 1.25;
+          break;
+        }
+      }
+    }
+    this.currentNoiseRadius = noise;
+
+    // Check foliage / vegetation concealment
+    if (this.environment && typeof this.environment.isNearCover === 'function') {
+      this.isHidingInFoliage = this.environment.isNearCover(this.position.x, this.position.z);
+    } else {
+      this.isHidingInFoliage = false;
     }
 
     // 2. Vertical Physics: Ground Detection, Gravity & Jumping

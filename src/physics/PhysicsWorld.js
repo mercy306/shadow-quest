@@ -216,4 +216,56 @@ export class PhysicsWorld {
 
     return from.clone().add(dir.multiplyScalar(safeDist));
   }
+
+  /**
+   * Fast line-of-sight raycast from observer eye to target point.
+   * Checks for obstructions by terrain elevation, ruin walls, pillars, rocks, and obstacles.
+   * @param {THREE.Vector3} from - Observer eye position
+   * @param {THREE.Vector3} to - Target position
+   * @returns {boolean} true if line of sight is clear, false if obstructed
+   */
+  hasLineOfSight(from, to) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dz = to.z - from.z;
+    const maxDist = Math.hypot(dx, dy, dz);
+    if (maxDist < 0.25) return true;
+
+    const dirX = dx / maxDist;
+    const dirY = dy / maxDist;
+    const dirZ = dz / maxDist;
+
+    // Adaptive step count along ray
+    const steps = Math.min(24, Math.max(6, Math.floor(maxDist * 1.4)));
+
+    for (let i = 1; i < steps; i++) {
+      const t = (i / steps) * maxDist;
+      const sampleX = from.x + dirX * t;
+      const sampleY = from.y + dirY * t;
+      const sampleZ = from.z + dirZ * t;
+
+      // 1. Terrain elevation obstruction check
+      if (this.terrain) {
+        const terrainH = this.terrain.getTerrainHeight(sampleX, sampleZ);
+        if (sampleY < terrainH + 0.15) {
+          return false; // Hill or terrain crest blocks sight
+        }
+      }
+
+      // 2. Solid colliders obstruction check (ruin walls, stone pillars, boulders)
+      const nearby = this.getNearbyColliders(sampleX, sampleZ, 1.4);
+      for (let j = 0; j < nearby.length; j++) {
+        const col = nearby[j];
+        const tag = col.tag;
+        if (tag === 'wall' || tag === 'pillar' || tag === 'rock' || tag === 'stone' || tag === 'obstacle') {
+          const hit = col.test(sampleX, sampleY - 0.4, sampleZ, 0.35, 1.2);
+          if (hit) {
+            return false; // Solid physical obstacle blocks line of sight
+          }
+        }
+      }
+    }
+
+    return true;
+  }
 }

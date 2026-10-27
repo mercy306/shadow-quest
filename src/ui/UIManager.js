@@ -106,6 +106,9 @@ export class UIManager {
     this.movementStanceBadge = document.getElementById('movement-stance-badge');
     this.stanceIcon = document.getElementById('stance-icon');
     this.stanceLabel = document.getElementById('stance-label');
+    this.stealthIndicatorBadge = document.getElementById('stealth-indicator-badge');
+    this.stealthEyeIcon = document.getElementById('stealth-eye-icon');
+    this.stealthStatusText = document.getElementById('stealth-status-text');
     this.muteBtn = document.getElementById('mute-btn');
     this.muteIcon = document.getElementById('mute-icon');
 
@@ -874,6 +877,74 @@ export class UIManager {
     } else {
       if (this.stanceIcon) this.stanceIcon.textContent = '🏃';
       if (this.stanceLabel) this.stanceLabel.textContent = 'RUNNING';
+    }
+  }
+
+  updateMovementStance(stance) {
+    if (!this.movementStanceBadge) return;
+    this.movementStanceBadge.classList.remove('sprinting', 'walking', 'crouch');
+
+    switch (stance) {
+      case 'crouch':
+        this.movementStanceBadge.classList.add('crouch');
+        if (this.stanceIcon) this.stanceIcon.textContent = '🤫';
+        if (this.stanceLabel) this.stanceLabel.textContent = 'SNEAKING';
+        break;
+      case 'sprint':
+        this.movementStanceBadge.classList.add('sprinting');
+        if (this.stanceIcon) this.stanceIcon.textContent = '⚡';
+        if (this.stanceLabel) this.stanceLabel.textContent = 'SPRINTING';
+        break;
+      case 'walk':
+        this.movementStanceBadge.classList.add('walking');
+        if (this.stanceIcon) this.stanceIcon.textContent = '🚶';
+        if (this.stanceLabel) this.stanceLabel.textContent = 'WALKING';
+        break;
+      case 'run':
+      default:
+        if (this.stanceIcon) this.stanceIcon.textContent = '🏃';
+        if (this.stanceLabel) this.stanceLabel.textContent = 'RUNNING';
+        break;
+    }
+  }
+
+  updateStealthIndicator(player, enemies = []) {
+    if (!this.stealthIndicatorBadge || !player) return;
+
+    let maxAwareness = 0;
+    let anyEngaged = false;
+    let anySuspicious = false;
+
+    if (Array.isArray(enemies)) {
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
+        if (!e.isAlive()) continue;
+        if (e.awareness > maxAwareness) maxAwareness = e.awareness;
+        if (e.awarenessState === 'ENGAGED' || e.state === 'CHASE' || e.state === 'ATTACK') anyEngaged = true;
+        else if (e.awarenessState === 'SUSPICIOUS' || e.awarenessState === 'ALERTED') anySuspicious = true;
+      }
+    }
+
+    this.stealthIndicatorBadge.classList.remove('foliage', 'suspicious', 'detected');
+
+    if (anyEngaged) {
+      this.stealthIndicatorBadge.classList.add('detected');
+      if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '👁️';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = 'DETECTED';
+    } else if (anySuspicious || maxAwareness > 0.15) {
+      this.stealthIndicatorBadge.classList.add('suspicious');
+      if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '👀';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = `CAUTION (${Math.round(maxAwareness * 100)}%)`;
+    } else if (player.isHidingInFoliage) {
+      this.stealthIndicatorBadge.classList.add('foliage');
+      if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '🌿';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = 'HIDDEN (COVER)';
+    } else if (player.isCrouching) {
+      if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '🤫';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = 'SNEAKING';
+    } else {
+      if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '👁️';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = 'HIDDEN';
     }
   }
 

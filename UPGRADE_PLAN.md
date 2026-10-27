@@ -193,3 +193,24 @@ Each upgrade phase must adhere to strict QA gates:
   - In-game HUD Side Quests Tracker (`#side-quests-container`) showing live objectives and statuses (`ACTIVE`, `READY_TO_TURN_IN`, `COMPLETED`).
 - **Persistence**: Integrated into Schema v1 save data (persisting active/completed side quests, current objective counters, and player gold).
 - **Automated Verification**: `tests/npcs_sidequests.test.js` executed via Headless Chrome CDP verifying all 10 requirement suites with 100% pass rate.
+
+### Phase 2, Milestone 4: Stealth Mechanics & Enemy Awareness System ✅ COMPLETED
+- **Architecture**:
+  - `src/physics/PhysicsWorld.js`: Implemented `hasLineOfSight(from, to)` line-of-sight raycaster testing terrain elevations and solid collider obstructions (walls, pillars, rocks, obstacles).
+  - `src/environment/Vegetation.js` & `Environment.js`: Added cover zones detection (`isNearCover(x, z)`) querying proximity to 80 forest bushes and foliage clumps.
+  - `src/entities/Player.js`: Added crouch/sneak mode (<kbd>C</kbd> or <kbd>Ctrl</kbd>), lowering height profile ($1.2\text{m}$ vs $1.8\text{m}$) and speed ($2.2\text{ m/s}$), and real-time noise radius propagation ($0\text{m}$ idle, $0.8\text{m}$ crouch, $4.0\text{m}$ walk, $9.5\text{m}$ run, $15.5\text{m}$ sprint, $+25\%$ stone surface multiplier).
+  - `src/entities/Enemy.js`:
+    - Added 115-degree vision field-of-view (FOV) cone with distance-based visual perception.
+    - Added multi-tier awareness meter ($0.0$ to $1.0$) with states: `UNAWARE`, `SUSPICIOUS`, `ALERTED`, `ENGAGED`, `SEARCHING`, `RETURNING`.
+    - Added noise-based investigation directing enemies to inspect the player's last known sound coordinates.
+    - Added timed `SEARCH` state with 360-degree head scanning before smoothly returning to patrol routes.
+    - Added overhead billboard awareness meter and status badges (`[?] SUSPICIOUS`, `[!] ALERTED`, `[?] SEARCHING`, `[!] ENGAGED`).
+  - `src/systems/CombatSystem.js`:
+    - Added stealth takedown eligibility checking (enemy alive, not in active combat, player in rear $155^\circ$ arc within $2.2\text{m}$).
+    - Added contextual prompt `[F / Left Click] 🗡️ STEALTH TAKEDOWN`.
+    - Added instant critical elimination, shadow particle effects, and $+500\text{ PTS}$ bonus score without alerting distant enemies.
+  - `src/ui/UIManager.js` & `index.html` & `src/style.css`:
+    - Added HUD movement stance badge (`SNEAKING`, `WALKING`, `RUNNING`, `SPRINTING`).
+    - Added HUD stealth visibility eye indicator (`HIDDEN`, `SNEAKING`, `COVER`, `CAUTION`, `DETECTED`).
+- **Automated Verification**: `tests/stealth_system.test.js` executed via Headless Chrome CDP verifying all 10 stealth requirement suites with 100% pass rate.
+- **Zero Regression**: 100% pass rate maintained across `save_system.test.js`, `inventory_equipment.test.js`, and `npcs_sidequests.test.js`.

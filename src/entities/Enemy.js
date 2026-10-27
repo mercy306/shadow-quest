@@ -6,11 +6,22 @@ export const EnemyState = {
   IDLE: 'IDLE',
   PATROL: 'PATROL',
   DETECT: 'DETECT',
+  INVESTIGATE: 'INVESTIGATE',
   CHASE: 'CHASE',
   ATTACK: 'ATTACK',
+  SEARCH: 'SEARCH',
   RETURN: 'RETURN',
   STUNNED: 'STUNNED',
   DEAD: 'DEAD'
+};
+
+export const AwarenessState = {
+  UNAWARE: 'UNAWARE',
+  SUSPICIOUS: 'SUSPICIOUS',
+  ALERTED: 'ALERTED',
+  ENGAGED: 'ENGAGED',
+  SEARCHING: 'SEARCHING',
+  RETURNING: 'RETURNING'
 };
 
 export class Enemy {
@@ -55,6 +66,18 @@ export class Enemy {
     this.state = EnemyState.PATROL;
     this.detectionRadius = config.detectionRadius || 16.0;
     this.escapeRadius = this.detectionRadius * 1.6; // Distance player must reach to drop aggro
+
+    // Stealth, Vision & Awareness System
+    this.awareness = 0.0; // 0.0 to 1.0 (0% to 100%)
+    this.awarenessState = AwarenessState.UNAWARE;
+    this.fovAngle = 115 * (Math.PI / 180); // 115° field-of-view cone
+    this.cosHalfFov = Math.cos(this.fovAngle / 2); // ~0.537
+    this.investigationTarget = new THREE.Vector3();
+    this.hasInvestigationTarget = false;
+    this.searchTimer = 0;
+    this.searchDuration = 4.0;
+    this.isEligibleForTakedown = false;
+    this.hudUpdateTimer = 0;
 
     // Patrol parameters & waypoints
     this.patrolCenter = config.patrolCenter
@@ -216,24 +239,44 @@ export class Enemy {
     ctx.clearRect(0, 0, 256, 64);
 
     // Background pill
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.beginPath();
-    ctx.roundRect(8, 6, 240, 52, 10);
+    ctx.roundRect(8, 4, 240, 56, 10);
     ctx.fill();
 
-    // Name & State text
-    ctx.font = 'bold 15px sans-serif';
-    ctx.fillStyle = this.state === EnemyState.CHASE || this.state === EnemyState.ATTACK ? '#f87171' : '#38bdf8';
+    // Determine status badge and styling
+    let statusText = `${this.name} [${this.state}]`;
+    let statusColor = '#38bdf8';
+
+    if (this.state === EnemyState.DEAD) {
+      statusText = `${this.name} [DEFEATED]`;
+      statusColor = '#94a3b8';
+    } else if (this.awarenessState === AwarenessState.ENGAGED || this.state === EnemyState.CHASE || this.state === EnemyState.ATTACK) {
+      statusText = `⚠️ ${this.name} [ENGAGED]`;
+      statusColor = '#ef4444';
+    } else if (this.awarenessState === AwarenessState.ALERTED) {
+      statusText = `❗ ${this.name} [ALERTED ${Math.round(this.awareness * 100)}%]`;
+      statusColor = '#f97316';
+    } else if (this.awarenessState === AwarenessState.SUSPICIOUS) {
+      statusText = `❓ ${this.name} [SUSPICIOUS ${Math.round(this.awareness * 100)}%]`;
+      statusColor = '#eab308';
+    } else if (this.awarenessState === AwarenessState.SEARCHING || this.state === EnemyState.SEARCH) {
+      statusText = `🔍 ${this.name} [SEARCHING]`;
+      statusColor = '#c084fc';
+    }
+
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = statusColor;
     ctx.textAlign = 'center';
-    ctx.fillText(`${this.name} [${this.state}]`, 128, 26);
+    ctx.fillText(statusText, 128, 23);
 
     // Health bar container
     const barX = 24;
-    const barY = 34;
+    const barY = 30;
     const barW = 208;
-    const barH = 12;
+    const barH = 10;
 
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#1e293b';
     ctx.fillRect(barX, barY, barW, barH);
 
     // Health fill
@@ -241,23 +284,47 @@ export class Enemy {
     ctx.fillStyle = pct > 0.5 ? '#22c55e' : (pct > 0.25 ? '#eab308' : '#ef4444');
     ctx.fillRect(barX, barY, barW * pct, barH);
 
+    // Awareness progress bar (if suspicious, alerted, or searching)
+    if (this.awareness > 0 && this.state !== EnemyState.DEAD) {
+      const awareY = 44;
+      const awareH = 5;
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(barX, awareY, barW, awareH);
+
+      const awarePct = Math.max(0, Math.min(1, this.awareness));
+      ctx.fillStyle = awarePct >= 0.5 ? '#f97316' : '#eab308';
+      ctx.fillRect(barX, awareY, barW * awarePct, awareH);
+    }
+
     this.hudTexture.needsUpdate = true;
   }
 
   /**
    * Main Enemy AI State Machine & Physics Loop
    */
-  update(deltaTime, playerPosition) {
+  update(deltaTime, playerOrPosition) {
     if (!this.isLoaded) return;
+
+    if (this.state === EnemyState.DEAD) {
+      this.updateDead(deltaTime);
+      if (this.animController) this.animController.update(deltaTime);
+      return;
+    }
 
     if (this.attackTimer > 0) {
       this.attackTimer -= deltaTime;
     }
 
+    const player = (playerOrPosition && playerOrPosition.position) ? playerOrPosition : null;
+    const playerPosition = player ? player.position : playerOrPosition;
+
     // Distance to player
     const distToPlayer = playerPosition
       ? Math.hypot(playerPosition.x - this.position.x, playerPosition.z - this.position.z)
       : Infinity;
+
+    // Run Stealth, FOV Vision & Sound Awareness
+    this.updateStealthAndPerception(deltaTime, player, playerPosition, distToPlayer);
 
     // State Machine
     switch (this.state) {
@@ -281,6 +348,14 @@ export class Enemy {
         this.updateDetect(deltaTime, playerPosition, distToPlayer);
         break;
 
+      case EnemyState.INVESTIGATE:
+        this.updateInvestigate(deltaTime, playerPosition, distToPlayer);
+        break;
+
+      case EnemyState.SEARCH:
+        this.updateSearch(deltaTime, playerPosition, distToPlayer);
+        break;
+
       case EnemyState.RETURN:
         this.updateReturn(deltaTime, playerPosition, distToPlayer);
         break;
@@ -300,6 +375,154 @@ export class Enemy {
     }
   }
 
+  updateStealthAndPerception(deltaTime, player, playerPosition, distToPlayer) {
+    if (!playerPosition || this.state === EnemyState.DEAD) {
+      this.isEligibleForTakedown = false;
+      this.awareness = Math.max(0, this.awareness - deltaTime * 0.25);
+      if (this.awareness === 0) this.awarenessState = AwarenessState.UNAWARE;
+      return;
+    }
+
+    const isCrouching = Boolean(player && player.isCrouching);
+    const isHidingInFoliage = Boolean(player && player.isHidingInFoliage);
+    const isSprinting = Boolean(player && player.isSprinting);
+    const noiseRadius = (player && typeof player.getNoiseRadius === 'function') ? player.getNoiseRadius() : 0;
+
+    // 1. Enemy Forward Vector
+    let enemyForward;
+    if (this.model) {
+      enemyForward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.model.quaternion);
+      enemyForward.y = 0;
+      enemyForward.normalize();
+    } else {
+      enemyForward = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
+    }
+
+    // Direction from enemy to player
+    const dirToPlayer = new THREE.Vector3(
+      playerPosition.x - this.position.x,
+      0,
+      playerPosition.z - this.position.z
+    );
+    if (distToPlayer > 0.001) {
+      dirToPlayer.normalize();
+    }
+
+    // 2. Field of View (FOV) check
+    const dot = enemyForward.dot(dirToPlayer);
+    const inFov = dot >= this.cosHalfFov; // Within 115° forward cone
+    const isBehind = dot < -0.25; // In rear arc (>104°)
+
+    // 3. Line of Sight (LOS) check
+    let hasLOS = false;
+    if (distToPlayer <= this.escapeRadius * 1.3) {
+      const eyePos = new THREE.Vector3(this.position.x, this.position.y + 1.6, this.position.z);
+      const targetPos = new THREE.Vector3(
+        playerPosition.x,
+        playerPosition.y + (isCrouching ? 0.6 : 1.1),
+        playerPosition.z
+      );
+      hasLOS = this.physicsWorld ? this.physicsWorld.hasLineOfSight(eyePos, targetPos) : true;
+    }
+
+    // 4. Calculate Effective Detection Distance
+    let effectiveSightDist = this.detectionRadius;
+    if (isCrouching) effectiveSightDist *= 0.55; // Crouch cuts visual detection distance by 45%
+    if (isHidingInFoliage) effectiveSightDist *= 0.40; // Foliage cover cuts visual detection distance by 60%
+    if (isSprinting) effectiveSightDist *= 1.25; // Sprinting increases visibility
+    effectiveSightDist = Math.max(2.2, effectiveSightDist);
+
+    // 5. Vision-based Awareness Dynamics
+    let isVisuallyDetected = false;
+    if (hasLOS && inFov && distToPlayer <= effectiveSightDist) {
+      isVisuallyDetected = true;
+      const proximity = Math.max(0.2, 1.0 - (distToPlayer / effectiveSightDist));
+      const fillSpeed = proximity * (isCrouching ? 1.6 : 3.0);
+      this.awareness = Math.min(1.0, this.awareness + deltaTime * fillSpeed);
+      this.investigationTarget.copy(playerPosition);
+      this.hasInvestigationTarget = true;
+    } else if (hasLOS && !inFov && distToPlayer <= 1.5) {
+      // Very close behind: peripheral sensory detection
+      isVisuallyDetected = true;
+      this.awareness = Math.min(1.0, this.awareness + deltaTime * 1.0);
+      this.investigationTarget.copy(playerPosition);
+      this.hasInvestigationTarget = true;
+    }
+
+    // 6. Sound / Movement Noise Detection
+    let isHeard = false;
+    if (noiseRadius > 0 && distToPlayer <= noiseRadius) {
+      isHeard = true;
+      const noiseIntensity = 1.0 - (distToPlayer / noiseRadius) * 0.4;
+      this.awareness = Math.max(this.awareness, Math.min(0.9, this.awareness + deltaTime * 2.2 * noiseIntensity));
+      this.investigationTarget.copy(playerPosition);
+      this.hasInvestigationTarget = true;
+
+      // Enemy turns towards noise source if not currently engaged
+      if (this.state !== EnemyState.CHASE && this.state !== EnemyState.ATTACK) {
+        this.rotateTowards(playerPosition.x, playerPosition.z, deltaTime * 3);
+      }
+    }
+
+    // 7. Awareness Decay when undetected
+    if (!isVisuallyDetected && !isHeard) {
+      if (this.state === EnemyState.CHASE || this.state === EnemyState.ATTACK) {
+        if (distToPlayer > this.escapeRadius || (!hasLOS && distToPlayer > 8.0)) {
+          // Lost sight: switch from chase to search at last known position
+          this.awareness = 0.75;
+          this.awarenessState = AwarenessState.SEARCHING;
+          this.setState(EnemyState.SEARCH);
+          this.searchTimer = 0;
+        }
+      } else if (this.state === EnemyState.SEARCH) {
+        this.awareness = Math.max(0, this.awareness - deltaTime * 0.22);
+      } else {
+        this.awareness = Math.max(0, this.awareness - deltaTime * 0.22);
+      }
+    }
+
+    // 8. Awareness State Transitions
+    if (this.state === EnemyState.SEARCH) {
+      this.awarenessState = AwarenessState.SEARCHING;
+    } else if (this.awareness <= 0.02) {
+      this.awareness = 0;
+      this.awarenessState = AwarenessState.UNAWARE;
+      if (this.state === EnemyState.INVESTIGATE) {
+        this.setState(EnemyState.RETURN);
+      }
+    } else if (this.awareness < 0.50) {
+      this.awarenessState = AwarenessState.SUSPICIOUS;
+      if (this.state === EnemyState.PATROL || this.state === EnemyState.IDLE) {
+        this.rotateTowards(this.investigationTarget.x, this.investigationTarget.z, deltaTime * 2);
+      }
+    } else if (this.awareness < 1.0) {
+      this.awarenessState = AwarenessState.ALERTED;
+      if (this.state === EnemyState.PATROL || this.state === EnemyState.IDLE || this.state === EnemyState.DETECT) {
+        this.setState(EnemyState.INVESTIGATE);
+      }
+    } else {
+      this.awarenessState = AwarenessState.ENGAGED;
+      if (this.state !== EnemyState.CHASE && this.state !== EnemyState.ATTACK && this.state !== EnemyState.STUNNED) {
+        this.setState(EnemyState.CHASE);
+      }
+    }
+
+    // 9. Stealth Takedown Eligibility
+    const notInCombat = this.state !== EnemyState.CHASE && this.state !== EnemyState.ATTACK;
+    if (this.health > 0 && notInCombat && distToPlayer <= 2.2 && isBehind) {
+      this.isEligibleForTakedown = true;
+    } else {
+      this.isEligibleForTakedown = false;
+    }
+
+    // Throttle HUD texture updates
+    this.hudUpdateTimer += deltaTime;
+    if (this.hudUpdateTimer >= 0.08) {
+      this.hudUpdateTimer = 0;
+      this.updateHUD();
+    }
+  }
+
   setState(newState) {
     if (this.state === newState) return;
     this.state = newState;
@@ -316,7 +539,11 @@ export class Enemy {
         this.animController.play('Walking', 0.25);
         break;
       case EnemyState.DETECT:
+      case EnemyState.SEARCH:
         this.animController.play('Standing', 0.2);
+        break;
+      case EnemyState.INVESTIGATE:
+        this.animController.play('Walking', 0.25);
         break;
       case EnemyState.CHASE:
         this.animController.play('Running', 0.2);
@@ -333,11 +560,51 @@ export class Enemy {
     }
   }
 
+  updateInvestigate(deltaTime, playerPosition, distToPlayer) {
+    if (!this.hasInvestigationTarget) {
+      this.setState(EnemyState.PATROL);
+      return;
+    }
+
+    const distToTarget = Math.hypot(
+      this.investigationTarget.x - this.position.x,
+      this.investigationTarget.z - this.position.z
+    );
+
+    if (distToTarget < 1.4) {
+      // Reached investigation target -> begin searching
+      this.setState(EnemyState.SEARCH);
+      this.searchTimer = 0;
+      return;
+    }
+
+    this.moveTowards(this.investigationTarget.x, this.investigationTarget.z, this.patrolSpeed * 1.3, deltaTime);
+  }
+
+  updateSearch(deltaTime, playerPosition, distToPlayer) {
+    this.searchTimer += deltaTime;
+
+    // Scan rotation left and right
+    const scanWobble = Math.sin(this.searchTimer * 2.2) * 0.8;
+    if (this.model) {
+      this.model.rotation.y += scanWobble * deltaTime;
+    }
+
+    if (this.searchTimer >= this.searchDuration) {
+      this.awareness = 0;
+      this.awarenessState = AwarenessState.RETURNING;
+      this.hasInvestigationTarget = false;
+      this.setState(EnemyState.RETURN);
+    }
+  }
+
   updateIdle(deltaTime, distToPlayer) {
-    // Check player detection
-    if (distToPlayer <= this.detectionRadius) {
-      this.setState(EnemyState.DETECT);
-      this.detectTimer = 0;
+    if (this.awareness >= 1.0) {
+      this.setState(EnemyState.CHASE);
+      return;
+    }
+    if (this.awareness >= 0.5) {
+      this.setState(EnemyState.INVESTIGATE);
       return;
     }
 
@@ -349,10 +616,12 @@ export class Enemy {
   }
 
   updatePatrol(deltaTime, distToPlayer) {
-    // Check player detection
-    if (distToPlayer <= this.detectionRadius) {
-      this.setState(EnemyState.DETECT);
-      this.detectTimer = 0;
+    if (this.awareness >= 1.0) {
+      this.setState(EnemyState.CHASE);
+      return;
+    }
+    if (this.awareness >= 0.5) {
+      this.setState(EnemyState.INVESTIGATE);
       return;
     }
 
@@ -386,9 +655,12 @@ export class Enemy {
   updateChase(deltaTime, playerPosition, distToPlayer) {
     if (!playerPosition) return;
 
-    // Player escaped detection envelope -> return to patrol
+    // Player broke line of sight or escaped beyond chase distance -> search last known position
     if (distToPlayer > this.escapeRadius) {
-      this.setState(EnemyState.RETURN);
+      this.awareness = 0.75;
+      this.awarenessState = AwarenessState.SEARCHING;
+      this.setState(EnemyState.SEARCH);
+      this.searchTimer = 0;
       return;
     }
 
@@ -434,9 +706,12 @@ export class Enemy {
   }
 
   updateReturn(deltaTime, playerPosition, distToPlayer) {
-    // If player approaches again while returning, re-engage
-    if (distToPlayer <= this.detectionRadius) {
+    if (this.awareness >= 1.0) {
       this.setState(EnemyState.CHASE);
+      return;
+    }
+    if (this.awareness >= 0.5) {
+      this.setState(EnemyState.INVESTIGATE);
       return;
     }
 
@@ -444,6 +719,8 @@ export class Enemy {
     const distToHome = Math.hypot(homeWaypoint.x - this.position.x, homeWaypoint.z - this.position.z);
 
     if (distToHome < 1.2) {
+      this.awareness = 0;
+      this.awarenessState = AwarenessState.UNAWARE;
       this.setState(EnemyState.PATROL);
       return;
     }

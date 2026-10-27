@@ -626,7 +626,12 @@ export class Game {
 
     // Enemy AI & Hostile Guardians
     if (this.enemyManager && this.player) {
-      this.enemyManager.update(deltaTime, this.player.getPosition(), true);
+      this.enemyManager.update(deltaTime, this.player, true);
+    }
+
+    // Stealth status & awareness HUD update
+    if (this.uiManager && this.player && this.enemyManager) {
+      this.uiManager.updateStealthIndicator(this.player, this.enemyManager.getEnemies());
     }
 
     // Collectibles update & pickup detection

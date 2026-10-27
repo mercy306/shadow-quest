@@ -119,19 +119,23 @@ async function runStealthTests() {
     await cdp.send('Page.enable');
     await cdp.send('Runtime.enable');
 
-    for (let i = 0; i < 40; i++) {
-      const isReady = await cdp.eval('Boolean((window.game || window.__GAME__) && (window.game || window.__GAME__).initStep === "complete")');
+    let isReady = false;
+    for (let i = 0; i < 60; i++) {
+      isReady = await cdp.eval('Boolean((window.game || window.__GAME__) && (window.game || window.__GAME__).initStep === "complete")');
       if (isReady) break;
-      await sleep(300);
+      await sleep(500);
     }
+    if (!isReady) throw new Error('Game failed to initialize within timeout');
     console.log('Game initialized!');
 
     // Start New Adventure
     await cdp.eval(`
       const g = window.game || window.__GAME__;
-      g.startNewGame();
+      if (g && typeof g.startNewGame === 'function') {
+        g.startNewGame();
+      }
     `);
-    await sleep(1000);
+    await sleep(1500);
 
     // ==========================================
     // TEST 1: Crouch Movement Mode & Profile
@@ -556,8 +560,82 @@ async function runStealthTests() {
     if (combatResult.takedownEligible) throw new Error('Takedown should NOT be eligible in front combat');
     console.log('✓ PASS: Frontal encounter properly initiates standard combat state machine.');
 
+    // ==========================================
+    // TEST 11: Boss Stealth Takedown & Balancing
+    // ==========================================
+    console.log('\n--- Test 11: Boss Stealth Balancing & Stagger ---');
+    const bossStealthResult = await cdp.eval(`
+      const g = window.game || window.__GAME__;
+      const boss = g.enemyManager.getEnemies()[3]; // Grimfang Alpha
+      const player = g.player;
+
+      // Set boss unaware facing +Z
+      boss.health = 250;
+      boss.maxHealth = 250;
+      boss.awareness = 0;
+      boss.setState('IDLE');
+      boss.idleTimer = 0;
+      boss.position.set(-20, 0, -40);
+      boss.groundToTerrain();
+      boss.rotateTowards(-20, -30, 10.0);
+
+      // Reset player attack cooldown & stance from previous tests
+      player.isAttacking = false;
+      player.attackCooldownTimer = 0;
+      player.hasDealtDamageThisSwing = false;
+
+      // Place player behind boss within 1.6m, facing towards the boss (+Z)
+      player.position.set(-20, 0, -41.5);
+      player.groundToTerrain();
+      player.toggleCrouch(true);
+      if (player.model) player.model.rotation.y = 0;
+      boss.update(0.016, player);
+
+      const isEligibleBefore = boss.isEligibleForTakedown;
+      const isBoss = boss.isBoss;
+
+      // Execute attack swing
+      player.triggerAttack();
+      const isAttackingAfterTrigger = player.isAttacking;
+      const attackTimerAfterTrigger = player.attackCooldownTimer;
+      const fwd = player.getForwardVector();
+      const pPos = player.getPosition();
+      const bPos = boss.position;
+      const dist = Math.hypot(bPos.x - pPos.x, bPos.z - pPos.z);
+      const dot = fwd.x * ((bPos.x - pPos.x) / dist) + fwd.z * ((bPos.z - pPos.z) / dist);
+
+      g.combatSystem.update(0.016);
+
+      const healthAfter = boss.health;
+      const stateAfter = boss.state;
+      const awarenessAfter = boss.awareness;
+
+      return {
+        isBoss,
+        isEligibleBefore,
+        isAttackingAfterTrigger,
+        attackTimerAfterTrigger,
+        fwd: { x: fwd.x, z: fwd.z },
+        dist,
+        dot,
+        healthAfter,
+        damageTaken: 250 - healthAfter,
+        stateAfter,
+        awarenessAfter
+      };
+    `);
+    console.log('Boss stealth strike result:', bossStealthResult);
+    if (!bossStealthResult.isBoss) throw new Error('Grimfang Alpha should be flagged as boss');
+    if (!bossStealthResult.isEligibleBefore) throw new Error('Boss should be eligible for backstab takedown');
+    if (bossStealthResult.healthAfter <= 0) throw new Error('Boss should NOT be eliminated in one hit (cannot bypass boss mechanics)');
+    if (bossStealthResult.damageTaken < 100) throw new Error('Boss should take heavy critical bonus damage');
+    if (bossStealthResult.stateAfter !== 'STUNNED' && bossStealthResult.stateAfter !== 'CHASE') {
+      throw new Error(`Boss should enter STUNNED or CHASE state after stealth strike, got: ${bossStealthResult.stateAfter}`);
+    }
+    console.log('✓ PASS: Boss stealth attack deals critical bonus damage without bypassing boss encounter.');
+
     console.log('\n======================================================');
-    console.log('🏆 ALL 10 STEALTH GAMEPLAY TEST SUITES PASSED WITH 100% SUCCESS!');
+    console.log('🏆 ALL 11 STEALTH GAMEPLAY TEST SUITES PASSED WITH 100% SUCCESS!');
     console.log('======================================================\n');
 
     cdp.ws.close();

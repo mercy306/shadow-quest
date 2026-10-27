@@ -58,7 +58,18 @@ export class CombatSystem {
             hitAny = true;
             const wasAlive = enemy.isAlive();
             const isTakedown = Boolean(enemy.isEligibleForTakedown);
-            const damageToDeal = isTakedown ? Math.max(9999, enemy.health * 2) : this.player.damage;
+            const isBoss = Boolean(enemy.isBoss || enemy.id === 'grimfang-alpha' || enemy.id === 'ruins-colossus-boss' || (enemy.name && (enemy.name.toLowerCase().includes('boss') || enemy.name.toLowerCase().includes('alpha') || enemy.name.toLowerCase().includes('colossus'))));
+
+            // Standard enemies are defeated instantly via stealth takedown (9999 damage).
+            // Bosses/elites (e.g. Grimfang Alpha, Ancient Colossus) take critical bonus damage (250%) and are stunned, preventing stealth from unintentionally trivializing or bypassing multi-phase boss mechanics.
+            let damageToDeal = this.player.damage;
+            if (isTakedown) {
+              if (isBoss) {
+                damageToDeal = Math.max(120, Math.round(this.player.damage * 2.5));
+              } else {
+                damageToDeal = Math.max(9999, enemy.health * 2);
+              }
+            }
 
             enemy.takeDamage(damageToDeal);
 
@@ -74,16 +85,20 @@ export class CombatSystem {
                 enemy.position.y + 1.2,
                 playerPos.z + dz * 0.6
               );
-              const sparkColor = isTakedown ? 0xc084fc : 0xffbb33;
+              const sparkColor = isTakedown ? (isBoss ? 0xf43f5e : 0xc084fc) : 0xffbb33;
               const sparkCount = isTakedown ? 40 : 22;
               this.vfxManager.spawnImpactSparks(hitPos, sparkCount, sparkColor);
               this.vfxManager.flashEnemyHit(enemy);
-              this.vfxManager.spawnDamageNumber(enemy.position, isTakedown ? 'CRIT TAKEDOWN!' : this.player.damage, isTakedown);
+              this.vfxManager.spawnDamageNumber(enemy.position, isTakedown ? (isBoss ? `CRIT STRIKE -${damageToDeal}` : 'CRIT TAKEDOWN!') : this.player.damage, isTakedown);
             }
 
             if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
               if (isTakedown) {
-                this.uiManager.showCollectNotification(`🗡️ STEALTH TAKEDOWN on ${enemy.name}! +500 PTS`);
+                if (isBoss) {
+                  this.uiManager.showCollectNotification(`🗡️ CRITICAL STEALTH STRIKE on ${enemy.name}! -${damageToDeal} HP (+500 PTS)`);
+                } else {
+                  this.uiManager.showCollectNotification(`🗡️ STEALTH TAKEDOWN on ${enemy.name}! +500 PTS`);
+                }
                 if (this.questSystem && this.questSystem.currentQuest) {
                   this.questSystem.currentQuest.score = (this.questSystem.currentQuest.score || 0) + 500;
                 }

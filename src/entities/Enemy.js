@@ -31,6 +31,7 @@ export class Enemy {
 
     this.id = config.id || Math.random().toString(36).substring(2, 9);
     this.name = config.name || 'Shadow Guardian';
+    this.isBoss = Boolean(config.isBoss || config.id === 'grimfang-alpha' || config.id === 'ruins-colossus-boss' || (config.name && (config.name.toLowerCase().includes('boss') || config.name.toLowerCase().includes('alpha') || config.name.toLowerCase().includes('colossus'))));
 
     // Entity root group
     this.mesh = new THREE.Group();
@@ -777,6 +778,8 @@ export class Enemy {
     if (this.state === EnemyState.DEAD) return;
 
     this.health = Math.max(0, this.health - amount);
+    this.awareness = 1.0;
+    this.awarenessState = AwarenessState.ENGAGED;
     this.updateHUD();
 
     if (this.health <= 0) {

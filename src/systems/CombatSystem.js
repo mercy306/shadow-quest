@@ -9,17 +9,23 @@ export class CombatSystem {
     this.uiManager = uiManager;
     this.vfxManager = vfxManager;
     this.npcManager = null;
+    this.levelManager = null;
   }
 
   setNPCManager(npcManager) {
     this.npcManager = npcManager;
   }
 
-  setManagers({ questSystem, audioManager, uiManager, vfxManager }) {
+  setLevelManager(levelManager) {
+    this.levelManager = levelManager;
+  }
+
+  setManagers({ questSystem, audioManager, uiManager, vfxManager, levelManager }) {
     if (questSystem) this.questSystem = questSystem;
     if (audioManager) this.audioManager = audioManager;
     if (uiManager) this.uiManager = uiManager;
     if (vfxManager) this.vfxManager = vfxManager;
+    if (levelManager) this.levelManager = levelManager;
   }
 
   init() {
@@ -248,7 +254,8 @@ export class CombatSystem {
       // 5. Contextual Interaction Prompts
       const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
       const hasNPCPrompt = this.npcManager && this.npcManager.getActiveInteractable();
-      if (!hasNPCPrompt) {
+      const hasPassagePrompt = this.levelManager && this.levelManager.getNearbyPassage(playerPos);
+      if (!hasNPCPrompt && !hasPassagePrompt) {
         if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
           const exitDist = Math.hypot(
             playerPos.x - this.questSystem.exitLocation.x,

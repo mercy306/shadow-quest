@@ -185,11 +185,26 @@ export class AudioManager {
         osc1.frequency.setValueAtTime(146.83, now);
         osc2.frequency.setValueAtTime(220.00, now);
         filter.frequency.setValueAtTime(600, now);
-      } else {
+      } else if (levelIndex === 1) {
         // Ancient Ruins Nocturne Drone (A2 + E3)
         osc1.frequency.setValueAtTime(110.00, now);
         osc2.frequency.setValueAtTime(164.81, now);
         filter.frequency.setValueAtTime(450, now);
+      } else if (levelIndex === 2) {
+        // Mountain Pass Highwind Alpine Drone (F3 + C4)
+        osc1.frequency.setValueAtTime(174.61, now);
+        osc2.frequency.setValueAtTime(261.63, now);
+        filter.frequency.setValueAtTime(750, now);
+      } else if (levelIndex === 3) {
+        // Abandoned Village Twilight Drone (G2 + D3)
+        osc1.frequency.setValueAtTime(98.00, now);
+        osc2.frequency.setValueAtTime(146.83, now);
+        filter.frequency.setValueAtTime(400, now);
+      } else {
+        // Whispering Cavern Deep Subterranean Drone (E2 + B2)
+        osc1.frequency.setValueAtTime(82.41, now);
+        osc2.frequency.setValueAtTime(123.47, now);
+        filter.frequency.setValueAtTime(320, now);
       }
 
       osc1.type = 'sine';

@@ -208,4 +208,126 @@ export class TextureGenerator {
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
   }
+
+  /**
+   * Generates weathered timber wood planks texture with nails and woodgrain.
+   */
+  static createWoodTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#5c3a21';
+    ctx.fillRect(0, 0, size, size);
+
+    const plankH = 48;
+    ctx.strokeStyle = '#2b1810';
+    ctx.lineWidth = 3;
+
+    for (let y = 0; y < size; y += plankH) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(size, y);
+      ctx.stroke();
+    }
+
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = (y * size + x) * 4;
+        const grain = Math.sin(x * 0.4 + Math.sin(y * 0.08) * 4.0) * 15;
+        const noise = (Math.random() - 0.5) * 20;
+        data[idx] = Math.min(255, Math.max(0, data[idx] + grain + noise));
+        data[idx + 1] = Math.min(255, Math.max(0, data[idx + 1] + grain * 0.7 + noise * 0.8));
+        data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] + grain * 0.4 + noise * 0.5));
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(3, 3);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates rugged mountain rock strata texture with slate and mineral highlights.
+   */
+  static createMountainRockTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 0, size, size);
+
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = (y * size + x) * 4;
+        // Horizontal geological strata
+        const strata = Math.sin(y * 0.12 + Math.cos(x * 0.05) * 6.0) * 25;
+        const crag = Math.sin(x * 0.3) * Math.sin(y * 0.3) * 18;
+        const noise = (Math.random() - 0.5) * 30;
+        const val = strata + crag + noise;
+
+        data[idx] = Math.min(255, Math.max(0, 95 + val));
+        data[idx + 1] = Math.min(255, Math.max(0, 105 + val * 0.95));
+        data[idx + 2] = Math.min(255, Math.max(0, 120 + val * 1.1));
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates dark subterranean cavern rock texture with damp crystalline veins.
+   */
+  static createCavernTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#1e1b2e';
+    ctx.fillRect(0, 0, size, size);
+
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = (y * size + x) * 4;
+        const crag = Math.sin(x * 0.2 + y * 0.15) * 22;
+        const noise = (Math.random() - 0.5) * 25;
+        const vein = Math.sin(x * 0.08 - y * 0.1) > 0.88 ? 35 : 0;
+
+        data[idx] = Math.min(255, Math.max(0, 30 + crag * 0.5 + noise * 0.6 + vein * 0.4));
+        data[idx + 1] = Math.min(255, Math.max(0, 35 + crag * 0.6 + noise * 0.7 + vein * 1.2));
+        data[idx + 2] = Math.min(255, Math.max(0, 50 + crag * 0.8 + noise * 0.9 + vein * 1.5));
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
 }

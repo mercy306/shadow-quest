@@ -26,44 +26,81 @@ export class CollectibleManager {
   init(levelIndex = 0) {
     this.clear();
 
-    const crystalLocations = levelIndex === 0
-      ? [
-          // STAGE 1: THE DARK FOREST (5 Shadow Crystals)
-          { id: 'crystal-1', x: 3.5, z: 8.0, desc: 'Forest Trailhead' },
-          { id: 'crystal-2', x: -14.0, z: -16.0, desc: 'Boulder Clearing' },
-          { id: 'crystal-3', x: 15.0, z: -32.0, desc: 'Fallen Log Glade' },
-          { id: 'crystal-4', x: 23.0, z: -48.0, desc: 'Winding Trail Ridge' },
-          { id: 'crystal-5', x: 34.0, z: -68.0, desc: 'Ancient Ruins Approach' }
-        ]
-      : [
-          // STAGE 2: THE ANCIENT RUINS (3 Void Relic Orbs)
-          { id: 'relic-1', x: -18.0, z: 18.0, desc: 'Western Catacomb Relic' },
-          { id: 'relic-2', x: 18.0, z: 18.0, desc: 'Eastern Colonnade Relic' },
-          { id: 'relic-3', x: 0.0, z: -21.0, desc: 'North Corridor Relic' }
-        ];
+    let crystalLocations = [];
+    let itemPickups = [];
+
+    if (levelIndex === 0) {
+      // STAGE 1: THE DARK FOREST (5 Shadow Crystals)
+      crystalLocations = [
+        { id: 'crystal-1', x: 3.5, z: 8.0, desc: 'Forest Trailhead' },
+        { id: 'crystal-2', x: -14.0, z: -16.0, desc: 'Boulder Clearing' },
+        { id: 'crystal-3', x: 15.0, z: -32.0, desc: 'Fallen Log Glade' },
+        { id: 'crystal-4', x: 23.0, z: -48.0, desc: 'Winding Trail Ridge' },
+        { id: 'crystal-5', x: 34.0, z: -68.0, desc: 'Ancient Ruins Approach' }
+      ];
+      itemPickups = [
+        { id: 'pickup-blade-1', itemId: 'shadow_cleaver', x: -8.0, z: -10.0, quantity: 1 },
+        { id: 'pickup-armor-1', itemId: 'shadow_plate', x: 20.0, z: -40.0, quantity: 1 },
+        { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
+        { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
+        { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
+        { id: 'pickup-hermit-satchel', itemId: 'hermit_satchel', x: -12.0, z: -58.0, quantity: 1 },
+        { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
+      ];
+    } else if (levelIndex === 1) {
+      // STAGE 2: THE ANCIENT RUINS (3 Void Relic Orbs)
+      crystalLocations = [
+        { id: 'relic-1', x: -18.0, z: 18.0, desc: 'Western Catacomb Relic' },
+        { id: 'relic-2', x: 18.0, z: 18.0, desc: 'Eastern Colonnade Relic' },
+        { id: 'relic-3', x: 0.0, z: -21.0, desc: 'North Corridor Relic' }
+      ];
+      itemPickups = [
+        { id: 'pickup-void-blade', itemId: 'void_reaver', x: 0.0, z: -10.0, quantity: 1 },
+        { id: 'pickup-sanct-armor', itemId: 'sanctuary_aegis', x: 0.0, z: 10.0, quantity: 1 },
+        { id: 'pickup-trinket-heart', itemId: 'radiant_crystal_heart', x: -15.0, z: 0.0, quantity: 1 },
+        { id: 'pickup-key', itemId: 'sanctuary_key', x: 15.0, z: 0.0, quantity: 1 },
+        { id: 'pickup-great-pot', itemId: 'greater_healing_potion', x: 0.0, z: 25.0, quantity: 2 }
+      ];
+    } else if (levelIndex === 2) {
+      // STAGE 3: THE MOUNTAIN PASS (2 Alpine Frost Crystals + Scout Gear)
+      crystalLocations = [
+        { id: 'alpine-cryst-1', x: 0.0, z: 5.0, desc: 'Highwind Bridge Crystal' },
+        { id: 'alpine-cryst-2', x: -25.0, z: -20.0, desc: 'Eagle Peak Cairn Relic' }
+      ];
+      itemPickups = [
+        { id: 'pickup-mountain-scout-chest', itemId: 'shadow_plate', x: -15.0, z: 30.0, quantity: 1 },
+        { id: 'pickup-mountain-potion', itemId: 'greater_healing_potion', x: 10.0, z: 12.0, quantity: 2 },
+        { id: 'pickup-mountain-ore', itemId: 'starfall_ore', x: -18.0, z: -10.0, quantity: 4 }
+      ];
+    } else if (levelIndex === 3) {
+      // STAGE 4: THE ABANDONED VILLAGE (3 Heirloom Crystals + Village Lockbox)
+      crystalLocations = [
+        { id: 'village-cryst-1', x: 0.0, z: 0.0, desc: 'Town Square Crystal' },
+        { id: 'village-cryst-2', x: 26.0, z: -2.0, desc: 'Crowfall Windmill Crystal' },
+        { id: 'village-cryst-3', x: -22.0, z: 16.0, desc: 'Elder Manor Crystal' }
+      ];
+      itemPickups = [
+        { id: 'pickup-elder-lockbox', itemId: 'radiant_crystal_heart', x: -25.0, z: -15.0, quantity: 1 },
+        { id: 'pickup-village-blade', itemId: 'shadow_cleaver', x: 16.0, z: -18.0, quantity: 1 },
+        { id: 'pickup-village-stamina', itemId: 'stamina_potion', x: -5.0, z: 10.0, quantity: 2 }
+      ];
+    } else if (levelIndex === 4) {
+      // STAGE 5: THE WHISPERING CAVERN (3 Luminescent Cavern Crystals + Smuggler Chest)
+      crystalLocations = [
+        { id: 'cavern-cryst-1', x: -30.0, z: 30.0, desc: 'Luminescent Grotto Crystal' },
+        { id: 'cavern-cryst-2', x: 0.0, z: 0.0, desc: 'Subterranean Bridge Crystal' },
+        { id: 'cavern-cryst-3', x: 25.0, z: -25.0, desc: 'Sunken Crypt Seal Crystal' }
+      ];
+      itemPickups = [
+        { id: 'pickup-smuggler-cache', itemId: 'void_reaver', x: 30.0, z: 20.0, quantity: 1 },
+        { id: 'pickup-cavern-ore', itemId: 'starfall_ore', x: -14.0, z: 8.0, quantity: 5 },
+        { id: 'pickup-cavern-heal', itemId: 'greater_healing_potion', x: 12.0, z: -12.0, quantity: 2 }
+      ];
+    }
 
     crystalLocations.forEach(loc => {
       this.spawnCrystal(loc.id, loc.x, loc.z, loc.desc);
     });
-
-    // World Item Pickups (Weapons, Armor, Potions, Materials, Quest Items, Relics)
-    const itemPickups = levelIndex === 0
-      ? [
-          { id: 'pickup-blade-1', itemId: 'shadow_cleaver', x: -8.0, z: -10.0, quantity: 1 },
-          { id: 'pickup-armor-1', itemId: 'shadow_plate', x: 20.0, z: -40.0, quantity: 1 },
-          { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
-          { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
-          { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
-          { id: 'pickup-hermit-satchel', itemId: 'hermit_satchel', x: -12.0, z: -58.0, quantity: 1 },
-          { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
-        ]
-      : [
-          { id: 'pickup-void-blade', itemId: 'void_reaver', x: 0.0, z: -10.0, quantity: 1 },
-          { id: 'pickup-sanct-armor', itemId: 'sanctuary_aegis', x: 0.0, z: 10.0, quantity: 1 },
-          { id: 'pickup-trinket-heart', itemId: 'radiant_crystal_heart', x: -15.0, z: 0.0, quantity: 1 },
-          { id: 'pickup-key', itemId: 'sanctuary_key', x: 15.0, z: 0.0, quantity: 1 },
-          { id: 'pickup-great-pot', itemId: 'greater_healing_potion', x: 0.0, z: 25.0, quantity: 2 }
-        ];
 
     itemPickups.forEach(p => {
       if (!this.collectedIds.has(p.id)) {

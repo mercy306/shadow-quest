@@ -5,6 +5,9 @@ import { Ruins } from './Ruins.js';
 import { Vegetation } from './Vegetation.js';
 import { RuinsStage } from './RuinsStage.js';
 import { ArenaGrove } from './ArenaGrove.js';
+import { MountainPassStage } from './MountainPassStage.js';
+import { AbandonedVillageStage } from './AbandonedVillageStage.js';
+import { WhisperingCavernStage } from './WhisperingCavernStage.js';
 
 export class Environment {
   constructor(scene, physicsWorld = null) {
@@ -18,6 +21,9 @@ export class Environment {
     this.vegetation = null;
     this.ruinsStage = null;
     this.arenaGrove = null;
+    this.mountainPassStage = null;
+    this.abandonedVillageStage = null;
+    this.whisperingCavernStage = null;
 
     this.initLighting();
     this.initSky();
@@ -112,7 +118,7 @@ export class Environment {
       this.vegetation = new Vegetation(this.scene, this.terrain, this.physicsWorld);
       this.arenaGrove = new ArenaGrove(this.scene, this.terrain, this.physicsWorld);
 
-    } else {
+    } else if (levelIndex === 1) {
       // ===== STAGE 2: THE ANCIENT RUINS SANCTUARY =====
       // Midnight moonlit illumination with glowing torchlight
       this.ambientLight.color.setHex(0x1e1b4b);
@@ -150,6 +156,114 @@ export class Environment {
       this.terrain = this.ruinsStage.terrain;
       this.ruins = null;
       this.vegetation = null;
+
+    } else if (levelIndex === 2) {
+      // ===== STAGE 3: THE MOUNTAIN PASS =====
+      // Crisp alpine daylight with cool mountain rim light
+      this.ambientLight.color.setHex(0x38bdf8);
+      this.ambientLight.intensity = 0.35;
+      this.hemiLight.color.setHex(0xe0f2fe);
+      this.hemiLight.groundColor.setHex(0x334155);
+      this.hemiLight.intensity = 0.55;
+
+      this.dirLight.color.setHex(0xfef08a);
+      this.dirLight.intensity = 1.35;
+
+      if (this.rimLight) {
+        this.rimLight.color.setHex(0x7dd3fc);
+        this.rimLight.intensity = 0.55;
+      }
+
+      const skyUniforms = this.sky.material.uniforms;
+      skyUniforms['turbidity'].value = 5.0;
+      skyUniforms['rayleigh'].value = 1.2;
+      skyUniforms['mieCoefficient'].value = 0.003;
+      skyUniforms['mieDirectionalG'].value = 0.75;
+
+      const elevation = 35;
+      const azimuth = 150;
+      const phi = THREE.MathUtils.degToRad(90 - elevation);
+      const theta = THREE.MathUtils.degToRad(azimuth);
+      this.sun.setFromSphericalCoords(1, phi, theta);
+      skyUniforms['sunPosition'].value.copy(this.sun);
+      this.dirLight.position.copy(this.sun).multiplyScalar(90);
+
+      this.scene.fog = new THREE.FogExp2(0x475569, 0.007);
+
+      this.mountainPassStage = new MountainPassStage(this.scene, this.physicsWorld);
+      this.terrain = this.mountainPassStage.terrain;
+
+    } else if (levelIndex === 3) {
+      // ===== STAGE 4: THE ABANDONED VILLAGE =====
+      // Twilight dusk with amber and purple mist
+      this.ambientLight.color.setHex(0x4a044e);
+      this.ambientLight.intensity = 0.38;
+      this.hemiLight.color.setHex(0xf472b6);
+      this.hemiLight.groundColor.setHex(0x1c1917);
+      this.hemiLight.intensity = 0.45;
+
+      this.dirLight.color.setHex(0xfb923c);
+      this.dirLight.intensity = 1.1;
+
+      if (this.rimLight) {
+        this.rimLight.color.setHex(0xa855f7);
+        this.rimLight.intensity = 0.65;
+      }
+
+      const skyUniforms = this.sky.material.uniforms;
+      skyUniforms['turbidity'].value = 10.0;
+      skyUniforms['rayleigh'].value = 3.5;
+      skyUniforms['mieCoefficient'].value = 0.015;
+      skyUniforms['mieDirectionalG'].value = 0.85;
+
+      const elevation = 12;
+      const azimuth = 240;
+      const phi = THREE.MathUtils.degToRad(90 - elevation);
+      const theta = THREE.MathUtils.degToRad(azimuth);
+      this.sun.setFromSphericalCoords(1, phi, theta);
+      skyUniforms['sunPosition'].value.copy(this.sun);
+      this.dirLight.position.copy(this.sun).multiplyScalar(90);
+
+      this.scene.fog = new THREE.FogExp2(0x2e1065, 0.012);
+
+      this.abandonedVillageStage = new AbandonedVillageStage(this.scene, this.physicsWorld);
+      this.terrain = this.abandonedVillageStage.terrain;
+
+    } else if (levelIndex === 4) {
+      // ===== STAGE 5: THE WHISPERING CAVERN =====
+      // Subterranean dark cavern illuminated by bioluminescent glow
+      this.ambientLight.color.setHex(0x082f49);
+      this.ambientLight.intensity = 0.3;
+      this.hemiLight.color.setHex(0x06b6d4);
+      this.hemiLight.groundColor.setHex(0x020617);
+      this.hemiLight.intensity = 0.35;
+
+      this.dirLight.color.setHex(0x38bdf8);
+      this.dirLight.intensity = 0.45;
+
+      if (this.rimLight) {
+        this.rimLight.color.setHex(0xa855f7);
+        this.rimLight.intensity = 0.7;
+      }
+
+      const skyUniforms = this.sky.material.uniforms;
+      skyUniforms['turbidity'].value = 2.0;
+      skyUniforms['rayleigh'].value = 0.1;
+      skyUniforms['mieCoefficient'].value = 0.02;
+      skyUniforms['mieDirectionalG'].value = 0.95;
+
+      const elevation = 5;
+      const azimuth = 180;
+      const phi = THREE.MathUtils.degToRad(90 - elevation);
+      const theta = THREE.MathUtils.degToRad(azimuth);
+      this.sun.setFromSphericalCoords(1, phi, theta);
+      skyUniforms['sunPosition'].value.copy(this.sun);
+      this.dirLight.position.copy(this.sun).multiplyScalar(90);
+
+      this.scene.fog = new THREE.FogExp2(0x030712, 0.014);
+
+      this.whisperingCavernStage = new WhisperingCavernStage(this.scene, this.physicsWorld);
+      this.terrain = this.whisperingCavernStage.terrain;
     }
   }
 
@@ -175,6 +289,18 @@ export class Environment {
       this.ruinsStage.dispose();
       this.ruinsStage = null;
     }
+    if (this.mountainPassStage) {
+      this.mountainPassStage.dispose();
+      this.mountainPassStage = null;
+    }
+    if (this.abandonedVillageStage) {
+      this.abandonedVillageStage.dispose();
+      this.abandonedVillageStage = null;
+    }
+    if (this.whisperingCavernStage) {
+      this.whisperingCavernStage.dispose();
+      this.whisperingCavernStage = null;
+    }
   }
 
   update(deltaTime, playerPosition = null) {
@@ -182,8 +308,14 @@ export class Environment {
       if (this.ruins) this.ruins.update(deltaTime);
       if (this.vegetation) this.vegetation.update(deltaTime);
       if (this.arenaGrove) this.arenaGrove.update(deltaTime, playerPosition);
-    } else {
+    } else if (this.currentLevelIndex === 1) {
       if (this.ruinsStage) this.ruinsStage.update(deltaTime);
+    } else if (this.currentLevelIndex === 2) {
+      if (this.mountainPassStage) this.mountainPassStage.update(deltaTime);
+    } else if (this.currentLevelIndex === 3) {
+      if (this.abandonedVillageStage) this.abandonedVillageStage.update(deltaTime);
+    } else if (this.currentLevelIndex === 4) {
+      if (this.whisperingCavernStage) this.whisperingCavernStage.update(deltaTime);
     }
   }
 
@@ -201,3 +333,4 @@ export class Environment {
     return false;
   }
 }
+

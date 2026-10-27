@@ -3600,3 +3600,297 @@ kbd {
   border-color: #ef4444;
   transform: translateY(-1px);
 }
+
+/* ======================================================== */
+/* WORLD MAP & REGION DISCOVERY MODAL & BANNER STYLES       */
+/* ======================================================== */
+
+.world-map-modal-card {
+  max-width: 960px;
+  width: 92%;
+  background: linear-gradient(150deg, rgba(15, 23, 42, 0.98), rgba(24, 34, 53, 0.96));
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.15);
+}
+
+.map-discovery-badge, .map-landmarks-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.world-map-modal-body {
+  display: flex;
+  gap: 20px;
+  padding: 16px 0;
+  min-height: 440px;
+}
+
+.world-map-topology {
+  flex: 1.4;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  align-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-region-node {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.map-region-node:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.2);
+}
+
+.map-region-node.selected {
+  border-color: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.map-region-node.current {
+  border-color: #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.map-region-node.undiscovered {
+  opacity: 0.45;
+  filter: grayscale(80%);
+}
+
+.map-region-node.undiscovered:hover {
+  opacity: 0.65;
+}
+
+.node-icon {
+  font-size: 1.8rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.node-content {
+  flex: 1;
+}
+
+.node-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.node-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.node-status-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.map-region-node.current .node-status-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.world-map-details-panel {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.map-region-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.map-region-desc {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.details-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.map-landmarks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-landmark-item {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #e2e8f0;
+}
+
+.map-landmark-item.discovered {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.map-passages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-passage-item {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.world-map-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.map-hint {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+/* Floating Discovery Banner */
+.discovery-banner {
+  position: fixed;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 14px 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 158, 11, 0.4);
+  text-align: center;
+  animation: discoverySlideIn 0.4s ease-out;
+  pointer-events: none;
+}
+
+@keyframes discoverySlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.discovery-type {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.12em;
+  display: block;
+}
+
+.discovery-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 4px 0;
+  letter-spacing: 0.05em;
+}
+
+.discovery-reward {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+/* Map Toggle Button on HUD */
+.map-toggle-btn {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-toggle-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+

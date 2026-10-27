@@ -31,6 +31,21 @@ export class UIManager {
     this.closeDialogueBtn = document.getElementById('close-dialogue-btn');
     this.closeMerchantBtn = document.getElementById('close-merchant-btn');
     this.closeSkillsBtn = document.getElementById('close-skills-btn');
+    this.modalWorldMap = document.getElementById('modal-world-map');
+    this.closeWorldMapBtn = document.getElementById('close-world-map-btn');
+    this.mapToggleBtn = document.getElementById('map-toggle-btn');
+    this.mapDiscoveryBadge = document.getElementById('map-discovery-badge');
+    this.mapLandmarksBadge = document.getElementById('map-landmarks-badge');
+    this.mapSelectedRegionName = document.getElementById('map-selected-region-name');
+    this.mapSelectedRegionDesc = document.getElementById('map-selected-region-desc');
+    this.mapLandmarksList = document.getElementById('map-landmarks-list');
+    this.mapPassagesList = document.getElementById('map-passages-list');
+    this.discoveryBanner = document.getElementById('discovery-banner');
+    this.discoveryType = document.getElementById('discovery-type');
+    this.discoveryTitle = document.getElementById('discovery-title');
+    this.discoveryReward = document.getElementById('discovery-reward');
+    this.discoveryTimeout = null;
+    this.selectedMapRegionIndex = 0;
 
     // Skill Tree & Progression UI Elements
     this.skillsToggleBtn = document.getElementById('skills-toggle-btn');
@@ -361,6 +376,15 @@ export class UIManager {
     if (this.closeSkillsBtn) {
       this.closeSkillsBtn.onclick = () => this.closeSkillTree();
     }
+    if (this.closeWorldMapBtn) {
+      this.closeWorldMapBtn.onclick = () => {
+        if (this.gameRef && typeof this.gameRef.toggleWorldMap === 'function') {
+          this.gameRef.toggleWorldMap(false);
+        } else {
+          this.closeWorldMap();
+        }
+      };
+    }
     if (this.closeConfirmBtn) {
       this.closeConfirmBtn.onclick = () => this.closeModal(this.modalConfirm);
     }
@@ -527,6 +551,199 @@ export class UIManager {
 
   isSkillTreeOpen() {
     return this.modalSkills && !this.modalSkills.classList.contains('hidden');
+  }
+
+  // ==================== WORLD MAP & REGION DISCOVERY ====================
+  setupWorldMap(game) {
+    this.gameRef = game;
+    if (this.closeWorldMapBtn) {
+      this.closeWorldMapBtn.onclick = () => {
+        if (this.gameRef && typeof this.gameRef.toggleWorldMap === 'function') {
+          this.gameRef.toggleWorldMap(false);
+        } else {
+          this.closeWorldMap();
+        }
+      };
+    }
+    if (this.mapToggleBtn) {
+      this.mapToggleBtn.onclick = () => {
+        if (this.gameRef && typeof this.gameRef.toggleWorldMap === 'function') {
+          this.gameRef.toggleWorldMap();
+        } else {
+          this.toggleWorldMap();
+        }
+      };
+    }
+
+    // Attach click listeners to region nodes
+    const nodes = document.querySelectorAll('.map-region-node');
+    nodes.forEach(node => {
+      node.onclick = () => {
+        const idx = parseInt(node.dataset.index, 10);
+        if (!isNaN(idx)) {
+          this.selectedMapRegionIndex = idx;
+          this.renderWorldMap(this.gameRef);
+        }
+      };
+    });
+  }
+
+  isWorldMapOpen() {
+    return this.modalWorldMap && !this.modalWorldMap.classList.contains('hidden');
+  }
+
+  toggleWorldMap(force = null) {
+    if (force === true || (force === null && !this.isWorldMapOpen())) {
+      this.openWorldMap(this.gameRef);
+    } else {
+      this.closeWorldMap();
+    }
+  }
+
+  openWorldMap(game = this.gameRef) {
+    this.gameRef = game;
+    if (this.modalWorldMap) {
+      this.openModal(this.modalWorldMap);
+      if (game && game.levelManager) {
+        this.selectedMapRegionIndex = game.levelManager.currentLevelIndex;
+      }
+      this.renderWorldMap(game);
+    }
+  }
+
+  closeWorldMap() {
+    if (this.modalWorldMap) {
+      this.closeModal(this.modalWorldMap);
+    }
+  }
+
+  renderWorldMap(game = this.gameRef) {
+    if (!game || !game.levelManager) return;
+    const levelMgr = game.levelManager;
+    const stages = levelMgr.getStageConfigs();
+    const currentStageIndex = levelMgr.currentLevelIndex;
+    const player = game.player;
+    const discoveredLocations = player?.discoveredLocations || ['dark-forest'];
+
+    // Update discovery badges
+    const discoveredStagesCount = stages.filter(s => discoveredLocations.includes(s.id)).length;
+    let totalLandmarksCount = 0;
+    let discoveredLandmarksCount = 0;
+
+    stages.forEach(s => {
+      if (s.landmarks) {
+        totalLandmarksCount += s.landmarks.length;
+        s.landmarks.forEach(lm => {
+          if (discoveredLocations.includes(lm.id)) {
+            discoveredLandmarksCount++;
+          }
+        });
+      }
+    });
+
+    if (this.mapDiscoveryBadge) {
+      this.mapDiscoveryBadge.textContent = `🗺️ ${discoveredStagesCount} / ${stages.length} REGIONS DISCOVERED`;
+    }
+    if (this.mapLandmarksBadge) {
+      this.mapLandmarksBadge.textContent = `📍 ${discoveredLandmarksCount} / ${totalLandmarksCount} LANDMARKS`;
+    }
+
+    // Update Region Nodes in topology grid
+    stages.forEach((stage, idx) => {
+      const node = document.querySelector(`.map-region-node[data-index="${idx}"]`);
+      if (node) {
+        const isDiscovered = discoveredLocations.includes(stage.id);
+        const isCurrent = (idx === currentStageIndex);
+        const isSelected = (idx === this.selectedMapRegionIndex);
+
+        node.classList.toggle('current', isCurrent);
+        node.classList.toggle('selected', isSelected);
+        node.classList.toggle('undiscovered', !isDiscovered);
+
+        const statusBadge = node.querySelector('.node-status-badge');
+        if (statusBadge) {
+          if (isCurrent) statusBadge.textContent = 'CURRENT';
+          else if (isDiscovered) statusBadge.textContent = 'DISCOVERED';
+          else statusBadge.textContent = 'LOCKED';
+        }
+      }
+    });
+
+    // Update Region Details Panel for selected region
+    const selectedStage = stages[this.selectedMapRegionIndex] || stages[0];
+    const isSelectedDiscovered = discoveredLocations.includes(selectedStage.id);
+
+    if (this.mapSelectedRegionName) {
+      this.mapSelectedRegionName.textContent = isSelectedDiscovered ? selectedStage.name : 'Unknown Realm (Unexplored)';
+    }
+
+    if (this.mapSelectedRegionDesc) {
+      if (isSelectedDiscovered) {
+        this.mapSelectedRegionDesc.textContent = selectedStage.quest?.description || `${selectedStage.name} lies within the connected realm.`;
+      } else {
+        this.mapSelectedRegionDesc.textContent = 'This mysterious territory has not yet been surveyed. Search for traversable gateways and paths in connected realms to explore it.';
+      }
+    }
+
+    // Populate Landmarks
+    if (this.mapLandmarksList) {
+      this.mapLandmarksList.innerHTML = '';
+      if (selectedStage.landmarks && isSelectedDiscovered) {
+        selectedStage.landmarks.forEach(lm => {
+          const isLmDiscovered = discoveredLocations.includes(lm.id);
+          const li = document.createElement('li');
+          li.className = `map-landmark-item ${isLmDiscovered ? 'discovered' : ''}`;
+          li.innerHTML = `
+            <span>${isLmDiscovered ? '📍' : '❓'} ${isLmDiscovered ? lm.name : 'Undiscovered Landmark'}</span>
+            <span class="landmark-status">${isLmDiscovered ? 'Discovered' : 'Hidden'}</span>
+          `;
+          this.mapLandmarksList.appendChild(li);
+        });
+      } else if (!isSelectedDiscovered) {
+        const li = document.createElement('li');
+        li.className = 'map-landmark-item';
+        li.textContent = '🔒 Explore this realm to reveal landmarks.';
+        this.mapLandmarksList.appendChild(li);
+      }
+    }
+
+    // Populate Connected Passages
+    if (this.mapPassagesList) {
+      this.mapPassagesList.innerHTML = '';
+      if (selectedStage.passages && isSelectedDiscovered) {
+        selectedStage.passages.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'map-passage-item';
+          div.innerHTML = `<span>🚪</span> <strong>${p.name}</strong> <span>(${p.prompt || 'Traversable'})</span>`;
+          this.mapPassagesList.appendChild(div);
+        });
+      } else if (!isSelectedDiscovered) {
+        const div = document.createElement('div');
+        div.className = 'map-passage-item';
+        div.textContent = '🔒 Passages hidden until realm is reached.';
+        this.mapPassagesList.appendChild(div);
+      }
+    }
+  }
+
+  showDiscoveryBanner(title, type = 'LANDMARK DISCOVERED', reward = '+30 EXPLORATION XP') {
+    if (!this.discoveryBanner) return;
+
+    if (this.discoveryType) this.discoveryType.textContent = `📍 ${type.toUpperCase()}`;
+    if (this.discoveryTitle) this.discoveryTitle.textContent = title;
+    if (this.discoveryReward) this.discoveryReward.textContent = reward;
+
+    this.discoveryBanner.classList.remove('hidden');
+
+    if (this.discoveryTimeout) {
+      clearTimeout(this.discoveryTimeout);
+    }
+
+    this.discoveryTimeout = setTimeout(() => {
+      if (this.discoveryBanner) {
+        this.discoveryBanner.classList.add('hidden');
+      }
+    }, 3800);
   }
 
   selectSkill(skillId) {

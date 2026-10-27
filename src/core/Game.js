@@ -34,6 +34,7 @@ export class Game {
     this.isPaused = false;
     this.isInventoryOpen = false;
     this.isSkillsOpen = false;
+    this.isWorldMapOpen = false;
     this.npcManager = null;
     this.dialogueManager = null;
     this.merchantManager = null;
@@ -146,12 +147,19 @@ export class Game {
       this.uiManager.setupMerchant(this.merchantManager);
       this.combatSystem.setNPCManager(this.npcManager);
 
-      // Wire Player interaction key [E] to NPC dialogue
+      // Wire Player interaction key [E] to NPC dialogue and Region Passages
       this.player.onInteract(() => {
         const npc = this.npcManager ? this.npcManager.getActiveInteractable() : null;
         if (npc) {
           this.openDialogue(npc);
           return true;
+        }
+        if (this.levelManager && this.player) {
+          const passage = this.levelManager.getNearbyPassage(this.player.getPosition());
+          if (passage) {
+            this.levelManager.transitionToPassage(passage);
+            return true;
+          }
         }
         return false;
       });
@@ -161,6 +169,10 @@ export class Game {
       this.levelManager = new LevelManager(this);
       await this.levelManager.init();
       this.initStep = 'levelManager';
+      this.combatSystem.setLevelManager(this.levelManager);
+
+      // 12b. Setup World Map UI & Discovery Tracker
+      this.uiManager.setupWorldMap(this);
 
       // Auto-save on collectible pickups
       if (this.collectibleManager) {
@@ -258,11 +270,19 @@ export class Game {
         if (this.gameState === GameState.PLAYING || this.isSkillsOpen) {
           this.toggleSkills();
         }
+      } else if (e.code === 'KeyM') {
+        // World Map toggle with 'M'
+        e.preventDefault();
+        if (this.gameState === GameState.PLAYING || this.isWorldMapOpen) {
+          this.toggleWorldMap();
+        }
       } else if (e.code === 'Escape') {
         if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
           this.closeDialogue();
         } else if (this.merchantManager && this.merchantManager.isShopOpen()) {
           this.closeShop();
+        } else if (this.isWorldMapOpen) {
+          this.toggleWorldMap(false);
         } else if (this.isSkillsOpen) {
           this.toggleSkills(false);
         } else if (this.isInventoryOpen) {
@@ -320,13 +340,14 @@ export class Game {
 
     if (shouldOpen) {
       if (this.isInventoryOpen) this.toggleInventory(false);
+      if (this.isWorldMapOpen) this.toggleWorldMap(false);
       this.player.isEnabled = false;
       this.cameraManager.setLockEnabled(false);
       this.cameraManager.exitPointerLock();
       this.uiManager.openSkillTree();
     } else {
       this.uiManager.closeSkillTree();
-      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isInventoryOpen) {
+      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isInventoryOpen && !this.isWorldMapOpen) {
         this.player.isEnabled = true;
         this.cameraManager.setLockEnabled(true);
         this.clock.getDelta();
@@ -347,6 +368,7 @@ export class Game {
 
     if (shouldOpen) {
       if (this.isSkillsOpen) this.toggleSkills(false);
+      if (this.isWorldMapOpen) this.toggleWorldMap(false);
       // Pause single-player inputs and unlock mouse for inventory
       this.player.isEnabled = false;
       this.cameraManager.setLockEnabled(false);
@@ -354,7 +376,35 @@ export class Game {
       this.uiManager.openInventory();
     } else {
       this.uiManager.closeInventory();
-      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isSkillsOpen) {
+      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isSkillsOpen && !this.isWorldMapOpen) {
+        this.player.isEnabled = true;
+        this.cameraManager.setLockEnabled(true);
+        this.clock.getDelta();
+        this.cameraManager.requestPointerLock();
+      }
+    }
+  }
+
+  toggleWorldMap(forceState = null) {
+    if (this.gameState === GameState.MAIN_MENU || this.gameState === GameState.GAME_OVER || this.gameState === GameState.VICTORY) {
+      return;
+    }
+
+    const shouldOpen = (forceState !== null) ? forceState : !this.isWorldMapOpen;
+    if (shouldOpen === this.isWorldMapOpen) return;
+
+    this.isWorldMapOpen = shouldOpen;
+
+    if (shouldOpen) {
+      if (this.isSkillsOpen) this.toggleSkills(false);
+      if (this.isInventoryOpen) this.toggleInventory(false);
+      this.player.isEnabled = false;
+      this.cameraManager.setLockEnabled(false);
+      this.cameraManager.exitPointerLock();
+      this.uiManager.openWorldMap(this);
+    } else {
+      this.uiManager.closeWorldMap();
+      if (this.gameState === GameState.PLAYING && !this.isPaused && !this.isSkillsOpen && !this.isInventoryOpen) {
         this.player.isEnabled = true;
         this.cameraManager.setLockEnabled(true);
         this.clock.getDelta();
@@ -661,8 +711,10 @@ export class Game {
       return;
     }
 
-    // 2. Paused, Inventory, Dialogue, Shop, Game Over, or Victory: hold static entity states, keep ambient world breathing
+    // 2. Paused, Inventory, Skills, Map, Dialogue, Shop, Game Over, or Victory: hold static entity states, keep ambient world breathing
     const isModalOpen = this.isInventoryOpen ||
+      this.isSkillsOpen ||
+      this.isWorldMapOpen ||
       (this.dialogueManager && this.dialogueManager.isDialogueActive()) ||
       (this.merchantManager && this.merchantManager.isShopOpen());
 
@@ -678,11 +730,32 @@ export class Game {
 
     // 3. Active Playing state: full interactive simulation
     // NPCs update & interaction tracking
+    let activeNPC = null;
     if (this.npcManager && this.player) {
       this.npcManager.update(deltaTime, this.player.getPosition());
-      const activeNPC = this.npcManager.getActiveInteractable();
+      activeNPC = this.npcManager.getActiveInteractable();
       if (activeNPC) {
         this.uiManager.showInteractionPrompt(`[E] Talk to ${activeNPC.name}`);
+      }
+    }
+
+    // Passages and Landmark Discovery tracking
+    if (this.levelManager && this.player) {
+      const pPos = this.player.getPosition();
+      const nearbyPassage = this.levelManager.getNearbyPassage(pPos);
+      if (!activeNPC && nearbyPassage) {
+        this.uiManager.showInteractionPrompt(nearbyPassage.prompt || `[E] Enter ${nearbyPassage.name}`);
+      }
+
+      const landmark = this.levelManager.getNearbyLandmark(pPos);
+      if (landmark && !this.player.discoveredLocations.includes(landmark.id)) {
+        this.player.discoveredLocations.push(landmark.id);
+        if (typeof this.player.addXP === 'function') {
+          this.player.addXP(landmark.xpReward || 30);
+        }
+        if (this.uiManager && typeof this.uiManager.showDiscoveryBanner === 'function') {
+          this.uiManager.showDiscoveryBanner(landmark.name, 'LANDMARK DISCOVERED');
+        }
       }
     }
 

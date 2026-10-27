@@ -181,6 +181,10 @@
             </div>
             <div class="control-card">
               <div class="key-badge"><kbd>M</kbd></div>
+              <div class="control-label">World Map & Discovery Tracker</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>U</kbd></div>
               <div class="control-label">Mute / Unmute Audio</div>
             </div>
             <div class="control-card">
@@ -539,6 +543,107 @@
       </div>
     </div>
 
+    <!-- ==================== WORLD MAP & REGION DISCOVERY MODAL ==================== -->
+    <div id="modal-world-map" class="game-modal hidden">
+      <div class="modal-card world-map-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">REALMS OF SHADOW QUEST</h2>
+            <span id="map-discovery-badge" class="map-discovery-badge">🗺️ 1 / 5 REGIONS DISCOVERED</span>
+            <span id="map-landmarks-badge" class="map-landmarks-badge">📍 1 / 20 LANDMARKS</span>
+          </div>
+          <button id="close-world-map-btn" class="modal-close-btn" title="Close World Map (M / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body world-map-modal-body">
+          <!-- Interactive Map Canvas / Stylized Topology Overview -->
+          <div class="world-map-topology" id="world-map-topology">
+            <!-- Region Nodes in Stylized Network -->
+            <div class="map-region-node active current" id="map-node-dark-forest" data-region="dark-forest" data-index="0">
+              <div class="node-icon">🌲</div>
+              <div class="node-content">
+                <div class="node-title">The Dark Forest</div>
+                <div class="node-sub">Stage 1 • Ancient Woods</div>
+              </div>
+              <div class="node-status-badge">CURRENT</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-ancient-ruins" data-region="ancient-ruins" data-index="1">
+              <div class="node-icon">🏛️</div>
+              <div class="node-content">
+                <div class="node-title">The Ancient Ruins</div>
+                <div class="node-sub">Stage 2 • Sanctum Dais</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-mountain-pass" data-region="mountain-pass" data-index="2">
+              <div class="node-icon">🏔️</div>
+              <div class="node-content">
+                <div class="node-title">The Mountain Pass</div>
+                <div class="node-sub">Stage 3 • Highwind Crags</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-abandoned-village" data-region="abandoned-village" data-index="3">
+              <div class="node-icon">🏚️</div>
+              <div class="node-content">
+                <div class="node-title">Abandoned Village</div>
+                <div class="node-sub">Stage 4 • Crowfall Hamlet</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-hidden-cavern" data-region="hidden-cavern" data-index="4">
+              <div class="node-icon">🕳️</div>
+              <div class="node-content">
+                <div class="node-title">The Whispering Cavern</div>
+                <div class="node-sub">Stage 5 • Sunken Crypt</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+          </div>
+
+          <!-- Region Details Panel -->
+          <div class="world-map-details-panel">
+            <h3 id="map-selected-region-name" class="map-region-title">The Dark Forest</h3>
+            <p id="map-selected-region-desc" class="map-region-desc">
+              The ancient cradle of the realm, shadowed by hostile guardians and ancient altars. Connects to the Mountain Pass, Abandoned Village, Ancient Ruins, and Whispering Cavern.
+            </p>
+            <div class="map-details-section">
+              <h4 class="details-section-title">DISCOVERED LANDMARKS</h4>
+              <ul id="map-landmarks-list" class="map-landmarks-list">
+                <!-- Dynamically populated -->
+              </ul>
+            </div>
+            <div class="map-details-section">
+              <h4 class="details-section-title">CONNECTED REALM PASSAGES</h4>
+              <div id="map-passages-list" class="map-passages-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer world-map-footer">
+          <div class="map-hint">
+            💡 <span>Tip: Walk near gateways or archways and press <kbd>E</kbd> to travel between connected realms.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Discovery Floating Banner -->
+    <div id="discovery-banner" class="discovery-banner hidden">
+      <div class="discovery-banner-glow"></div>
+      <div class="discovery-banner-content">
+        <span id="discovery-type" class="discovery-type">📍 LANDMARK DISCOVERED</span>
+        <h3 id="discovery-title" class="discovery-title">Eagle's Peak Cairn</h3>
+        <span id="discovery-reward" class="discovery-reward">+30 EXPLORATION XP</span>
+      </div>
+    </div>
+
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
@@ -615,6 +720,11 @@
           <!-- Inventory & Equipment Toggle Button -->
           <button id="inventory-toggle-btn" class="inventory-toggle-btn" title="Open Inventory & Equipment (I)">
             <span class="inventory-icon">🎒</span>
+          </button>
+
+          <!-- World Map Toggle Button -->
+          <button id="map-toggle-btn" class="map-toggle-btn" title="Open World Map (M)">
+            <span class="map-icon">🗺️</span>
           </button>
 
           <!-- Quick Audio Mute Toggle -->

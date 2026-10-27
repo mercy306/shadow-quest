@@ -448,6 +448,117 @@ export class DialogueManager {
       };
     }
 
+    // --- 4. TORVALD (MOUNTAINEER) ---
+    if (npc.role === 'mountaineer' || npc.id === 'npc-torvald') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'The alpine winds bite fierce up here! Watch your step across the Highwind Bridge—the chasm below has claimed many careless wanderers.',
+        choices: [
+          {
+            text: '🏔️ "What lies at Eagle\'s Peak?"',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'An ancient cairn shrine erected by the first mountain wardens. A sacred prayer stone rests at its crest. Touching it brings clarity and strength.',
+                choices: [{ text: 'I will seek it out.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          {
+            text: '🎒 "Are there any hidden caches around the cliffs?"',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'Old scout supply chests are tucked away among the northern crags. Search behind the rock outcroppings if you need supplies.',
+                choices: [{ text: 'Thanks for the tip.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          { text: '👋 "Stay safe on the heights, Torvald."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
+    // --- 5. MARA (VILLAGE SURVIVOR) ---
+    if (npc.role === 'village_survivor' || npc.id === 'npc-mara') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'Crowfall was once a peaceful hamlet until shadow blight crept in. The mill still turns by itself on windless nights...',
+        choices: [
+          {
+            text: '🏚️ "What happened to the villagers?"',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'Most fled south to the forest, but some linger as restless spirits. Beware the cursed mill warden who prowls the square.',
+                choices: [{ text: 'I will put their spirits to rest.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          {
+            text: '🕳️ "Where does the village well lead?"',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'The well connects to an ancient subterranean cellar—the Whispering Cavern. Smugglers and hermits used it in secret centuries ago.',
+                choices: [{ text: 'Good to know. Farewell.', action: () => this.closeDialogue() }]
+              });
+            }
+          },
+          { text: '👋 "Be strong, Mara."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
+    // --- 6. GIDEON (SUBTERRANEAN CARTOGRAPHER) ---
+    if (npc.role === 'cartographer' || npc.id === 'npc-gideon') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'Ah, another explorer brave enough to traverse the deep caverns! Mind the bioluminescent mushrooms—their glow guides the way through the subterranean darkness.',
+        choices: [
+          {
+            text: '🗺️ "Tell me about the Sunken Crypt Gate."',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'Beyond the subterranean river bridge lies the ancient Sunken Crypt Dungeon. Its runic portcullis hums with forgotten sorcery and connects upward to the Ancient Ruins.',
+                choices: [{ text: 'Incredible. Thank you, Gideon.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          {
+            text: '💎 "What can be found in these depths?"',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'Precious Starfall ore and hidden smuggler caches are stashed in the alcoves. Keep your eyes sharp and your blade ready.',
+                choices: [{ text: 'I will keep an eye out.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          { text: '👋 "Farewell, Gideon."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
     // Default Fallback
     return {
       speaker: npc.name,

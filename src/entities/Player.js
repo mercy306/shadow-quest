@@ -265,7 +265,7 @@ export class Player {
   /**
    * Teleports and resets player position and state cleanly (used for level spawning & resets)
    */
-  teleport(x, z, rotY = 0, isEnabled = true) {
+  teleport(x, z, rotY = 0, isEnabled = true, resetHealth = false) {
     this.groundToTerrain(x, z);
     this.mesh.rotation.y = rotY;
     this.verticalVelocity = 0;
@@ -274,7 +274,9 @@ export class Player {
     this.attackTimer = 0;
     this.attackCooldownTimer = 0;
     this.hasDealtDamageThisSwing = false;
-    this.health = this.maxHealth;
+    if (resetHealth) {
+      this.health = this.maxHealth;
+    }
     this.isInvulnerable = false;
     this.invulnerableTimer = 0;
     this.isEnabled = isEnabled;

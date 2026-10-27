@@ -8,6 +8,17 @@ export class EnemyManager {
     this.physicsWorld = physicsWorld;
     this.enemies = [];
     this.boss = null;
+    this.weatherManager = null;
+  }
+
+  setWeatherManager(weatherManager) {
+    this.weatherManager = weatherManager;
+    this.enemies.forEach(e => {
+      e.weatherManager = weatherManager;
+    });
+    if (this.boss) {
+      this.boss.weatherManager = weatherManager;
+    }
   }
 
   setPhysicsWorld(physicsWorld) {
@@ -222,6 +233,7 @@ export class EnemyManager {
     }
 
     guardianConfigs.forEach(cfg => {
+      cfg.weatherManager = this.weatherManager;
       const enemy = new Enemy(this.scene, this.physicsWorld, cfg);
       // Custom elite stats if provided
       if (cfg.chaseSpeed) enemy.chaseSpeed = cfg.chaseSpeed;

@@ -79,6 +79,7 @@ export class Enemy {
     this.searchDuration = 4.0;
     this.isEligibleForTakedown = false;
     this.hudUpdateTimer = 0;
+    this.weatherManager = config.weatherManager || null;
 
     // Patrol parameters & waypoints
     this.patrolCenter = config.patrolCenter
@@ -428,6 +429,12 @@ export class Enemy {
 
     // 4. Calculate Effective Detection Distance
     let effectiveSightDist = this.detectionRadius;
+
+    // Atmospheric visibility modulation (fog, storm, night)
+    if (this.weatherManager && typeof this.weatherManager.getVisibilityMultiplier === 'function') {
+      effectiveSightDist *= this.weatherManager.getVisibilityMultiplier();
+    }
+
     if (isCrouching) effectiveSightDist *= 0.55; // Crouch cuts visual detection distance by 45%
     if (isHidingInFoliage) effectiveSightDist *= 0.40; // Foliage cover cuts visual detection distance by 60%
     if (isSprinting) effectiveSightDist *= 1.25; // Sprinting increases visibility
@@ -450,11 +457,16 @@ export class Enemy {
       this.hasInvestigationTarget = true;
     }
 
-    // 6. Sound / Movement Noise Detection
+    // 6. Sound / Movement Noise Detection (masked by heavy rain/storm)
+    let effectiveNoiseRadius = noiseRadius;
+    if (this.weatherManager && this.weatherManager.rainIntensity > 0.2) {
+      effectiveNoiseRadius *= Math.max(0.65, 1.0 - this.weatherManager.rainIntensity * 0.35);
+    }
+
     let isHeard = false;
-    if (noiseRadius > 0 && distToPlayer <= noiseRadius) {
+    if (effectiveNoiseRadius > 0 && distToPlayer <= effectiveNoiseRadius) {
       isHeard = true;
-      const noiseIntensity = 1.0 - (distToPlayer / noiseRadius) * 0.4;
+      const noiseIntensity = 1.0 - (distToPlayer / effectiveNoiseRadius) * 0.4;
       this.awareness = Math.max(this.awareness, Math.min(0.9, this.awareness + deltaTime * 2.2 * noiseIntensity));
       this.investigationTarget.copy(playerPosition);
       this.hasInvestigationTarget = true;

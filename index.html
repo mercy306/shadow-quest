@@ -10,6 +10,9 @@
     <!-- 3D Canvas Container -->
     <div id="game-container"></div>
 
+    <!-- Screen Lightning Flash Overlay -->
+    <div id="lightning-flash-overlay"></div>
+
     <!-- Screen Vignette Damage Flash -->
     <div id="damage-vignette" class="damage-vignette"></div>
 
@@ -119,7 +122,37 @@
               <button id="gfx-med-btn" class="preset-btn">MEDIUM</button>
               <button id="gfx-low-btn" class="preset-btn">LOW</button>
             </div>
-            <p class="gfx-desc">High: 2K Shadows, Full DPI & Atmospheric Rim Lights.</p>
+            <p class="gfx-desc">High: 2K Shadows, Full DPI & Atmospheric Particles.</p>
+          </section>
+
+          <!-- Weather & Atmosphere Section -->
+          <section class="settings-section">
+            <h3 class="section-title">WEATHER & DAY / NIGHT</h3>
+            <div class="settings-row">
+              <label for="setting-weather-select">Weather Condition</label>
+              <div class="setting-ctrl">
+                <select id="setting-weather-select" class="setting-select">
+                  <option value="clear">☀️ Clear Skies</option>
+                  <option value="cloudy">☁️ Overcast</option>
+                  <option value="foggy">🌫️ Dense Mist</option>
+                  <option value="rainy">🌧️ Rain</option>
+                  <option value="stormy">⛈️ Thunderstorm</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-time-slider">Time of Day</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-time-slider" min="0" max="24" step="0.25" value="14" class="vol-slider" />
+                <span id="time-slider-val" class="setting-val">02:00 PM</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-time-flow">Continuous Day/Night Cycle</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-time-flow" class="setting-checkbox" checked />
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -651,6 +684,14 @@
           <h1 class="game-title">SHADOW QUEST</h1>
           <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
         </header>
+
+        <!-- Dynamic Weather & Time of Day HUD Badge -->
+        <div id="weather-time-badge" class="weather-time-badge" title="Current Weather & Time of Day">
+          <span id="weather-icon" class="weather-icon">☀️</span>
+          <span id="weather-name" class="weather-name">Clear Skies</span>
+          <span class="weather-divider">•</span>
+          <span id="time-text" class="time-text">02:00 PM</span>
+        </div>
 
         <!-- Player Health & Status -->
         <div class="vital-bars-container">

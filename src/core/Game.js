@@ -194,8 +194,20 @@ export class Game {
         audioManager: this.audioManager,
         cameraManager: this.cameraManager,
         saveManager: this.saveManager,
+        weatherManager: this.environment?.weatherManager,
         onSetGraphics: (preset) => this.setGraphicsQuality(preset)
       });
+
+      // Wire Dynamic Weather Manager
+      if (this.environment && this.environment.weatherManager) {
+        this.environment.weatherManager.setManagers({
+          audioManager: this.audioManager,
+          uiManager: this.uiManager
+        });
+        if (this.enemyManager) {
+          this.enemyManager.setWeatherManager(this.environment.weatherManager);
+        }
+      }
 
       // Complete Inventory & Equipment UI Setup
       this.uiManager.setupInventory({
@@ -631,6 +643,9 @@ export class Game {
 
   setGraphicsQuality(preset) {
     this.currentGraphicsPreset = preset;
+    if (this.environment && this.environment.weatherManager) {
+      this.environment.weatherManager.setGraphicsQuality(preset);
+    }
     if (!this.renderer) return;
 
     switch (preset) {

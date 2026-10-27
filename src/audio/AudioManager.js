@@ -28,6 +28,12 @@ export class AudioManager {
     this.currentAmbienceSource = null;
     this.currentAmbienceLevel = null;
 
+    // Dynamic Weather Audio State
+    this.rainNoiseSource = null;
+    this.rainGain = null;
+    this.rainFilter = null;
+    this.rainIntensity = 0.0;
+
     this.setupGestureUnlock();
   }
 
@@ -578,6 +584,158 @@ export class AudioManager {
         osc.stop(now + n.t + n.d + 0.1);
       });
     } catch (e) {}
+  }
+
+  // ===== DYNAMIC WEATHER AUDIO =====
+
+  /**
+   * Continuous procedural rain ambience synthesis
+   */
+  updateRainAmbience(intensity = 0.5) {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
+
+    this.rainIntensity = Math.max(0, Math.min(1, intensity));
+
+    try {
+      const now = this.audioCtx.currentTime;
+
+      if (!this.rainNoiseSource) {
+        // Generate 3 seconds of looping pinkish noise buffer for smooth rainfall
+        const bufferSize = this.audioCtx.sampleRate * 3;
+        const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0;
+
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          output[i] = (b0 + b1 + b2 + white * 0.5362) * 0.08;
+        }
+
+        this.rainNoiseSource = this.audioCtx.createBufferSource();
+        this.rainNoiseSource.buffer = noiseBuffer;
+        this.rainNoiseSource.loop = true;
+
+        // Bandpass filter to shape rain hiss/patter
+        this.rainFilter = this.audioCtx.createBiquadFilter();
+        this.rainFilter.type = 'lowpass';
+        this.rainFilter.frequency.setValueAtTime(1400, now);
+
+        this.rainGain = this.audioCtx.createGain();
+        this.rainGain.gain.setValueAtTime(0.001, now);
+
+        this.rainNoiseSource.connect(this.rainFilter);
+        this.rainFilter.connect(this.rainGain);
+        this.rainGain.connect(this.musicGain || this.audioCtx.destination);
+
+        this.rainNoiseSource.start(now);
+      }
+
+      // Modulate volume and filter based on rain intensity
+      const targetGain = this.rainIntensity * 0.32;
+      const targetCutoff = 1000 + this.rainIntensity * 1200;
+
+      if (this.rainGain && this.rainFilter) {
+        this.rainGain.gain.cancelScheduledValues(now);
+        this.rainGain.gain.linearRampToValueAtTime(targetGain, now + 0.3);
+        this.rainFilter.frequency.cancelScheduledValues(now);
+        this.rainFilter.frequency.linearRampToValueAtTime(targetCutoff, now + 0.3);
+      }
+    } catch (e) {
+      console.warn('[AudioManager] Rain ambience update issue:', e);
+    }
+  }
+
+  stopRainAmbience() {
+    if (!this.rainNoiseSource || !this.audioCtx) return;
+
+    try {
+      const now = this.audioCtx.currentTime;
+      if (this.rainGain) {
+        this.rainGain.gain.cancelScheduledValues(now);
+        this.rainGain.gain.linearRampToValueAtTime(0.0001, now + 0.6);
+      }
+
+      const src = this.rainNoiseSource;
+      this.rainNoiseSource = null;
+      setTimeout(() => {
+        try {
+          src.stop();
+          src.disconnect();
+        } catch (e) {}
+      }, 700);
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes deep, rolling atmospheric thunder rumble
+   */
+  playThunder() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
+
+    try {
+      const now = this.audioCtx.currentTime;
+
+      // 1. Sub-bass resonant roll (descending pitch sweep)
+      const osc = this.audioCtx.createOscillator();
+      const oscGain = this.audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(82, now);
+      osc.frequency.exponentialRampToValueAtTime(28, now + 2.2);
+
+      oscGain.gain.setValueAtTime(0, now);
+      oscGain.gain.linearRampToValueAtTime(0.35, now + 0.12);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.4);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.sfxGain || this.audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 2.5);
+
+      // 2. Low-frequency rolling noise crackle
+      const duration = 2.8;
+      const bufferSize = Math.floor(this.audioCtx.sampleRate * duration);
+      const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + 0.02 * white) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5;
+      }
+
+      const noiseSrc = this.audioCtx.createBufferSource();
+      noiseSrc.buffer = noiseBuffer;
+
+      const filter = this.audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(220, now);
+      filter.frequency.exponentialRampToValueAtTime(80, now + duration);
+
+      const noiseGain = this.audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0, now);
+      noiseGain.gain.linearRampToValueAtTime(0.28, now + 0.15);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      noiseSrc.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.sfxGain || this.audioCtx.destination);
+
+      noiseSrc.start(now);
+      noiseSrc.stop(now + duration + 0.1);
+    } catch (e) {
+      console.warn('[AudioManager] Thunder synthesis issue:', e);
+    }
   }
 
   // ===== CONTROLS & SETTINGS =====

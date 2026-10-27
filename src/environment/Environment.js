@@ -8,6 +8,7 @@ import { ArenaGrove } from './ArenaGrove.js';
 import { MountainPassStage } from './MountainPassStage.js';
 import { AbandonedVillageStage } from './AbandonedVillageStage.js';
 import { WhisperingCavernStage } from './WhisperingCavernStage.js';
+import { WeatherManager } from './WeatherManager.js';
 
 export class Environment {
   constructor(scene, physicsWorld = null) {
@@ -27,6 +28,9 @@ export class Environment {
 
     this.initLighting();
     this.initSky();
+
+    // Dynamic Weather and Day/Night Manager
+    this.weatherManager = new WeatherManager(this, this.scene);
 
     // Default to Level 1 on initialization
     this.loadLevel(0, physicsWorld);
@@ -265,9 +269,44 @@ export class Environment {
       this.whisperingCavernStage = new WhisperingCavernStage(this.scene, this.physicsWorld);
       this.terrain = this.whisperingCavernStage.terrain;
     }
+
+    this.registerLevelMaterials();
+  }
+
+  /**
+   * Registers current stage meshes for dynamic wetness roughness/reflectivity modulation
+   */
+  registerLevelMaterials() {
+    if (!this.weatherManager) return;
+    this.weatherManager.registeredMaterials.clear();
+
+    const registerRecursive = (obj) => {
+      if (!obj) return;
+      if (obj.isMesh && obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(m => this.weatherManager.registerMaterial(m));
+        } else {
+          this.weatherManager.registerMaterial(obj.material);
+        }
+      }
+      if (obj.children) {
+        obj.children.forEach(child => registerRecursive(child));
+      }
+    };
+
+    if (this.terrain && this.terrain.mesh) registerRecursive(this.terrain.mesh);
+    if (this.ruins && this.ruins.group) registerRecursive(this.ruins.group);
+    if (this.ruinsStage && this.ruinsStage.group) registerRecursive(this.ruinsStage.group);
+    if (this.arenaGrove && this.arenaGrove.group) registerRecursive(this.arenaGrove.group);
+    if (this.mountainPassStage && this.mountainPassStage.group) registerRecursive(this.mountainPassStage.group);
+    if (this.abandonedVillageStage && this.abandonedVillageStage.group) registerRecursive(this.abandonedVillageStage.group);
+    if (this.whisperingCavernStage && this.whisperingCavernStage.group) registerRecursive(this.whisperingCavernStage.group);
   }
 
   clearLevel() {
+    if (this.weatherManager) {
+      this.weatherManager.registeredMaterials.clear();
+    }
     if (this.terrain && this.terrain.mesh) {
       this.scene.remove(this.terrain.mesh);
       this.terrain = null;
@@ -304,6 +343,11 @@ export class Environment {
   }
 
   update(deltaTime, playerPosition = null) {
+    // Dynamic Weather and Day/Night update
+    if (this.weatherManager) {
+      this.weatherManager.update(deltaTime, playerPosition, this.currentLevelIndex);
+    }
+
     if (this.currentLevelIndex === 0) {
       if (this.ruins) this.ruins.update(deltaTime);
       if (this.vegetation) this.vegetation.update(deltaTime);
@@ -316,6 +360,14 @@ export class Environment {
       if (this.abandonedVillageStage) this.abandonedVillageStage.update(deltaTime);
     } else if (this.currentLevelIndex === 4) {
       if (this.whisperingCavernStage) this.whisperingCavernStage.update(deltaTime);
+    }
+  }
+
+  dispose() {
+    this.clearLevel();
+    if (this.weatherManager) {
+      this.weatherManager.dispose();
+      this.weatherManager = null;
     }
   }
 

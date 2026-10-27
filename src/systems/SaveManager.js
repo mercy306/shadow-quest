@@ -196,7 +196,12 @@ export class SaveManager {
         currentLevelIndex: currentLevelIndex,
         stageScores: stageScores,
         cumulativeScore: cumulativeScore,
-        discoveredLocations: player?.discoveredLocations || [currentStage.id]
+        discoveredLocations: player?.discoveredLocations || [currentStage.id],
+        weather: game.environment?.weatherManager ? {
+          type: game.environment.weatherManager.currentWeather,
+          timeOfDay: game.environment.weatherManager.timeOfDay,
+          isCycleActive: game.environment.weatherManager.isCycleActive
+        } : null
       },
       collectibles: {
         collectedIds: collectedIds,
@@ -670,6 +675,19 @@ export class SaveManager {
       }
       if (typeof migrated.world.cumulativeScore === 'number') {
         game.levelManager.cumulativeScore = migrated.world.cumulativeScore;
+      }
+
+      // Restore weather & time of day
+      if (migrated.world?.weather && game.environment?.weatherManager) {
+        if (migrated.world.weather.type) {
+          game.environment.weatherManager.setWeather(migrated.world.weather.type, true);
+        }
+        if (typeof migrated.world.weather.timeOfDay === 'number') {
+          game.environment.weatherManager.setTimeOfDay(
+            migrated.world.weather.timeOfDay,
+            migrated.world.weather.isCycleActive !== false
+          );
+        }
       }
 
       // Restore Player state (position, rotation, health, inventory, skills)

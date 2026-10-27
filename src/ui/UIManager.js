@@ -144,9 +144,19 @@ export class UIManager {
     this.gfxMedBtn = document.getElementById('gfx-med-btn');
     this.gfxLowBtn = document.getElementById('gfx-low-btn');
 
+    // Weather & Day/Night Settings Controls
+    this.settingWeatherSelect = document.getElementById('setting-weather-select');
+    this.settingTimeSlider = document.getElementById('setting-time-slider');
+    this.timeSliderVal = document.getElementById('time-slider-val');
+    this.settingTimeFlow = document.getElementById('setting-time-flow');
+
     // In-Game HUD
     this.uiOverlay = document.getElementById('ui-overlay');
     this.stageBadge = document.getElementById('stage-badge');
+    this.weatherTimeBadge = document.getElementById('weather-time-badge');
+    this.weatherIcon = document.getElementById('weather-icon');
+    this.weatherName = document.getElementById('weather-name');
+    this.timeText = document.getElementById('time-text');
     this.scoreText = document.getElementById('score-text');
     this.healthFill = document.getElementById('health-fill');
     this.healthText = document.getElementById('health-text');
@@ -1707,7 +1717,8 @@ export class UIManager {
   }
 
   // ==================== SETTINGS CONFIGURATION ====================
-  setupSettings({ audioManager, cameraManager, onSetGraphics, saveManager = null }) {
+  setupSettings({ audioManager, cameraManager, onSetGraphics, saveManager = null, weatherManager = null }) {
+    this.weatherManager = weatherManager;
     const saved = saveManager ? saveManager.loadSettings() : null;
 
     // 1. Audio
@@ -1851,9 +1862,60 @@ export class UIManager {
         };
       }
     });
+
+    // 4. Dynamic Weather and Day/Night Controls
+    if (weatherManager) {
+      if (this.settingWeatherSelect) {
+        this.settingWeatherSelect.value = weatherManager.currentWeather || 'clear';
+        this.settingWeatherSelect.onchange = (e) => {
+          weatherManager.setWeather(e.target.value);
+        };
+      }
+
+      if (this.settingTimeSlider) {
+        this.settingTimeSlider.value = weatherManager.getTimeOfDay();
+        if (this.timeSliderVal) {
+          this.timeSliderVal.textContent = weatherManager.getTimeString();
+        }
+
+        this.settingTimeSlider.oninput = (e) => {
+          const hours = parseFloat(e.target.value);
+          weatherManager.setTimeOfDay(hours);
+          if (this.timeSliderVal) {
+            this.timeSliderVal.textContent = weatherManager.getTimeString();
+          }
+        };
+      }
+
+      if (this.settingTimeFlow) {
+        this.settingTimeFlow.checked = weatherManager.isCycleActive;
+        this.settingTimeFlow.onchange = (e) => {
+          weatherManager.isCycleActive = e.target.checked;
+        };
+      }
+    }
   }
 
   // ==================== IN-GAME HUD METHODS ====================
+  updateWeatherHUD(weatherConfig, timeString, phase) {
+    if (this.weatherIcon && weatherConfig && weatherConfig.icon) {
+      this.weatherIcon.textContent = weatherConfig.icon;
+    }
+    if (this.weatherName && weatherConfig && weatherConfig.name) {
+      this.weatherName.textContent = weatherConfig.name;
+    }
+    if (this.timeText && timeString) {
+      this.timeText.textContent = timeString;
+    }
+
+    // Keep settings time slider value in sync if settings modal is open
+    if (this.settingTimeSlider && this.weatherManager && document.activeElement !== this.settingTimeSlider) {
+      this.settingTimeSlider.value = this.weatherManager.getTimeOfDay();
+      if (this.timeSliderVal) {
+        this.timeSliderVal.textContent = timeString;
+      }
+    }
+  }
   updateScore(score) {
     if (this.scoreText) {
       this.scoreText.textContent = `${score.toLocaleString()} PTS`;

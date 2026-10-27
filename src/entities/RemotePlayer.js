@@ -50,7 +50,7 @@ export class RemotePlayer {
 
   async init() {
     const loader = new GLTFLoader();
-    const modelPath = '/models/Soldier.glb';
+    const modelPath = './models/Soldier.glb';
 
     try {
       const gltf = await loader.loadAsync(modelPath);

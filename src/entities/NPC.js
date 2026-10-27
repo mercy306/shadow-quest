@@ -12,7 +12,7 @@ export class NPC {
     this.name = config.name || 'Wanderer';
     this.title = config.title || 'Villager';
     this.role = config.role || 'villager'; // 'quest_giver' | 'merchant' | 'villager'
-    this.modelPath = config.modelPath || '/models/Soldier.glb';
+    this.modelPath = config.modelPath || './models/Soldier.glb';
     this.avatar = config.avatar || '🧙‍♂️';
 
     this.position = new THREE.Vector3(config.x || 0, config.y || 0, config.z || 0);

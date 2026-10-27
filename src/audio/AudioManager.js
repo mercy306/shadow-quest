@@ -93,17 +93,17 @@ export class AudioManager {
 
   async preloadLocalAudioFiles() {
     const soundFiles = [
-      { key: 'sword_swing', url: '/audio/sword_swing.wav' },
-      { key: 'sword_hit', url: '/audio/sword_hit.wav' },
-      { key: 'enemy_attack', url: '/audio/enemy_attack.wav' },
-      { key: 'enemy_death', url: '/audio/enemy_death.wav' },
-      { key: 'crystal_collect', url: '/audio/crystal_collect.wav' },
-      { key: 'player_damage', url: '/audio/player_damage.wav' },
-      { key: 'jump', url: '/audio/jump.wav' },
-      { key: 'land', url: '/audio/land.wav' },
-      { key: 'victory', url: '/audio/victory.wav' },
-      { key: 'forest_ambience', url: '/audio/forest_ambience.wav' },
-      { key: 'ruins_ambience', url: '/audio/ruins_ambience.wav' }
+      { key: 'sword_swing', url: './audio/sword_swing.wav' },
+      { key: 'sword_hit', url: './audio/sword_hit.wav' },
+      { key: 'enemy_attack', url: './audio/enemy_attack.wav' },
+      { key: 'enemy_death', url: './audio/enemy_death.wav' },
+      { key: 'crystal_collect', url: './audio/crystal_collect.wav' },
+      { key: 'player_damage', url: './audio/player_damage.wav' },
+      { key: 'jump', url: './audio/jump.wav' },
+      { key: 'land', url: './audio/land.wav' },
+      { key: 'victory', url: './audio/victory.wav' },
+      { key: 'forest_ambience', url: './audio/forest_ambience.wav' },
+      { key: 'ruins_ambience', url: './audio/ruins_ambience.wav' }
     ];
 
     for (const item of soundFiles) {

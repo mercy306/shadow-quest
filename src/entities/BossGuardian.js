@@ -161,7 +161,7 @@ export class BossGuardian {
 
   async init() {
     const loader = new GLTFLoader();
-    const modelPath = '/models/EnemyGuardian.glb';
+    const modelPath = './models/EnemyGuardian.glb';
 
     try {
       const gltf = await loader.loadAsync(modelPath);

@@ -4,6 +4,7 @@ import { Terrain } from './Terrain.js';
 import { Ruins } from './Ruins.js';
 import { Vegetation } from './Vegetation.js';
 import { RuinsStage } from './RuinsStage.js';
+import { ArenaGrove } from './ArenaGrove.js';
 
 export class Environment {
   constructor(scene, physicsWorld = null) {
@@ -16,6 +17,7 @@ export class Environment {
     this.ruins = null;
     this.vegetation = null;
     this.ruinsStage = null;
+    this.arenaGrove = null;
 
     this.initLighting();
     this.initSky();
@@ -108,6 +110,7 @@ export class Environment {
       }
       this.ruins = new Ruins(this.scene, this.terrain, this.physicsWorld);
       this.vegetation = new Vegetation(this.scene, this.terrain, this.physicsWorld);
+      this.arenaGrove = new ArenaGrove(this.scene, this.terrain, this.physicsWorld);
 
     } else {
       // ===== STAGE 2: THE ANCIENT RUINS SANCTUARY =====
@@ -159,6 +162,10 @@ export class Environment {
       this.scene.remove(this.ruins.group);
       this.ruins = null;
     }
+    if (this.arenaGrove) {
+      this.arenaGrove.dispose();
+      this.arenaGrove = null;
+    }
     if (this.vegetation) {
       if (this.vegetation.motes) this.scene.remove(this.vegetation.motes);
       if (this.vegetation.grassMesh) this.scene.remove(this.vegetation.grassMesh);
@@ -170,10 +177,11 @@ export class Environment {
     }
   }
 
-  update(deltaTime) {
+  update(deltaTime, playerPosition = null) {
     if (this.currentLevelIndex === 0) {
       if (this.ruins) this.ruins.update(deltaTime);
       if (this.vegetation) this.vegetation.update(deltaTime);
+      if (this.arenaGrove) this.arenaGrove.update(deltaTime, playerPosition);
     } else {
       if (this.ruinsStage) this.ruinsStage.update(deltaTime);
     }

@@ -67,6 +67,19 @@ export class PhysicsWorld {
     }
   }
 
+  removeCollider(collider) {
+    const idx = this.colliders.indexOf(collider);
+    if (idx !== -1) {
+      this.colliders.splice(idx, 1);
+    }
+    for (const cell of this.grid.values()) {
+      const cIdx = cell.indexOf(collider);
+      if (cIdx !== -1) {
+        cell.splice(cIdx, 1);
+      }
+    }
+  }
+
   /**
    * Registers elevated walkable surfaces such as stone platforms, stairs, or dais.
    */

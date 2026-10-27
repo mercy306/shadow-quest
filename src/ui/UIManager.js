@@ -152,6 +152,14 @@ export class UIManager {
     this.enemyHudHp = document.getElementById('enemy-hud-hp');
     this.enemyHudFill = document.getElementById('enemy-hud-fill');
 
+    // Major Boss Encounter HUD
+    this.bossEncounterHud = document.getElementById('boss-encounter-hud');
+    this.bossHudName = document.getElementById('boss-hud-name');
+    this.bossHudPhase = document.getElementById('boss-hud-phase');
+    this.bossHudFill = document.getElementById('boss-hud-fill');
+    this.bossHudHpText = document.getElementById('boss-hud-hp-text');
+    this.bossStaggerBanner = document.getElementById('boss-stagger-banner');
+
     // Interaction Prompt Banner
     this.interactionPrompt = document.getElementById('interaction-prompt');
     this.interactionPromptText = document.getElementById('interaction-prompt-text');
@@ -1674,6 +1682,71 @@ export class UIManager {
   hideTargetedEnemy() {
     if (this.targetedEnemyHud) {
       this.targetedEnemyHud.classList.add('hidden');
+    }
+  }
+
+  showBossHUD(boss) {
+    if (!this.bossEncounterHud || !boss) return;
+    this.bossEncounterHud.classList.remove('hidden');
+    if (this.targetedEnemyHud) {
+      this.targetedEnemyHud.classList.add('hidden');
+    }
+    this.updateBossHUD(boss);
+  }
+
+  updateBossHUD(boss) {
+    if (!this.bossEncounterHud || !boss) return;
+
+    if (this.bossHudName) {
+      this.bossHudName.textContent = boss.name || 'MALAKOR — VERDANT COLOSSUS';
+    }
+
+    const currentHP = Math.max(0, Math.ceil(boss.health));
+    const maxHP = boss.maxHealth || 450;
+    const hpPct = Math.max(0, Math.min(100, (currentHP / maxHP) * 100));
+
+    if (this.bossHudHpText) {
+      this.bossHudHpText.textContent = `${currentHP} / ${maxHP} HP`;
+    }
+
+    const phase = boss.phase || 1;
+    if (this.bossHudPhase) {
+      if (phase === 1) {
+        this.bossHudPhase.textContent = 'PHASE 1: GUARDIAN AWAKENING';
+        this.bossHudPhase.className = 'boss-hud-phase phase-1';
+        this.bossEncounterHud.classList.remove('phase-2-active', 'phase-3-active');
+        if (this.bossHudFill) this.bossHudFill.className = 'boss-hud-fill';
+      } else if (phase === 2) {
+        this.bossHudPhase.textContent = 'PHASE 2: PRIMAL WRATH';
+        this.bossHudPhase.className = 'boss-hud-phase phase-2';
+        this.bossEncounterHud.classList.remove('phase-3-active');
+        this.bossEncounterHud.classList.add('phase-2-active');
+        if (this.bossHudFill) this.bossHudFill.className = 'boss-hud-fill phase-2';
+      } else {
+        this.bossHudPhase.textContent = 'PHASE 3: CORRUPTED OVERDRIVE';
+        this.bossHudPhase.className = 'boss-hud-phase phase-3';
+        this.bossEncounterHud.classList.remove('phase-2-active');
+        this.bossEncounterHud.classList.add('phase-3-active');
+        if (this.bossHudFill) this.bossHudFill.className = 'boss-hud-fill phase-3';
+      }
+    }
+
+    if (this.bossHudFill) {
+      this.bossHudFill.style.width = `${hpPct}%`;
+    }
+
+    if (this.bossStaggerBanner) {
+      if (boss.state === 'STUNNED' || boss.isStaggered) {
+        this.bossStaggerBanner.classList.remove('hidden');
+      } else {
+        this.bossStaggerBanner.classList.add('hidden');
+      }
+    }
+  }
+
+  hideBossHUD() {
+    if (this.bossEncounterHud) {
+      this.bossEncounterHud.classList.add('hidden');
     }
   }
 

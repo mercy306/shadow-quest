@@ -442,6 +442,19 @@ export class QuestSystem {
       this.completedQuestIds = new Set();
     }
 
+    // Apply boss defeated state to enemyManager if present
+    if (this.completedQuestIds.has('boss-malakor') && this.game && this.game.enemyManager && this.game.enemyManager.boss) {
+      const b = this.game.enemyManager.boss;
+      b.isDefeated = true;
+      b.isTriggered = true;
+      b.hasAwardedRewards = true;
+      b.setState('DEAD');
+      if (b.mesh) b.mesh.visible = false;
+      if (this.game.environment && this.game.environment.arenaGrove) {
+        this.game.environment.arenaGrove.deactivateBarrier();
+      }
+    }
+
     // Restore side quests
     if (Array.isArray(state.sideQuests)) {
       state.sideQuests.forEach(savedSq => {

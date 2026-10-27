@@ -236,7 +236,11 @@ export class CombatSystem {
       }
 
       if (closestEnemy) {
-        this.uiManager.updateTargetedEnemy(closestEnemy);
+        if (closestEnemy.isBoss && closestEnemy.state !== 'DORMANT') {
+          this.uiManager.hideTargetedEnemy();
+        } else {
+          this.uiManager.updateTargetedEnemy(closestEnemy);
+        }
       } else {
         this.uiManager.hideTargetedEnemy();
       }

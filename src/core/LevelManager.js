@@ -107,6 +107,27 @@ export class LevelManager {
         // 4. Reset and spawn stage enemies
         if (this.game.enemyManager) {
           await this.game.enemyManager.init(targetIndex);
+          if (this.game.enemyManager.boss) {
+            this.game.enemyManager.boss.setManagers({
+              game: this.game,
+              uiManager: this.game.uiManager,
+              audioManager: this.game.audioManager,
+              vfxManager: this.game.vfxManager,
+              questSystem: this.game.questSystem,
+              arena: this.game.environment?.arenaGrove
+            });
+
+            // If boss was already defeated in this save/quest run, mark defeated on spawn
+            if (this.game.questSystem && this.game.questSystem.completedQuestIds && this.game.questSystem.completedQuestIds.has('boss-malakor')) {
+              this.game.enemyManager.boss.isDefeated = true;
+              this.game.enemyManager.boss.isTriggered = true;
+              this.game.enemyManager.boss.hasAwardedRewards = true;
+              this.game.enemyManager.boss.setState('DEAD');
+              if (this.game.enemyManager.boss.mesh) {
+                this.game.enemyManager.boss.mesh.visible = false;
+              }
+            }
+          }
         }
 
         // 4b. Reset and spawn stage NPCs

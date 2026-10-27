@@ -101,6 +101,17 @@ export const ITEM_DATABASE = {
     value: 400,
     stackable: false
   },
+  verdant_colossus_aegis: {
+    id: 'verdant_colossus_aegis',
+    name: 'Verdant Colossus Aegis',
+    type: ItemType.ARMOR,
+    rarity: ItemRarity.EPIC,
+    icon: '🛡️',
+    description: 'Forged from the living petrified bark and core of Malakor. Grants +40 Max HP and +20 Defense.',
+    stats: { defense: 20, maxHealth: 40 },
+    value: 300,
+    stackable: false
+  },
 
   // --- TRINKETS / RELICS ---
   void_talisman: {
@@ -207,6 +218,16 @@ export const ITEM_DATABASE = {
     rarity: ItemRarity.RARE,
     icon: '👝',
     description: 'Sylas the Hermit’s leather satchel containing rare curative mosses and notes.',
+    value: 0,
+    stackable: false
+  },
+  sanctuary_keystone: {
+    id: 'sanctuary_keystone',
+    name: 'Sanctuary Keystone',
+    type: ItemType.QUEST,
+    rarity: ItemRarity.LEGENDARY,
+    icon: '🗝️',
+    description: 'An ancient pulsating heart stone left behind by Malakor. Resonates with the Altar Portal.',
     value: 0,
     stackable: false
   },
@@ -357,6 +378,16 @@ export class InventorySystem {
 
   getOccupiedSlotCount() {
     return this.slots.filter(s => s !== null).length;
+  }
+
+  hasItem(itemId) {
+    return this.slots.some(s => s && s.item && s.item.id === itemId);
+  }
+
+  getItemCount(itemId) {
+    return this.slots
+      .filter(s => s && s.item && s.item.id === itemId)
+      .reduce((sum, s) => sum + s.quantity, 0);
   }
 
   isFull() {

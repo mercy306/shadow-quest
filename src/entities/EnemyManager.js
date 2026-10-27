@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { Enemy } from './Enemy.js';
+import { BossGuardian } from './BossGuardian.js';
 
 export class EnemyManager {
   constructor(scene, physicsWorld = null) {
     this.scene = scene;
     this.physicsWorld = physicsWorld;
     this.enemies = [];
+    this.boss = null;
   }
 
   setPhysicsWorld(physicsWorld) {
@@ -119,6 +121,19 @@ export class EnemyManager {
       this.enemies.push(enemy);
     });
 
+    // In Stage 1: The Dark Forest, spawn Malakor the Verdant Colossus in the Ancient Grove
+    if (levelIndex === 0) {
+      this.boss = new BossGuardian(this.scene, this.physicsWorld, {
+        id: 'boss-malakor',
+        name: 'Malakor, Verdant Colossus',
+        center: new THREE.Vector3(-38, 0, -66),
+        health: 450,
+        maxHealth: 450,
+        damage: 22
+      });
+      this.enemies.push(this.boss);
+    }
+
     await Promise.all(this.enemies.map(e => e.init()));
   }
 
@@ -133,12 +148,20 @@ export class EnemyManager {
     return this.enemies;
   }
 
+  getBoss() {
+    return this.boss;
+  }
+
   clear() {
     this.enemies.forEach(enemy => {
+      if (typeof enemy.dispose === 'function') {
+        enemy.dispose();
+      }
       if (enemy.mesh && enemy.mesh.parent) {
         enemy.mesh.parent.remove(enemy.mesh);
       }
     });
     this.enemies = [];
+    this.boss = null;
   }
 }

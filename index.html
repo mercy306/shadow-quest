@@ -635,6 +635,30 @@
         </div>
       </div>
 
+      <!-- Dedicated Major Boss Health Bar & Phase Indicator -->
+      <div id="boss-encounter-hud" class="boss-encounter-hud hidden">
+        <div class="boss-hud-header">
+          <div class="boss-name-wrap">
+            <span class="boss-crown-icon">👑</span>
+            <span id="boss-hud-name" class="boss-hud-name">MALAKOR — VERDANT COLOSSUS</span>
+          </div>
+          <span id="boss-hud-phase" class="boss-hud-phase phase-1">PHASE 1: GUARDIAN AWAKENING</span>
+        </div>
+        <div class="boss-bar-wrapper">
+          <div class="boss-hud-track">
+            <div id="boss-hud-fill" class="boss-hud-fill" style="width: 100%;"></div>
+            <div class="boss-phase-marker marker-p2" style="left: 65%;" title="Phase 2 Threshold"></div>
+            <div class="boss-phase-marker marker-p3" style="left: 30%;" title="Phase 3 Threshold"></div>
+          </div>
+          <div class="boss-bar-decorations">
+            <span class="boss-gem-left">◆</span>
+            <span id="boss-hud-hp-text" class="boss-hud-hp-text">450 / 450 HP</span>
+            <span class="boss-gem-right">◆</span>
+          </div>
+        </div>
+        <div id="boss-stagger-banner" class="boss-stagger-banner hidden">⚡ STAGGERED — VULNERABLE!</div>
+      </div>
+
       <!-- Quest Objectives Tracker -->
       <div id="quest-tracker" class="quest-tracker">
         <h3 id="quest-title" class="quest-title">RESTORE THE FOREST</h3>

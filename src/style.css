@@ -222,6 +222,181 @@ html, body {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
 }
 
+/* ========================================================
+   MAJOR BOSS ENCOUNTER HUD (Malakor, Verdant Colossus)
+   ======================================================== */
+.boss-encounter-hud {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 540px;
+  max-width: 92vw;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.94) 0%, rgba(2, 6, 23, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  border: 2px solid rgba(16, 185, 129, 0.55);
+  border-radius: 12px;
+  padding: 12px 20px 14px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 25px rgba(16, 185, 129, 0.35);
+  z-index: 90;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+.boss-encounter-hud.phase-2-active {
+  border-color: rgba(245, 158, 11, 0.75);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 30px rgba(245, 158, 11, 0.4);
+}
+
+.boss-encounter-hud.phase-3-active {
+  border-color: rgba(239, 68, 68, 0.85);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 35px rgba(239, 68, 68, 0.55);
+  animation: boss-enrage-pulse 2s infinite ease-in-out;
+}
+
+@keyframes boss-enrage-pulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 25px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 45px rgba(239, 68, 68, 0.75); }
+}
+
+.boss-hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boss-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boss-crown-icon {
+  font-size: 1.15rem;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.8));
+}
+
+.boss-hud-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #f8fafc;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.boss-hud-phase {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.boss-hud-phase.phase-2 {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.boss-hud-phase.phase-3 {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.boss-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.boss-hud-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.boss-hud-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #10b981 60%, #34d399 100%);
+  border-radius: 5px;
+  transition: width 0.22s ease-out, background 0.4s ease;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.8);
+}
+
+.boss-hud-fill.phase-2 {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 60%, #fbbf24 100%);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.8);
+}
+
+.boss-hud-fill.phase-3 {
+  background: linear-gradient(90deg, #b91c1c 0%, #ef4444 60%, #f87171 100%);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.9);
+}
+
+.boss-phase-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 5px #fff;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.boss-bar-decorations {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0 2px;
+}
+
+.boss-gem-left, .boss-gem-right {
+  color: #10b981;
+  font-size: 0.65rem;
+}
+
+.boss-hud-hp-text {
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.boss-stagger-banner {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #fef08a;
+  background: rgba(234, 179, 8, 0.25);
+  border: 1px solid rgba(234, 179, 8, 0.55);
+  border-radius: 6px;
+  padding: 3px 0;
+  animation: stagger-pulse 0.7s infinite alternate ease-in-out;
+}
+
+@keyframes stagger-pulse {
+  from { opacity: 0.65; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1.01); filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.9)); }
+}
+
 /* Contextual Interaction Floating Prompt */
 .interaction-prompt {
   position: absolute;

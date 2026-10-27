@@ -20,6 +20,10 @@ export class CombatSystem {
     this.levelManager = levelManager;
   }
 
+  setMountManager(mountManager) {
+    this.mountManager = mountManager;
+  }
+
   setManagers({ questSystem, audioManager, uiManager, vfxManager, levelManager }) {
     if (questSystem) this.questSystem = questSystem;
     if (audioManager) this.audioManager = audioManager;
@@ -255,7 +259,8 @@ export class CombatSystem {
       const quest = this.questSystem ? this.questSystem.getCurrentQuest() : null;
       const hasNPCPrompt = this.npcManager && this.npcManager.getActiveInteractable();
       const hasPassagePrompt = this.levelManager && this.levelManager.getNearbyPassage(playerPos);
-      if (!hasNPCPrompt && !hasPassagePrompt) {
+      const hasMountPrompt = this.mountManager && (this.mountManager.isPlayerMounted() || this.mountManager.isNearMount(playerPos, 3.2));
+      if (!hasNPCPrompt && !hasPassagePrompt && !hasMountPrompt) {
         if (quest && quest.isEntranceUnlocked && this.questSystem.exitLocation) {
           const exitDist = Math.hypot(
             playerPos.x - this.questSystem.exitLocation.x,

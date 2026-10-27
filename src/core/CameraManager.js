@@ -8,9 +8,12 @@ export class CameraManager {
 
     // Orbit parameters
     this.distance = 5.8;
+    this.targetDistance = 5.8;
     this.minDistance = 2.0;
-    this.maxDistance = 10.0;
+    this.maxDistance = 12.0;
     this.lookAtOffset = new THREE.Vector3(0, 1.5, 0);
+    this.targetLookAtOffset = new THREE.Vector3(0, 1.5, 0);
+    this.isRiding = false;
 
     // Spherical angles (in radians)
     // theta = horizontal azimuth (yaw), phi = vertical elevation (pitch)
@@ -120,8 +123,25 @@ export class CameraManager {
     this.camera.lookAt(this.currentLookTarget);
   }
 
+  setRidingMode(isRiding) {
+    this.isRiding = isRiding;
+    if (isRiding) {
+      this.targetDistance = 7.6;
+      this.targetLookAtOffset.set(0, 2.2, 0);
+    } else {
+      this.targetDistance = 5.8;
+      this.targetLookAtOffset.set(0, 1.5, 0);
+    }
+  }
+
   update(target, deltaTime, environment = null, physicsWorld = null) {
     if (!target) return;
+
+    // Smooth riding camera transition
+    if (deltaTime > 0) {
+      this.distance = THREE.MathUtils.lerp(this.distance, this.targetDistance, Math.min(1.0, deltaTime * 5.0));
+      this.lookAtOffset.lerp(this.targetLookAtOffset, Math.min(1.0, deltaTime * 5.0));
+    }
 
     const targetPos = target.getPosition ? target.getPosition() : target.position;
     const targetLook = targetPos.clone().add(this.lookAtOffset);

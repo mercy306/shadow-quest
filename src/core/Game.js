@@ -15,6 +15,7 @@ import { SaveManager, QUICK_SAVE_SLOT } from '../systems/SaveManager.js';
 import { NPCManager } from '../systems/NPCManager.js';
 import { DialogueManager } from '../systems/DialogueManager.js';
 import { MerchantManager } from '../systems/MerchantManager.js';
+import { MountManager } from '../entities/MountManager.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -147,13 +148,41 @@ export class Game {
       this.uiManager.setupMerchant(this.merchantManager);
       this.combatSystem.setNPCManager(this.npcManager);
 
-      // Wire Player interaction key [E] to NPC dialogue and Region Passages
+      // 11c. Mount & Riding System
+      this.mountManager = new MountManager(
+        this.scene,
+        this.physicsWorld,
+        this.environment,
+        this.audioManager,
+        this.uiManager
+      );
+      this.combatSystem.setMountManager(this.mountManager);
+
+      // Wire Player interaction key [E] to Mount, NPC dialogue and Region Passages
       this.player.onInteract(() => {
+        // 1. Mount / Dismount
+        if (this.mountManager) {
+          if (this.mountManager.isPlayerMounted()) {
+            this.mountManager.dismountPlayer(this.cameraManager);
+            return true;
+          }
+          if (this.mountManager.isNearMount(this.player.getPosition(), 3.2)) {
+            const check = this.mountManager.canMountPlayer(this.player);
+            if (check.allowed) {
+              this.mountManager.mountPlayer(this.player, this.cameraManager);
+              return true;
+            }
+          }
+        }
+
+        // 2. NPC dialogue
         const npc = this.npcManager ? this.npcManager.getActiveInteractable() : null;
         if (npc) {
           this.openDialogue(npc);
           return true;
         }
+
+        // 3. Region Passages
         if (this.levelManager && this.player) {
           const passage = this.levelManager.getNearbyPassage(this.player.getPosition());
           if (passage) {
@@ -287,6 +316,11 @@ export class Game {
         e.preventDefault();
         if (this.gameState === GameState.PLAYING || this.isWorldMapOpen) {
           this.toggleWorldMap();
+        }
+      } else if (e.code === 'KeyH') {
+        // Whistle for Mount / Recovery with 'H'
+        if (this.gameState === GameState.PLAYING && this.mountManager && this.player) {
+          this.mountManager.whistleMount(this.player);
         }
       } else if (e.code === 'Escape') {
         if (this.dialogueManager && this.dialogueManager.isDialogueActive()) {
@@ -770,6 +804,19 @@ export class Game {
         }
         if (this.uiManager && typeof this.uiManager.showDiscoveryBanner === 'function') {
           this.uiManager.showDiscoveryBanner(landmark.name, 'LANDMARK DISCOVERED');
+        }
+      }
+    }
+
+    // Mount & Riding Update
+    if (this.mountManager) {
+      this.mountManager.update(deltaTime, this.player, this.cameraManager);
+      if (this.mountManager.isPlayerMounted()) {
+        this.uiManager.showInteractionPrompt('[E] Dismount • [W/A/S/D] Steer • [Shift] Gallop');
+      } else if (this.mountManager.isNearMount(this.player?.getPosition(), 3.2)) {
+        const check = this.mountManager.canMountPlayer(this.player);
+        if (check.allowed && !activeNPC) {
+          this.uiManager.showInteractionPrompt(`[E] Mount ${this.mountManager.getMountName()}`);
         }
       }
     }

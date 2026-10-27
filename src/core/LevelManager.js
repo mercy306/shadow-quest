@@ -480,6 +480,14 @@ export class LevelManager {
           }
         }
 
+        // 6b. Synchronize mount to stage transition
+        if (this.game.mountManager) {
+          const spawnPt = spawnPos || stageConfig.playerSpawn;
+          this.game.mountManager.setPhysicsWorld(this.game.physicsWorld);
+          this.game.mountManager.setEnvironment(this.game.environment);
+          this.game.mountManager.onLevelTransition(targetIndex, this.game.player, spawnPt);
+        }
+
         // 7. Reset camera position and orientation behind player
         if (this.game.cameraManager && this.game.player) {
           this.game.cameraManager.snapToTarget(this.game.player);

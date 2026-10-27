@@ -403,8 +403,8 @@ async function runWeatherDayNightTests() {
       const dirLightSurge = g.environment.dirLight.intensity;
       const overlayHasFlash = document.getElementById('lightning-flash-overlay')?.classList.contains('flash');
 
-      // Fast-forward delay for acoustic thunder
-      wm.update(0.6, g.player.position, 0);
+      // Fast-forward delay for acoustic thunder (0.4s to 1.0s max delay)
+      wm.update(1.2, g.player.position, 0);
 
       // Restore
       g.audioManager.playThunder = originalThunder;

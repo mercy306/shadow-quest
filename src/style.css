@@ -527,6 +527,42 @@ html, body {
   box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
 }
 
+/* Mount Riding Stance Badge */
+.mount-stance-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(217, 119, 6, 0.7);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fbbf24;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 12px rgba(217, 119, 6, 0.35);
+  user-select: none;
+  animation: mountGaze 2.5s infinite alternate ease-in-out;
+}
+
+.mount-icon {
+  font-size: 1.15rem;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.7));
+}
+
+.mount-speed-text {
+  font-weight: 900;
+  color: #fef3c7;
+  letter-spacing: 0.1em;
+}
+
+@keyframes mountGaze {
+  from { border-color: rgba(217, 119, 6, 0.5); }
+  to { border-color: rgba(251, 191, 36, 0.9); box-shadow: 0 0 18px rgba(245, 158, 11, 0.5); }
+}
+
 /* Stealth Indicator Badge */
 .stealth-indicator-badge {
   display: flex;

@@ -201,7 +201,8 @@ export class SaveManager {
           type: game.environment.weatherManager.currentWeather,
           timeOfDay: game.environment.weatherManager.timeOfDay,
           isCycleActive: game.environment.weatherManager.isCycleActive
-        } : null
+        } : null,
+        mount: game.mountManager ? game.mountManager.getSaveState() : null
       },
       collectibles: {
         collectedIds: collectedIds,
@@ -688,6 +689,11 @@ export class SaveManager {
             migrated.world.weather.isCycleActive !== false
           );
         }
+      }
+
+      // Restore Mount location, stage, and riding state
+      if (game.mountManager && migrated.world?.mount) {
+        game.mountManager.restoreSaveState(migrated.world.mount, game.player, game.cameraManager);
       }
 
       // Restore Player state (position, rotation, health, inventory, skills)

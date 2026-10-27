@@ -47,6 +47,8 @@ export class Player {
     this.isSprinting = false;
     this.isCrouching = false;
     this.isHidingInFoliage = false;
+    this.isRiding = false;
+    this.currentMount = null;
     this.currentNoiseRadius = 0;
     this.footstepTimer = 0;
     this.lastWPressTime = 0;
@@ -556,7 +558,7 @@ export class Player {
   }
 
   triggerDodgeRoll() {
-    if (!this.isEnabled || this.health <= 0 || this.isRolling) return false;
+    if (!this.isEnabled || this.health <= 0 || this.isRolling || this.isRiding) return false;
 
     const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : { rollStaminaReduction: 0, rollIFrameBonus: 0 };
     const rollCost = Math.max(5, Math.round(this.dodgeRollStaminaCost * (1 - (skillBonuses.rollStaminaReduction || 0))));
@@ -600,7 +602,7 @@ export class Player {
   }
 
   triggerHeavyAttack() {
-    if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.isHeavyAttacking) return false;
+    if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.isHeavyAttacking || this.isRiding) return false;
 
     const skillBonuses = this.skillTree ? this.skillTree.getBonuses() : { unlocksHeavyAttack: false };
     if (!skillBonuses.unlocksHeavyAttack) {
@@ -647,6 +649,7 @@ export class Player {
   }
 
   toggleCrouch(force = null) {
+    if (this.isRiding) return;
     this.isCrouching = force !== null ? force : !this.isCrouching;
     this.height = this.isCrouching ? 1.2 : 1.8;
 
@@ -719,6 +722,9 @@ export class Player {
     this.onDamageCallbacks.forEach(cb => cb(finalDamage, this.health, this.maxHealth));
 
     if (this.health <= 0) {
+      if (this.isRiding && this.currentMount) {
+        this.currentMount.dismount();
+      }
       if (this.animController) {
         // Play death / collapse animation or fallback
         const clips = this.animController.getAvailableClips();
@@ -736,7 +742,7 @@ export class Player {
   }
 
   triggerAttack(audioManager = this.audioManager) {
-    if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.attackCooldownTimer > 0) return;
+    if (!this.isEnabled || this.health <= 0 || this.isAttacking || this.isRiding || this.attackCooldownTimer > 0) return;
 
     this.timeSinceLastCombat = 0;
     this.isAttacking = true;
@@ -751,7 +757,7 @@ export class Player {
   }
 
   handleJump() {
-    if (!this.isEnabled || this.health <= 0) return;
+    if (!this.isEnabled || this.health <= 0 || this.isRiding) return;
 
     if (this.isGrounded) {
       this.verticalVelocity = this.jumpForce;
@@ -778,6 +784,24 @@ export class Player {
         if (this.health <= 0) {
           // Stay dead
         } else if (this.animController.getCurrentClip() !== 'Idle') {
+          this.animController.play('Idle', 0.2);
+        }
+        this.animController.update(deltaTime);
+      }
+      return;
+    }
+
+    // When riding a mount, delegate kinematics, collisions, and foot locomotion to MountCreature
+    if (this.isRiding && this.currentMount) {
+      const saddlePos = this.currentMount.getSaddlePosition();
+      this.position.copy(saddlePos);
+      if (this.model) {
+        this.model.rotation.y = this.currentMount.rotation.y;
+      }
+      this.mesh.rotation.y = this.currentMount.rotation.y;
+
+      if (this.animController) {
+        if (this.animController.getCurrentClip() !== 'Idle') {
           this.animController.play('Idle', 0.2);
         }
         this.animController.update(deltaTime);

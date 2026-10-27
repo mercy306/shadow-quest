@@ -738,6 +738,70 @@ export class AudioManager {
     }
   }
 
+  /**
+   * Synthesizes rhythmic horse hoofbeat contact
+   */
+  playHoofbeat(volume = 0.25) {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
+
+    try {
+      const now = this.audioCtx.currentTime;
+
+      // Double-strike cadence (primary strike + trailing tap)
+      [0.0, 0.055].forEach((offset, idx) => {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = 'triangle';
+        const startFreq = idx === 0 ? 115 : 85;
+        osc.frequency.setValueAtTime(startFreq, now + offset);
+        osc.frequency.exponentialRampToValueAtTime(32, now + offset + 0.08);
+
+        const tapVol = (idx === 0 ? volume : volume * 0.65) * this.sfxVolume;
+        gain.gain.setValueAtTime(tapVol, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.sfxGain || this.audioCtx.destination);
+
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.09);
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Synthesizes clear mount call whistle
+   */
+  playMountWhistle() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    if (!this.audioCtx) return;
+
+    try {
+      const now = this.audioCtx.currentTime;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1600, now);
+      osc.frequency.linearRampToValueAtTime(2200, now + 0.14);
+      osc.frequency.exponentialRampToValueAtTime(1750, now + 0.38);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.24 * this.sfxVolume, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.45);
+    } catch (e) {}
+  }
+
   // ===== CONTROLS & SETTINGS =====
 
   setMasterVolume(val) {

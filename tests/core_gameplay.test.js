@@ -71,9 +71,14 @@ class CDPClient {
   }
 
   async eval(expr) {
-    const wrapped = expr.trim().startsWith('(()') || !expr.includes('return')
-      ? expr
-      : `(() => {\n${expr}\n})()`;
+    const isAsync = expr.includes('await');
+    const trimmed = expr.trim();
+    const isStatement = trimmed.includes(';') || trimmed.includes('\n') || /^(const|let|var|if|for|while)\b/.test(trimmed);
+    const wrapped = trimmed.startsWith('(')
+      ? trimmed
+      : isStatement
+        ? `(${isAsync ? 'async ' : ''}() => {\n${trimmed}\n})()`
+        : trimmed;
     const res = await this.send('Runtime.evaluate', {
       expression: wrapped,
       returnByValue: true,

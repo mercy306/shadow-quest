@@ -701,6 +701,9 @@ export class UIManager {
   }
 
   openSkillTree() {
+    if (!this.playerRef && typeof window !== 'undefined' && (window.game?.player || window.__GAME__?.player)) {
+      this.playerRef = window.game?.player || window.__GAME__?.player;
+    }
     if (this.modalSkills) {
       this.openModal(this.modalSkills);
       this.refreshSkillTreeUI();
@@ -919,6 +922,9 @@ export class UIManager {
   }
 
   refreshSkillTreeUI() {
+    if (!this.playerRef && typeof window !== 'undefined' && (window.game?.player || window.__GAME__?.player)) {
+      this.playerRef = window.game?.player || window.__GAME__?.player;
+    }
     if (!this.playerRef) return;
     const player = this.playerRef;
     const tree = player.skillTree;

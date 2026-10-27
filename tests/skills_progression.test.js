@@ -121,18 +121,21 @@ async function runProgressionTests() {
 
     // Wait for window.game
     let isReady = false;
-    for (let i = 0; i < 50; i++) {
-      const res = await cdp.eval('return Boolean(window.game && window.game.player && window.game.player.isLoaded);');
-      if (res) { isReady = true; break; }
-      await sleep(200);
+    for (let i = 0; i < 60; i++) {
+      isReady = await cdp.eval('Boolean((window.game || window.__GAME__) && (window.game || window.__GAME__).initStep === "complete")');
+      if (isReady) break;
+      await sleep(300);
     }
 
-    if (!isReady) throw new Error('Game engine did not initialize within 10 seconds');
+    if (!isReady) throw new Error('Game engine did not initialize within timeout');
     console.log('Game initialized!\n');
 
     // Start playing
-    await cdp.eval('window.game.startGame();');
-    await sleep(400);
+    await cdp.eval(`
+      const g = window.game || window.__GAME__;
+      g.startNewGame(true);
+    `);
+    await sleep(1000);
 
     // ========================================================
     // TEST 1: Level Progression Curve & XP Events

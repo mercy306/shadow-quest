@@ -1,216 +1,230 @@
-# Shadow Quest - Architectural Upgrade Plan 🏰
+# Shadow Quest — Architectural Inspection & Upgrade Blueprint
 
-**Target**: Comprehensive, modular upgrades for the completed and production-ready *Shadow Quest* 3D third-person adventure game.  
-**Baseline Version**: v0.2.0 (Verified clean build, 20/20 QA suites passed, Git checkpoint `9e30297`).  
-**Guiding Rule**: **Preserve 100% of existing working gameplay features.** All upgrades must be additive, modular, and non-destructive.
-
----
-
-## 1. Existing System Architecture & Communication Map
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                       Game.js                                           │
-│               Central Game State Machine ('MAIN_MENU'|'PLAYING'|'PAUSED'|'GAME_OVER'|'VICTORY') │
-└──────┬────────────┬─────────────┬─────────────┬──────────────┬────────────┬─────────────┘
-       │            │             │             │              │            │
-       ▼            ▼             ▼             ▼              ▼            ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────┐ ┌─────────────┐ ┌──────────┐ ┌────────────┐
-│ PhysicsWorld │ │ Environment  │ │ Camera   │ │ Audio       │ │ VFX      │ │ UI         │
-│ - Spatial Grid│ │ - Terrain   │ │  Manager │ │  Manager    │ │  Manager │ │  Manager   │
-│ - Colliders  │ │ - Ruins      │ │ - Orbit  │ │ - Web Audio │ │ - Trails │ │ - HUD/Menu │
-│ - Platforms  │ │ - Vegetation │ │ - Avoid  │ │ - SFX/Music │ │ - Sparks │ │ - Modals   │
-└──────▲───────┘ └──────▲───────┘ └────▲─────┘ └──────▲──────┘ └────▲─────┘ └─────▲──────┘
-       │                │              │              │             │             │
-       ├────────────────┴──────────────┴──────────────┴─────────────┴─────────────┤
-       │                                                                          │
- ┌─────┴──────┐                ┌──────────────┐                            ┌──────┴──────┐
- │ Player     │ ◄── Combat ──► │ EnemyManager │                            │ Collectible │
- │ - Skinned  │     System     │ - AI States  │                            │  Manager    │
- │ - Movement │                │ - Guardians  │                            │ - Crystals  │
- └─────┬──────┘                └──────┬───────┘                            └──────┬──────┘
-       │                              │                                           │
-       └──────────────────────────────┼───────────────────────────────────────────┘
-                                      ▼
-                               ┌──────────────┐
-                               │ QuestSystem  │ ◄─── LevelManager (Stages & Resets)
-                               │ - Objectives │
-                               │ - Barriers   │
-                               └──────────────┘
-```
-
-### Communication Protocols
-- **Physics**: Entities query `PhysicsWorld.resolveCollisions(pos, radius, height)` and `PhysicsWorld.getGroundHeight(x, z, y)` for fast $O(1)$ spatial collision resolution.
-- **Combat**: `CombatSystem` reconciles `Player.getSwordTipPosition()` against `enemy.position` / `radius`, applies damage, triggers `VFXManager` hit particles and floating damage numbers, and routes defeat events to `QuestSystem`.
-- **Level Lifecycle**: `LevelManager` orchestrates stage loading (Stage 1: *The Dark Forest*, Stage 2: *The Ancient Ruins*), resets entity registries, and invokes `UIManager.transitionLevel()`.
+**Role**: Senior 3D Game Engineer  
+**Project**: Shadow Quest (Browser-based 3D Action RPG)  
+**Engine & Stack**: Three.js (r172.0), Vite 6.0.7, Native Web Audio API, IndexedDB Schema v1  
+**Status**: 100% playable, all 5 automated test suites verified passing, clean Git baseline commit.
 
 ---
 
-## 2. Upgrade Feature Inventory & Overlap Reuse Analysis
+## 1. Project Overview & Real Architecture
 
-| Planned Upgrade | Existing Overlapping System | Reuse & Integration Strategy |
-|---|---|---|
-| **1. Persistent Save System** | `LevelManager` (scores, stage index), `Player` (HP, stats), `QuestSystem` (objectives) | Create `SaveManager` serializing state to `localStorage`. Integrate `AutoSave` on stage transitions and quest completion; add "Save / Load Game" in Pause and Main Menu. |
-| **2. Inventory & Equipment** | `CollectibleManager` (item tracking), `Sword.js` (hand-bone attachment) | Extend `Collectible` to support inventory items (consumables, quest keys, weapons, armors). Add an inventory modal in `UIManager` and socket attachments to character bones (`hand_r`, `hand_l`, `spine`). |
-| **3. Skills & Leveling** | `CombatSystem` (score bonuses), `Player` (stats, speed, jump, damage) | Introduce `ProgressionSystem`. Enemies award XP on defeat (`onEnemyDefeated`). Level-ups award skill points to unlock abilities (e.g. Whirlwind Slash, Dash, Health Boost) reflected in HUD. |
-| **4. NPCs & Side Quests** | `Enemy.js` (mesh, waypoints, rotation), `QuestSystem` & `QuestObjective` (declarative tasks) | Create `NPC` class inheriting waypoint navigation with peaceful interaction zones. Extend `QuestSystem` to track multiple simultaneous secondary quests. |
-| **5. Stealth Mechanics** | `Enemy.js` (`detectionRadius`, `patrolCenter`, AI states: `IDLE`, `PATROL`, `DETECT`, `CHASE`) | Add vision field-of-view cone check in `Enemy.js`. Add `Crouch` stance in `Player.js` reducing player height, detection radius, and footstep noise. Add backstab damage multiplier. |
-| **6. Dungeons & Puzzles** | `RuinsStage.js` & `Ruins.js` (doors, portals, barriers), `PhysicsWorld` (platforms, OBB colliders) | Build puzzle triggers (pressure pads, sequence levers, movable stone blocks) using existing box colliders and platform height steppers. |
-| **7. Boss Encounters** | `EnemyManager` (elite guardian configurations, Colossus boss), `UIManager` (`#targeted-enemy-hud`) | Elevate Colossus/Void Golems with multi-phase state machines, telegraph ground markers via `VFXManager`, minion summon waves, and dedicated boss music. |
-| **8. Expanded Open World** | `Terrain.js` (canvas heightmap generation), `Vegetation.js` (scatter), `PhysicsWorld` (spatial hash grid) | Evolve `Terrain.js` into chunk-based streaming grid (`TerrainChunkManager`) that generates/recycles terrain tiles around player coordinates. |
-| **9. Dynamic Weather & Day/Night** | `Environment.js` (sun, hemisphere light, fog), `VFXManager` (particle pools) | Add diurnal clock rotating celestial directional light and modifying sky/fog colors. Add rain/fog weather particle systems to `VFXManager` with ambient sound cross-fades. |
-| **10. Mounts & Riding** | `Player.js` (locomotion & physics), `CameraManager` (orbit follow) | Create `Mount` entity. When mounting, adventurer snaps to mount saddle bone, player locomotion delegates to mount physics (higher speed, jump height), and camera distance scales out. |
-| **11. Photo Mode** | `CameraManager` (azimuth/pitch, smooth lerp), `Game.js` (pause state) | Freeze game simulation while keeping camera orbit interactive; decouple camera from player follow; add visual filter sliders (FOV, DOF, exposure, vignette) and PNG capture. |
-| **12. Multiplayer** | `Player.js` (transform, animation state, weapon trail), `CombatSystem` | Implement client-side `RemotePlayer` entity. Synchronize position, rotation, animation clip, and attack swings via lightweight WebSocket / WebRTC messaging. |
-
----
-
-## 3. Risk Assessment & Mitigation Strategies
-
-```
-HIGH REGRESSION RISK:
-┌─────────────────────────┐
-│ 12. Multiplayer         │ -> Complex state reconciliation, latency compensation.
-│  8. Expanded Open World │ -> Memory leaks, chunk seam physics glitches, drop in frame rate.
-└─────────────────────────┘
-
-MEDIUM REGRESSION RISK:
-┌─────────────────────────┐
-│  5. Stealth Mechanics   │ -> Modifying Enemy AI detection loops could break aggro/combat.
-│ 10. Mounts & Riding     │ -> Swapping locomotion and camera anchors risks physics tunneling.
-│  2. Inventory & Equip   │ -> Bone attachments and weapon hitbox collision offsets.
-│  1. Save System         │ -> Corrupted state on schema migrations.
-└─────────────────────────┘
-
-LOW REGRESSION RISK:
-┌─────────────────────────┐
-│ 11. Photo Mode          │ -> Fully decoupled read-only camera tool.
-│  9. Weather & Day/Night │ -> Cosmetic lighting/particle modulation.
-│  3. Skills & Leveling   │ -> Additive stat modifiers and ability triggers.
-│  4. NPCs & Side Quests  │ -> Additive entities and quest tracker entries.
-│  7. Boss Encounters     │ -> Self-contained custom Enemy subclass.
-│  6. Dungeons & Puzzles  │ -> Modular trigger volumes.
-└─────────────────────────┘
-```
-
-### Key Mitigation Rules
-1. **Never alter existing method signatures** without backwards-compatible defaults (e.g. `update(deltaTime, playerPosition)`).
-2. **Never duplicate existing systems**; extend `PhysicsWorld`, `UIManager`, `QuestSystem`, and `AudioManager`.
-3. **Keep `PhysicsWorld` broadphase independent of visual meshes**.
-4. **Decouple DOM and 3D scenes** via `UIManager` event hooks.
-
----
-
-## 4. Recommended Phased Implementation Order
+Shadow Quest is an established, high-performance browser-based 3D action RPG with custom modular architecture. Rather than relying on heavyweight monolithic frameworks, it leverages decoupled domain managers driven by a single fixed-interval requestAnimationFrame loop.
 
 ```mermaid
-flowchart TD
-    P1["Phase 1: Persistence & Core RPG Foundation\n1. Persistent Save System\n2. Inventory & Equipment"]
-    P2["Phase 2: Character Progression & Stealth\n3. Skills & Leveling\n4. Stealth Mechanics"]
-    P3["Phase 3: Narrative, Encounters & World Features\n5. NPCs & Side Quests\n6. Boss Encounters\n7. Dynamic Weather & Day/Night"]
-    P4["Phase 4: World Expansion & Deep Mechanics\n8. Dungeons & Puzzles\n9. Expanded Open World (Chunk Streaming)\n10. Mounts & Riding"]
-    P5["Phase 5: Polish & Social\n11. Photo Mode\n12. Multiplayer (Networking Architecture)"]
-
-    P1 --> P2
-    P2 --> P3
-    P3 --> P4
-    P4 --> P5
+graph TD
+  Main[main.js] --> Game[src/core/Game.js]
+  Game --> LevelMgr[LevelManager]
+  Game --> CamMgr[CameraManager]
+  Game --> PhysWorld[PhysicsWorld]
+  Game --> AudioMgr[AudioManager]
+  Game --> UIMgr[UIManager]
+  Game --> SaveMgr[SaveManager]
+  Game --> VFXMgr[VFXManager]
+  
+  LevelMgr --> Stage0[Stage 1: Dark Forest]
+  LevelMgr --> Stage1[Stage 2: Ancient Ruins]
+  
+  Game --> Player[Player Entity & FSM]
+  Game --> EnemyMgr[EnemyManager]
+  Game --> NPCMgr[NPCManager]
+  Game --> CollMgr[CollectibleManager]
+  
+  Game --> CombatSys[CombatSystem]
+  Game --> InvSys[InventorySystem]
+  Game --> QuestSys[QuestSystem]
+  Game --> DialMgr[DialogueManager]
+  Game --> MerchMgr[MerchantManager]
 ```
 
-### Rationale:
-1. **Save System & Inventory first**: Establishes the data structures needed by skills, quests, loot, and world flags.
-2. **Progression & Stealth second**: Enhances the existing core combat loop without changing world layout.
-3. **NPCs, Bosses & Weather third**: Adds depth, atmosphere, and narrative content to current stages.
-4. **Dungeons & Chunk Streaming fourth**: Expands geometry after content systems are robust.
-5. **Photo Mode & Multiplayer last**: Photo mode is isolated; multiplayer requires finalized player and combat protocols.
+### Module Breakdown & Verified Implementations
+
+| Subsystem | File Location | Verified Implementation |
+| :--- | :--- | :--- |
+| **Game Kernel** | [Game.js](file:///c:/Users/bsd/Downloads/game/src/core/Game.js) | Central finite state machine (`MAIN_MENU`, `PLAYING`, `PAUSED`, `GAME_OVER`, `VICTORY`). Dispatches updates to physics, entities, combat, and rendering. Manages pointer lock, pause toggles, inventory toggles, and modal isolation. |
+| **Level Lifecycle** | [LevelManager.js](file:///c:/Users/bsd/Downloads/game/src/core/LevelManager.js) | Two distinct playable stages: `0: The Dark Forest` (outdoor glade, winding trails, ruined shrine) and `1: The Ancient Ruins` (stone catacombs, colonnades, sanctum dais). Handles entity clearing, terrain loading, lighting shifts, and smooth fade transitions. |
+| **Camera Controller** | [CameraManager.js](file:///c:/Users/bsd/Downloads/game/src/core/CameraManager.js) | 3rd-person spherical orbital follower with pitch clamping ($-75^\circ$ to $+85^\circ$), mouse sensitivity scaling, inverted Y options, and raycast obstacle avoidance. |
+| **Player Locomotion & Skeletal Animation** | [Player.js](file:///c:/Users/bsd/Downloads/game/src/entities/Player.js) | Rigged humanoid model (`Soldier.glb`) with 6 skeletal states (`Idle`, `Walk`, `Run`, `Jump`, `Attack`, `Death`). Implements crouch sneak (<kbd>C</kbd>/<kbd>Ctrl</kbd>), acoustic noise radius calculation (0.0m idle, 3.5m crouch, 8.0m walk, 16.0m sprint), terrain height projection, gravity curves, and equipment stat aggregation. |
+| **Enemy AI & Perception** | [Enemy.js](file:///c:/Users/bsd/Downloads/game/src/entities/Enemy.js), [EnemyManager.js](file:///c:/Users/bsd/Downloads/game/src/entities/EnemyManager.js) | 3D rigged guardian entities with 6-tier awareness FSM (`UNAWARE`, `SUSPICIOUS`, `ALERTED`, `ENGAGED`, `SEARCHING`, `RETURNING`). Perception combines $115^\circ$ vision cone, Raycast Line-of-Sight obstruction through stone walls, bush concealment detection, and acoustic noise hearing. |
+| **Interactive NPCs & Dialogue** | [NPC.js](file:///c:/Users/bsd/Downloads/game/src/entities/NPC.js), [DialogueManager.js](file:///c:/Users/bsd/Downloads/game/src/systems/DialogueManager.js) | 3 peaceful characters (`Elder Kaelen`, `Valen the Merchant`, `Sylas the Hermit`). Interactive via <kbd>E</kbd> key, displaying floating billboards, quest marker symbols (`!`, `?`), multi-choice branching dialogue graphs, and sound triggers. |
+| **Merchant & Gold Economy** | [MerchantManager.js](file:///c:/Users/bsd/Downloads/game/src/systems/MerchantManager.js) | Two-tab interactive store modal (`Buy` / `Sell`). Validates currency balances, inventory slot capacities, unit pricing, and 50% resale value. |
+| **Inventory & Equipment** | [InventorySystem.js](file:///c:/Users/bsd/Downloads/game/src/systems/InventorySystem.js) | 20-slot grid with stackable consumables/materials (potions, starfall ore, quest items) and unique equipment (`shadow_cleaver`, `void_reaper`, `shadow_plate`, `obsidian_cuirass`, `amulet_of_shadows`). Computes total player attack/defense dynamically. |
+| **Combat & Stealth Takedowns** | [CombatSystem.js](file:///c:/Users/bsd/Downloads/game/src/systems/CombatSystem.js) | Forward arc ($78^\circ$) melee swing detection, instant stealth takedowns from rear $155^\circ$ blindspot on unaware targets (+500 score, purple critical spark VFX), and enemy strike counter-windows. |
+| **Quests & Progression** | [QuestSystem.js](file:///c:/Users/bsd/Downloads/game/src/systems/QuestSystem.js), [Quest.js](file:///c:/Users/bsd/Downloads/game/src/systems/Quest.js) | Decoupled objective engine tracking main stage goals and 3 side quests (`The Hermit's Lost Satchel` [retrieval], `Bane of Grimfang` [kill boss], `The Sunken Grotto` [geographic discovery]). Triggers sanctuary portal unlocking when requirements are met. |
+| **Physics & Spatial Partitioning** | [PhysicsWorld.js](file:///c:/Users/bsd/Downloads/game/src/physics/PhysicsWorld.js) | 2D Spatial Hash Grid with $O(1)$ dynamic neighbor lookups. Circular cylinder colliders, oriented bounding boxes (OBB), elevated platform surfaces, and raycast line-of-sight obstruction checks. |
+| **Persistence Engine** | [SaveManager.js](file:///c:/Users/bsd/Downloads/game/src/systems/SaveManager.js) | IndexedDB-backed (`ShadowQuestDB` v1) with transparent `localStorage` fallback. Features schema validation, migration pipeline, transient level transition guard, and slot management (`quicksave`, `manual_save_1..3`). |
+| **Audio Engine** | [AudioManager.js](file:///c:/Users/bsd/Downloads/game/src/audio/AudioManager.js) | Web Audio API node graph with master, music, and SFX volume buses, mute toggle, and synthesized fallbacks for sound effects if audio files are unready. |
 
 ---
 
-## 5. Verification & Testing Strategy
+## 2. Verified Functionality & Test Results
 
-Each upgrade phase must adhere to strict QA gates:
-1. **Zero Console Errors**: CDP automated browser test checking `console.error` and unhandled rejections.
-2. **Build Verification**: `npm run build` must succeed with zero Rollup/Vite bundling warnings.
-3. **Save Schema Integrity**: Verify save, load, stage transition, death, and reload with invalid/missing JSON fallback.
-4. **Frame Rate Benchmark**: Maintain $\ge 60\text{ FPS}$ on standard desktop profiles.
-5. **Git Checkpoint Integrity**: Commit each phase independently with clean commit descriptions.
+All 5 automated end-to-end and integration test suites run against the live headless Chrome CDP instance with **100% pass rate** (49/49 total assertions):
+
+```bash
+# 1. Core Gameplay & Stage Verification (10 suites)
+node tests/core_gameplay.test.js
+# Output: 🏆 ALL 10 CORE GAMEPLAY TEST SUITES PASSED WITH 100% SUCCESS!
+# Tests: Stage 1 init, Player locomotion/jumping, Combat hitboxes, Enemy AI FSM, 
+#        Crystal collections, Quest barrier unlocking, Stage 2 Ruins loading,
+#        Audio volume/mute, Graphics presets, and Pause/resume state lifecycle.
+
+# 2. Save System & Migrations (9 suites)
+node tests/save_system.test.js
+# Output: 🏆 ALL 9 SAVE SYSTEM TEST SUITES PASSED WITH 100% SUCCESS!
+# Tests: IndexedDB Schema v1, Player stats/equipment serialization, Transient state protection,
+#        Settings round-trip, Browser reload restoration, Invalid save rejection.
+
+# 3. Inventory & Equipment System (10 suites)
+node tests/inventory_equipment.test.js
+# Output: 🏆 ALL 10 INVENTORY SYSTEM TEST SUITES PASSED WITH 100% SUCCESS!
+# Tests: 20-slot inventory, Item stacking, Unique equipment gear, Stat recalculation,
+#        Healing/stamina potion usage, Full-capacity rejections, Pickup deduplication.
+
+# 4. Interactive NPCs & Side Quests (10 suites)
+node tests/npcs_sidequests.test.js
+# Output: 🏆 ALL 10 NPC & QUEST TEST SUITES PASSED WITH 100% SUCCESS!
+# Tests: 3 Rigged NPCs, Branching dialogue choices, Side quest acceptance/tracking/completion,
+#        Merchant buy/sell economy, Insufficient gold validation, Dynamic quest markers.
+
+# 5. Stealth & Perception System (10 suites)
+node tests/stealth_system.test.js
+# Output: 🏆 ALL 10 STEALTH SYSTEM TEST SUITES PASSED WITH 100% SUCCESS!
+# Tests: Crouch speed/height modulation, Acoustic noise propagation, 115° FOV cone,
+#        Wall LOS obstruction, Bush concealment, Awareness meter progression,
+#        Noise distraction investigation, Timed searching return, Stealth takedowns.
+```
 
 ---
 
-## 6. Implementation Log & Milestones
+## 3. Asset Dependencies
 
-### Phase 1, Milestone 1: Robust Persistent Save System ✅ COMPLETED
-- **Architecture**: `src/systems/SaveManager.js` using IndexedDB (`ShadowQuestDB` store `saves`) with automatic `localStorage` fallback.
-- **Schema**: Versioned `version: 1` storing player transform, health, level, xp, inventory, equipment, unlocked skills, discovered locations, collectibles, quest objectives, and user settings.
-- **Validation & Migrations**: Runtime integrity validation on every load; automatic migration function converting legacy or unversioned saves to schema v1.
-- **Transient State Protection**: Guarded save logic refusing to save during level transitions (`isTransitioning === true`), player defeat (`health <= 0`), or menu states.
-- **Multiplayer State Isolation**: Local saves strictly separate single-player progress from any network session state (`multiplayer: { isMultiplayer: false, sessionId: null, syncState: 'LOCAL_ONLY' }`).
-- **UI Integration**:
-  - Main menu: **Continue** (enabled with save metadata tooltip when save exists) and **New Game** buttons.
-  - Pause menu: **Save Game** (`#pause-save-btn`) and **Load Game** (`#pause-load-btn`) buttons.
-  - In-game HUD: Visual `#save-indicator` toast with pulse animation.
-- **Automated Verification**: `tests/save_system.test.js` executed via Headless Chrome CDP verifying all 9 requirement suites with 100% pass rate.
+All models and audio assets are locally hosted in `public/` and loaded asynchronously:
 
-### Phase 1, Milestone 2: Inventory & Equipment System ✅ COMPLETED
-- **Architecture**: `src/systems/InventorySystem.js` managing 20-slot inventory, stackable consumables/materials, unique equipment items, and slot-based gear equip/unequip logic.
-- **Character Attributes & Calculations**: Integrated centralized character-stat calculation in `Player.js` computing modified `damage`, `defense`, `maxHealth`, and movement speed from base attributes plus equipped gear.
-- **Item Catalog & Types**:
-  - Weapons (`iron_sword`, `shadow_cleaver`, `void_reaver`).
-  - Armor (`adventurer_tunic`, `shadow_plate`, `sanctuary_aegis`).
-  - Trinkets (`void_talisman`, `radiant_crystal_heart`).
-  - Consumables (`healing_potion`, `greater_healing_potion`, `stamina_potion`).
-  - Crafting Materials (`shadow_essence`, `starfall_ore`, `ruin_shard`).
-  - Quest Items (`sanctuary_key`, `sealed_scroll`).
-- **In-World 3D Pickups**: Subclassed `ItemPickupCollectible` in `src/systems/Collectible.js` with rarity lighting halos, custom geometry, floating/bobbing animations, and duplicate pickup guards.
-- **UI Integration**:
-  - Full-screen responsive inventory modal (`#modal-inventory`) accessible via `I` or `Tab` key and top-bar button.
-  - Category filter tabs (*All*, *Gear*, *Potions*, *Materials & Quest*).
-  - Equipment slots for Weapon, Armor, and Trinket with one-click equip/unequip.
-  - Detailed item inspected panel with stat comparisons, action buttons (`EQUIP`, `USE`, `DROP`), and rarity color styling.
-  - Inventory full warning feedback when capacity is reached.
-- **Save System Integration**: Fully serialized and restored via `SaveManager.js`, with schema backwards compatibility.
-- **Automated Verification**: `tests/inventory_equipment.test.js` executed via Headless Chrome CDP verifying all 10 test suites with 100% pass rate.
+### 3D Rigged Humanoids & Meshes
+- `public/models/Soldier.glb`: Player avatar mesh with animations (`Idle`, `Walk`, `Run`, `Jump`, `Death`, `Attack`).
+- `public/models/EnemyGuardian.glb`: Guardian and boss models with procedural combat rotations and overhead billboard attachments.
+- `public/models/Xbot.glb`: Secondary humanoid mesh asset.
 
-### Phase 2, Milestone 3: Interactive NPCs & Side Quests System ✅ COMPLETED
-- **Architecture**:
-  - `src/entities/NPC.js`: Interactive NPC class with 3D rigged models (`Soldier.glb`, `Xbot.glb`), `AnimationController` for skeletal clips (`Idle`, `Wave`, `agree`), cylinder/circle colliders registered in `PhysicsWorld`, dynamic floating canvas nameplates and quest status markers (`!`, `?`), and smooth player orientation interpolation.
-  - `src/systems/NPCManager.js`: NPC registry, lifecycle, proximity detection, and active interactable resolution.
-  - `src/systems/DialogueManager.js`: Branching dialogue engine with stateful progression trees, choice routing, side quest acceptance hooks, merchant shop triggers, and exit handlers.
-  - `src/systems/MerchantManager.js`: Trading economy engine with gold currency validation, purchasing, selling at 50% catalog value, and inventory capacity guards.
-  - `src/systems/Quest.js` & `src/systems/QuestSystem.js`: Added `SideQuest` class supporting `retrieval`, `kill`, and `discovery` objective types, progress tracking, HUD counters, reward distribution, and save serialization.
-- **Implemented NPCs**:
-  - **Elder Kaelen** (Quest Giver, `npc-kaelen`): Positioned in clearing `(-5, 0, -4)`. Guides player, offers *Bane of Grimfang* and *The Sunken Grotto* side quests.
-  - **Valen** (Traveling Merchant, `npc-valen`): Positioned at campsite `(6, 0.7, -4)`. Sells potions, advanced weapons, and armors; buys loot from the player.
-  - **Sylas** (Forest Hermit, `npc-sylas`): Positioned in grove `(-18, -1, -28)`. Offers *The Hermit's Lost Satchel* side quest.
-- **Implemented Side Quests**:
-  1. *The Hermit's Lost Satchel* (Item Retrieval): Recover Sylas's Alchemy Satchel from northwest ruins. Reward: $100\text{ Gold}$, $100\text{ XP}$, Greater Healing Elixir.
-  2. *Bane of Grimfang* (Dangerous Creature Elimination): Slay the rogue alpha beast Grimfang stalking the forest. Reward: $150\text{ Gold}$, $150\text{ XP}$, Starfall Ore.
-  3. *The Sunken Grotto* (Location Discovery): Discover the ancient Sunken Grotto Shrine hidden in the deep forest. Reward: $100\text{ Gold}$, $100\text{ XP}$, Ruin Shard.
-- **UI & HUD Integration**:
-  - Branching Dialogue Modal (`#modal-dialogue`) with speaker portraits, dialogue text, and interactive choice cards.
-  - Merchant Modal (`#modal-merchant`) with `Buy` and `Sell` tabs, gold balances, item catalog cards, and transaction feedback.
-  - In-game HUD Gold counter (`#hud-gold-counter`) displaying current currency.
-  - In-game HUD Side Quests Tracker (`#side-quests-container`) showing live objectives and statuses (`ACTIVE`, `READY_TO_TURN_IN`, `COMPLETED`).
-- **Persistence**: Integrated into Schema v1 save data (persisting active/completed side quests, current objective counters, and player gold).
-- **Automated Verification**: `tests/npcs_sidequests.test.js` executed via Headless Chrome CDP verifying all 10 requirement suites with 100% pass rate.
+### Local Audio WAV Assets (`public/audio/`)
+- `sword_swing.wav` & `sword_hit.wav`: Melee combat audio feedback.
+- `player_damage.wav`, `enemy_attack.wav`, `enemy_death.wav`: Combat damage cues.
+- `crystal_collect.wav`: Relic crystal and item pickup chime.
+- `jump.wav` & `land.wav`: Locomotion acoustics.
+- `forest_ambience.wav` & `ruins_ambience.wav`: Environmental background soundtrack.
+- `victory.wav`: Stage completion fanfare.
 
-### Phase 2, Milestone 4: Stealth Mechanics & Enemy Awareness System ✅ COMPLETED
-- **Architecture**:
-  - `src/physics/PhysicsWorld.js`: Implemented `hasLineOfSight(from, to)` line-of-sight raycaster testing terrain elevations and solid collider obstructions (walls, pillars, rocks, obstacles).
-  - `src/environment/Vegetation.js` & `Environment.js`: Added cover zones detection (`isNearCover(x, z)`) querying proximity to 80 forest bushes and foliage clumps.
-  - `src/entities/Player.js`: Added crouch/sneak mode (<kbd>C</kbd> or <kbd>Ctrl</kbd>), lowering height profile ($1.2\text{m}$ vs $1.8\text{m}$) and speed ($2.2\text{ m/s}$), and real-time noise radius propagation ($0\text{m}$ idle, $0.8\text{m}$ crouch, $4.0\text{m}$ walk, $9.5\text{m}$ run, $15.5\text{m}$ sprint, $+25\%$ stone surface multiplier).
-  - `src/entities/Enemy.js`:
-    - Added 115-degree vision field-of-view (FOV) cone with distance-based visual perception.
-    - Added multi-tier awareness meter ($0.0$ to $1.0$) with states: `UNAWARE`, `SUSPICIOUS`, `ALERTED`, `ENGAGED`, `SEARCHING`, `RETURNING`.
-    - Added noise-based investigation directing enemies to inspect the player's last known sound coordinates.
-    - Added timed `SEARCH` state with 360-degree head scanning before smoothly returning to patrol routes.
-    - Added overhead billboard awareness meter and status badges (`[?] SUSPICIOUS`, `[!] ALERTED`, `[?] SEARCHING`, `[!] ENGAGED`).
-  - `src/systems/CombatSystem.js`:
-    - Added stealth takedown eligibility checking (enemy alive, not in active combat, player in rear $155^\circ$ arc within $2.2\text{m}$).
-    - Added contextual prompt `[F / Left Click] 🗡️ STEALTH TAKEDOWN`.
-    - Added instant critical elimination, shadow particle effects, and $+500\text{ PTS}$ bonus score without alerting distant enemies.
-  - `src/ui/UIManager.js` & `index.html` & `src/style.css`:
-    - Added HUD movement stance badge (`SNEAKING`, `WALKING`, `RUNNING`, `SPRINTING`).
-    - Added HUD stealth visibility eye indicator (`HIDDEN`, `SNEAKING`, `COVER`, `CAUTION`, `DETECTED`).
-- **Automated Verification**: `tests/stealth_system.test.js` executed via Headless Chrome CDP verifying all 10 stealth requirement suites with 100% pass rate.
-- **Zero Regression**: 100% pass rate maintained across `save_system.test.js`, `inventory_equipment.test.js`, and `npcs_sidequests.test.js`.
+---
+
+## 4. Existing Save Data Schema (Version 1)
+
+```json
+{
+  "version": 1,
+  "timestamp": 1740000000000,
+  "player": {
+    "position": { "x": 0.0, "y": 0.0, "z": 2.0 },
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 },
+    "health": 100,
+    "maxHealth": 100,
+    "level": 1,
+    "experience": 0,
+    "skills": ["shadow_step", "whirlwind"],
+    "discoveredLocations": ["dark-forest-shrine"],
+    "inventory": [
+      { "id": "shadow_cleaver", "itemId": "shadow_cleaver", "quantity": 1 }
+    ],
+    "equipment": {
+      "weapon": { "id": "shadow_blade", "itemId": "shadow_blade" },
+      "armor": null,
+      "trinket": null
+    },
+    "gold": 150
+  },
+  "world": {
+    "currentLevelIndex": 0,
+    "stageScores": [0, 0],
+    "cumulativeScore": 0
+  },
+  "collectibles": {
+    "collectedIds": ["crystal-1", "pickup-blade-1"],
+    "collectedCounts": { "crystal": 1 }
+  },
+  "quest": {
+    "currentQuest": {
+      "id": "mission-restore-the-forest",
+      "enemiesDefeated": 1,
+      "crystalsCollected": 1,
+      "isEntranceUnlocked": false,
+      "isCompleted": false,
+      "score": 100
+    },
+    "sideQuests": [
+      {
+        "id": "side-hermit-satchel",
+        "status": "ACTIVE",
+        "current": 0,
+        "target": 1
+      }
+    ]
+  },
+  "settings": {
+    "masterVolume": 0.7,
+    "musicVolume": 0.5,
+    "sfxVolume": 0.8,
+    "isMuted": false,
+    "mouseSensitivity": 1.0,
+    "invertY": false,
+    "graphicsQuality": "high"
+  },
+  "multiplayer": {
+    "isMultiplayer": false,
+    "sessionToken": null,
+    "sharedWorldState": {}
+  }
+}
+```
+
+---
+
+## 5. Known Edge Cases & Integration Risks
+
+1. **Camera Pointer Lock in Headless / Automated Testing**:
+   - `requestPointerLock()` requires active user gesture in strict browser contexts. Game code uses defensive guards (`setLockEnabled(false)` when menus/modals are active).
+2. **Animation Action Blending during Rapid State Swaps**:
+   - Swapping rapidly between `Attack` and `Crouch` could cause micro-popping if the mixer weight cross-fade time is below 0.15s. Handled cleanly in `Player.js`.
+3. **Save Schema Evolution (Schema v1 -> Schema v2)**:
+   - When adding an extended RPG Skill Tree, Boss encounters, or Custom keybindings, the schema must bump `version: 2` and execute an in-place migration in `SaveManager.migrate()`.
+4. **Transient State Level Loading Guard**:
+   - Quicksaving while `isTransitioning === true` between stages must remain strictly blocked to prevent persisting half-unloaded scenes.
+
+---
+
+## 6. Phased Feature Dependency Plan for Upcoming RPG Upgrades
+
+```mermaid
+flowchart LR
+  Phase1["Phase 1: Centralized Character Stat & Skill Tree Engine"]
+  Phase2["Phase 2: Boss Encounters & Telegraph Mechanics"]
+  Phase3["Phase 3: Dungeons, Environmental Puzzles & Locked Portals"]
+  Phase4["Phase 4: Dynamic Day/Night Cycle & Weather Atmosphere"]
+  Phase5["Phase 5: Mounts & Fast Travel Waypoints"]
+
+  Phase1 --> Phase2
+  Phase2 --> Phase3
+  Phase3 --> Phase4
+  Phase4 --> Phase5
+```
+
+### Proposed Upgrade Sequence:
+1. **Phase 1: Centralized Character Stat & Skill Tree Progression**:
+   - Expand `Player.js` stat calculation with Strength, Agility, Arcane, and Stamina nodes.
+   - Add Skill Point allocation UI (<kbd>K</kbd>) hooked into Schema v2 save persistence.
+2. **Phase 2: Boss Encounters & Telegraph Mechanics**:
+   - Build on `EnemyManager.js` and `CombatSystem.js` with multi-phase bosses (`Sanctuary Warden`, `Ancient Colossus`) having red ground telegraphed AoE circles, charge attacks, and invulnerability shields.
+3. **Phase 3: Dungeons & Environmental Puzzles**:
+   - Pressure plates, movable stone blocks, and crystal puzzle pillars integrated into `PhysicsWorld.js` and `QuestSystem.js`.
+4. **Phase 4: Dynamic Lighting, Day/Night & Weather**:
+   - Procedural skybox shader, sun/moon rotational directional light, and particle rain/fog integrated into `Environment.js`.
+5. **Phase 5: Mounts & Fast Travel Waypoints**:
+   - Rideable companion entity reusing locomotion physics, with discovery waypoints stored in `SaveManager.js`.

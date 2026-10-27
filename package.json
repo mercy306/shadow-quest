@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "deploy": "node scripts/deploy_gh_pages.cjs",
     "server": "node server/coop-server.js"
   },
   "dependencies": {

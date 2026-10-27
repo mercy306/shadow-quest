@@ -24,6 +24,10 @@ export class CombatSystem {
     this.mountManager = mountManager;
   }
 
+  setNetworkManager(networkManager) {
+    this.networkManager = networkManager;
+  }
+
   setManagers({ questSystem, audioManager, uiManager, vfxManager, levelManager }) {
     if (questSystem) this.questSystem = questSystem;
     if (audioManager) this.audioManager = audioManager;
@@ -43,144 +47,152 @@ export class CombatSystem {
 
     // 1. Check player melee swing hitbox against nearby enemies
     if (this.player.isAttacking && !this.player.hasDealtDamageThisSwing) {
-      const playerPos = this.player.getPosition();
-      const forward = this.player.getForwardVector();
-      const attackReach = 2.6;
-      const enemies = this.enemyManager.getEnemies();
+      if (this.networkManager && this.networkManager.isInRoom()) {
+        this.networkManager.sendAttackIntent(false);
+        this.player.hasDealtDamageThisSwing = true;
+      } else {
+        const playerPos = this.player.getPosition();
+        const forward = this.player.getForwardVector();
+        const attackReach = 2.6;
+        const enemies = this.enemyManager.getEnemies();
 
-      let hitAny = false;
+        let hitAny = false;
 
-      for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i];
-        if (!enemy.isAlive()) continue;
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i];
+          if (!enemy.isAlive()) continue;
 
-        const dx = enemy.position.x - playerPos.x;
-        const dz = enemy.position.z - playerPos.z;
-        const dist = Math.hypot(dx, dz);
+          const dx = enemy.position.x - playerPos.x;
+          const dz = enemy.position.z - playerPos.z;
+          const dist = Math.hypot(dx, dz);
 
-        if (dist <= attackReach) {
-          // Angle check: enemy must be in front cone of player
-          const dirX = dx / dist;
-          const dirZ = dz / dist;
-          const dot = forward.x * dirX + forward.z * dirZ;
+          if (dist <= attackReach) {
+            // Angle check: enemy must be in front cone of player
+            const dirX = dx / dist;
+            const dirZ = dz / dist;
+            const dot = forward.x * dirX + forward.z * dirZ;
 
-          if (dot > 0.2) { // ~78-degree forward cone
-            hitAny = true;
-            const wasAlive = enemy.isAlive();
-            const isTakedown = Boolean(enemy.isEligibleForTakedown);
-            const isBoss = Boolean(enemy.isBoss || enemy.id === 'grimfang-alpha' || enemy.id === 'ruins-colossus-boss' || (enemy.name && (enemy.name.toLowerCase().includes('boss') || enemy.name.toLowerCase().includes('alpha') || enemy.name.toLowerCase().includes('colossus'))));
+            if (dot > 0.2) { // ~78-degree forward cone
+              hitAny = true;
+              const wasAlive = enemy.isAlive();
+              const isTakedown = Boolean(enemy.isEligibleForTakedown);
+              const isBoss = Boolean(enemy.isBoss || enemy.id === 'grimfang-alpha' || enemy.id === 'ruins-colossus-boss' || (enemy.name && (enemy.name.toLowerCase().includes('boss') || enemy.name.toLowerCase().includes('alpha') || enemy.name.toLowerCase().includes('colossus'))));
 
-            // Standard enemies are defeated instantly via stealth takedown (9999 damage).
-            // Bosses/elites (e.g. Grimfang Alpha, Ancient Colossus) take critical bonus damage (250%) and are stunned, preventing stealth from unintentionally trivializing or bypassing multi-phase boss mechanics.
-            let damageToDeal = this.player.damage;
-            if (isTakedown) {
-              if (isBoss) {
-                damageToDeal = Math.max(120, Math.round(this.player.damage * 2.5));
-              } else {
-                damageToDeal = Math.max(9999, enemy.health * 2);
-              }
-            }
-
-            enemy.takeDamage(damageToDeal);
-
-            // Audio feedback
-            if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
-              this.audioManager.playSwordHit();
-            }
-
-            // Visual feedback: impact sparks, damage numbers, and enemy damage flash
-            if (this.vfxManager) {
-              const hitPos = new THREE.Vector3(
-                playerPos.x + dx * 0.6,
-                enemy.position.y + 1.2,
-                playerPos.z + dz * 0.6
-              );
-              const sparkColor = isTakedown ? (isBoss ? 0xf43f5e : 0xc084fc) : 0xffbb33;
-              const sparkCount = isTakedown ? 40 : 22;
-              this.vfxManager.spawnImpactSparks(hitPos, sparkCount, sparkColor);
-              this.vfxManager.flashEnemyHit(enemy);
-              this.vfxManager.spawnDamageNumber(enemy.position, isTakedown ? (isBoss ? `CRIT STRIKE -${damageToDeal}` : 'CRIT TAKEDOWN!') : this.player.damage, isTakedown);
-            }
-
-            if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+              let damageToDeal = this.player.damage;
               if (isTakedown) {
                 if (isBoss) {
-                  this.uiManager.showCollectNotification(`🗡️ CRITICAL STEALTH STRIKE on ${enemy.name}! -${damageToDeal} HP (+500 PTS)`);
+                  damageToDeal = Math.max(120, Math.round(this.player.damage * 2.5));
                 } else {
-                  this.uiManager.showCollectNotification(`🗡️ STEALTH TAKEDOWN on ${enemy.name}! +500 PTS`);
+                  damageToDeal = Math.max(9999, enemy.health * 2);
                 }
-                if (this.questSystem && this.questSystem.currentQuest) {
-                  this.questSystem.currentQuest.score = (this.questSystem.currentQuest.score || 0) + 500;
-                }
-              } else {
-                this.uiManager.showCollectNotification(`Hit ${enemy.name}! -${this.player.damage} HP`);
               }
-            }
 
-            // If enemy died from this blow
-            if (wasAlive && !enemy.isAlive()) {
-              this.handleEnemyDefeat(enemy, isTakedown);
+              enemy.takeDamage(damageToDeal);
+
+              // Audio feedback
+              if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
+                this.audioManager.playSwordHit();
+              }
+
+              // Visual feedback: impact sparks, damage numbers, and enemy damage flash
+              if (this.vfxManager) {
+                const hitPos = new THREE.Vector3(
+                  playerPos.x + dx * 0.6,
+                  enemy.position.y + 1.2,
+                  playerPos.z + dz * 0.6
+                );
+                const sparkColor = isTakedown ? (isBoss ? 0xf43f5e : 0xc084fc) : 0xffbb33;
+                const sparkCount = isTakedown ? 40 : 22;
+                this.vfxManager.spawnImpactSparks(hitPos, sparkCount, sparkColor);
+                this.vfxManager.flashEnemyHit(enemy);
+                this.vfxManager.spawnDamageNumber(enemy.position, isTakedown ? (isBoss ? `CRIT STRIKE -${damageToDeal}` : 'CRIT TAKEDOWN!') : this.player.damage, isTakedown);
+              }
+
+              if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+                if (isTakedown) {
+                  if (isBoss) {
+                    this.uiManager.showCollectNotification(`🗡️ CRITICAL STEALTH STRIKE on ${enemy.name}! -${damageToDeal} HP (+500 PTS)`);
+                  } else {
+                    this.uiManager.showCollectNotification(`🗡️ STEALTH TAKEDOWN on ${enemy.name}! +500 PTS`);
+                  }
+                  if (this.questSystem && this.questSystem.currentQuest) {
+                    this.questSystem.currentQuest.score = (this.questSystem.currentQuest.score || 0) + 500;
+                  }
+                } else {
+                  this.uiManager.showCollectNotification(`Hit ${enemy.name}! -${this.player.damage} HP`);
+                }
+              }
+
+              // If enemy died from this blow
+              if (wasAlive && !enemy.isAlive()) {
+                this.handleEnemyDefeat(enemy, isTakedown);
+              }
             }
           }
         }
-      }
 
-      if (hitAny) {
-        this.player.hasDealtDamageThisSwing = true;
+        if (hitAny) {
+          this.player.hasDealtDamageThisSwing = true;
+        }
       }
     }
 
     // 1b. Check player Heavy Spin Slash hitbox against surrounding enemies (360-degree, 3.6m reach)
     if (this.player.isHeavyAttacking && !this.player.hasDealtDamageThisHeavyAttack) {
-      const playerPos = this.player.getPosition();
-      const heavyReach = 3.6;
-      const enemies = this.enemyManager.getEnemies();
-      const skillBonuses = this.player.skillTree ? this.player.skillTree.getBonuses() : {};
-      const mult = skillBonuses.heavyDamageMult || 2.2;
-      const heavyDamage = Math.round(this.player.damage * mult);
+      if (this.networkManager && this.networkManager.isInRoom()) {
+        this.networkManager.sendAttackIntent(true);
+        this.player.hasDealtDamageThisHeavyAttack = true;
+      } else {
+        const playerPos = this.player.getPosition();
+        const heavyReach = 3.6;
+        const enemies = this.enemyManager.getEnemies();
+        const skillBonuses = this.player.skillTree ? this.player.skillTree.getBonuses() : {};
+        const mult = skillBonuses.heavyDamageMult || 2.2;
+        const heavyDamage = Math.round(this.player.damage * mult);
 
-      let hitAny = false;
+        let hitAny = false;
 
-      for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i];
-        if (!enemy.isAlive()) continue;
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i];
+          if (!enemy.isAlive()) continue;
 
-        const dx = enemy.position.x - playerPos.x;
-        const dz = enemy.position.z - playerPos.z;
-        const dist = Math.hypot(dx, dz);
+          const dx = enemy.position.x - playerPos.x;
+          const dz = enemy.position.z - playerPos.z;
+          const dist = Math.hypot(dx, dz);
 
-        if (dist <= heavyReach) {
-          hitAny = true;
-          const wasAlive = enemy.isAlive();
-          enemy.takeDamage(heavyDamage);
+          if (dist <= heavyReach) {
+            hitAny = true;
+            const wasAlive = enemy.isAlive();
+            enemy.takeDamage(heavyDamage);
 
-          if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
-            this.audioManager.playSwordHit();
-          }
+            if (this.audioManager && typeof this.audioManager.playSwordHit === 'function') {
+              this.audioManager.playSwordHit();
+            }
 
-          if (this.vfxManager) {
-            const hitPos = new THREE.Vector3(
-              playerPos.x + dx * 0.7,
-              enemy.position.y + 1.2,
-              playerPos.z + dz * 0.7
-            );
-            this.vfxManager.spawnImpactSparks(hitPos, 35, 0x38bdf8);
-            this.vfxManager.flashEnemyHit(enemy);
-            this.vfxManager.spawnDamageNumber(enemy.position, `HEAVY -${heavyDamage}`, true);
-          }
+            if (this.vfxManager) {
+              const hitPos = new THREE.Vector3(
+                playerPos.x + dx * 0.7,
+                enemy.position.y + 1.2,
+                playerPos.z + dz * 0.7
+              );
+              this.vfxManager.spawnImpactSparks(hitPos, 35, 0x38bdf8);
+              this.vfxManager.flashEnemyHit(enemy);
+              this.vfxManager.spawnDamageNumber(enemy.position, `HEAVY -${heavyDamage}`, true);
+            }
 
-          if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
-            this.uiManager.showCollectNotification(`🌀 Spin Slash hit ${enemy.name}! -${heavyDamage} HP`);
-          }
+            if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+              this.uiManager.showCollectNotification(`🌀 Spin Slash hit ${enemy.name}! -${heavyDamage} HP`);
+            }
 
-          if (wasAlive && !enemy.isAlive()) {
-            this.handleEnemyDefeat(enemy, false);
+            if (wasAlive && !enemy.isAlive()) {
+              this.handleEnemyDefeat(enemy, false);
+            }
           }
         }
-      }
 
-      if (hitAny) {
-        this.player.hasDealtDamageThisHeavyAttack = true;
+        if (hitAny) {
+          this.player.hasDealtDamageThisHeavyAttack = true;
+        }
       }
     }
 

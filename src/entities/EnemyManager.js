@@ -272,6 +272,12 @@ export class EnemyManager {
     return this.boss;
   }
 
+  getEnemyById(id) {
+    if (!id) return null;
+    if (this.boss && this.boss.id === id) return this.boss;
+    return this.enemies.find(e => e.id === id) || null;
+  }
+
   clear() {
     this.enemies.forEach(enemy => {
       if (typeof enemy.dispose === 'function') {

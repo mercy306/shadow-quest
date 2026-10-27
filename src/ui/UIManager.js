@@ -15,9 +15,33 @@ export class UIManager {
     this.menuBtnSettings = document.getElementById('menu-btn-settings');
     this.menuBtnControls = document.getElementById('menu-btn-controls');
     this.menuBtnCredits = document.getElementById('menu-btn-credits');
+    this.menuBtnCoop = document.getElementById('menu-btn-coop');
 
     // Modals
     this.modalSettings = document.getElementById('modal-settings');
+    this.modalControls = document.getElementById('modal-controls');
+    this.modalCredits = document.getElementById('modal-credits');
+    this.modalCoop = document.getElementById('modal-coop');
+    this.closeCoopBtn = document.getElementById('close-coop-btn');
+    this.tabCoopHost = document.getElementById('tab-coop-host');
+    this.tabCoopJoin = document.getElementById('tab-coop-join');
+    this.coopPanelHost = document.getElementById('coop-panel-host');
+    this.coopPanelJoin = document.getElementById('coop-panel-join');
+    this.coopHostName = document.getElementById('coop-host-name');
+    this.coopGuestName = document.getElementById('coop-guest-name');
+    this.coopCreateRoomBtn = document.getElementById('coop-create-room-btn');
+    this.coopHostLobby = document.getElementById('coop-host-lobby');
+    this.coopDisplayRoomCode = document.getElementById('coop-display-room-code');
+    this.coopCopyCodeBtn = document.getElementById('coop-copy-code-btn');
+    this.lobbyHostName = document.getElementById('lobby-host-name');
+    this.lobbyGuestSlot = document.getElementById('lobby-guest-slot');
+    this.lobbyGuestName = document.getElementById('lobby-guest-name');
+    this.coopStartGameBtn = document.getElementById('coop-start-game-btn');
+    this.coopInputCode = document.getElementById('coop-input-code');
+    this.coopJoinRoomBtn = document.getElementById('coop-join-room-btn');
+    this.coopJoinStatus = document.getElementById('coop-join-status');
+    this.coopLeaveBtn = document.getElementById('coop-leave-btn');
+    this.pauseCoopLeaveBtn = document.getElementById('pause-coop-leave-btn');
     this.modalControls = document.getElementById('modal-controls');
     this.modalCredits = document.getElementById('modal-credits');
     this.modalInventory = document.getElementById('modal-inventory');
@@ -303,6 +327,138 @@ export class UIManager {
     if (this.menuBtnCredits) {
       this.menuBtnCredits.onclick = () => this.openModal(this.modalCredits);
     }
+  }
+
+  setupCoopModal(networkManager, game) {
+    if (this.menuBtnCoop) {
+      this.menuBtnCoop.onclick = () => {
+        this.openModal(this.modalCoop);
+      };
+    }
+
+    if (this.closeCoopBtn) {
+      this.closeCoopBtn.onclick = () => {
+        this.closeModal(this.modalCoop);
+      };
+    }
+
+    // Tabs
+    if (this.tabCoopHost && this.tabCoopJoin) {
+      this.tabCoopHost.onclick = () => {
+        this.tabCoopHost.classList.add('active');
+        this.tabCoopJoin.classList.remove('active');
+        if (this.coopPanelHost) this.coopPanelHost.classList.remove('hidden');
+        if (this.coopPanelJoin) this.coopPanelJoin.classList.add('hidden');
+      };
+
+      this.tabCoopJoin.onclick = () => {
+        this.tabCoopJoin.classList.add('active');
+        this.tabCoopHost.classList.remove('active');
+        if (this.coopPanelJoin) this.coopPanelJoin.classList.remove('hidden');
+        if (this.coopPanelHost) this.coopPanelHost.classList.add('hidden');
+      };
+    }
+
+    // Host Room button
+    if (this.coopCreateRoomBtn) {
+      this.coopCreateRoomBtn.onclick = async () => {
+        const name = this.coopHostName ? (this.coopHostName.value.trim() || 'Hero 1') : 'Hero 1';
+        try {
+          this.coopCreateRoomBtn.disabled = true;
+          this.coopCreateRoomBtn.textContent = 'CONNECTING...';
+          await networkManager.createRoom(name);
+          if (this.coopHostLobby) this.coopHostLobby.classList.remove('hidden');
+          if (this.coopDisplayRoomCode) this.coopDisplayRoomCode.textContent = networkManager.roomCode;
+          if (this.lobbyHostName) this.lobbyHostName.textContent = `${name} (Host)`;
+        } catch (err) {
+          alert('Failed to connect to Co-Op server: ' + err.message);
+        } finally {
+          this.coopCreateRoomBtn.disabled = false;
+          this.coopCreateRoomBtn.textContent = 'CREATE PRIVATE ROOM';
+        }
+      };
+    }
+
+    // Copy Code button
+    if (this.coopCopyCodeBtn) {
+      this.coopCopyCodeBtn.onclick = () => {
+        if (networkManager.roomCode) {
+          navigator.clipboard?.writeText(networkManager.roomCode);
+          this.showCollectNotification(`📋 Room code ${networkManager.roomCode} copied to clipboard!`);
+        }
+      };
+    }
+
+    // Start Game from Lobby button
+    if (this.coopStartGameBtn) {
+      this.coopStartGameBtn.onclick = () => {
+        this.closeModal(this.modalCoop);
+        game.startCoopGame(networkManager.roomCode, true);
+      };
+    }
+
+    // Join Room button
+    if (this.coopJoinRoomBtn) {
+      this.coopJoinRoomBtn.onclick = async () => {
+        const name = this.coopGuestName ? (this.coopGuestName.value.trim() || 'Hero 2') : 'Hero 2';
+        const code = this.coopInputCode ? this.coopInputCode.value.trim().toUpperCase() : '';
+        if (!code || code.length !== 5) {
+          alert('Please enter a valid 5-character room code.');
+          return;
+        }
+
+        try {
+          this.coopJoinRoomBtn.disabled = true;
+          this.coopJoinRoomBtn.textContent = 'JOINING ROOM...';
+          await networkManager.joinRoom(code, name);
+          this.closeModal(this.modalCoop);
+          game.startCoopGame(code, false);
+        } catch (err) {
+          alert('Failed to join room: ' + err.message);
+        } finally {
+          this.coopJoinRoomBtn.disabled = false;
+          this.coopJoinRoomBtn.textContent = 'CONNECT & JOIN ROOM';
+        }
+      };
+    }
+
+    // Leave buttons
+    const handleLeave = () => {
+      networkManager.leaveRoom();
+      game.leaveCoopGame();
+    };
+
+    if (this.coopLeaveBtn) this.coopLeaveBtn.onclick = handleLeave;
+    if (this.pauseCoopLeaveBtn) this.pauseCoopLeaveBtn.onclick = handleLeave;
+
+    // React to peer joined
+    networkManager.onPeerJoin((msg) => {
+      if (this.lobbyGuestSlot) {
+        this.lobbyGuestSlot.classList.remove('waiting');
+        this.lobbyGuestSlot.classList.add('ready');
+      }
+      if (this.lobbyGuestName) {
+        this.lobbyGuestName.textContent = `${msg.peerName} (Partner)`;
+      }
+      if (this.coopStartGameBtn) {
+        this.coopStartGameBtn.disabled = false;
+        this.coopStartGameBtn.classList.remove('disabled');
+      }
+    });
+
+    networkManager.onPeerLeave(() => {
+      if (this.lobbyGuestSlot) {
+        this.lobbyGuestSlot.classList.add('waiting');
+        this.lobbyGuestSlot.classList.remove('ready');
+      }
+      if (this.lobbyGuestName) {
+        this.lobbyGuestName.textContent = 'Waiting for Player 2...';
+      }
+      if (this.coopStartGameBtn) {
+        this.coopStartGameBtn.disabled = true;
+        this.coopStartGameBtn.classList.add('disabled');
+      }
+    });
   }
 
   setContinueButtonEnabled(enabled, metaText = '') {
@@ -2459,6 +2615,11 @@ export class UIManager {
     if (this.pauseScreen) {
       if (isPaused) {
         this.pauseScreen.classList.remove('hidden');
+        const isCoop = Boolean(window.game && window.game.networkManager && window.game.networkManager.isInRoom());
+        if (this.pauseCoopLeaveBtn) {
+          if (isCoop) this.pauseCoopLeaveBtn.classList.remove('hidden');
+          else this.pauseCoopLeaveBtn.classList.add('hidden');
+        }
         if (this.resumeBtn && onResume) this.resumeBtn.onclick = onResume;
         if (this.pausePhotoBtn && onPhotoMode) {
           this.pausePhotoBtn.onclick = () => {

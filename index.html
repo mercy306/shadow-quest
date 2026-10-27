@@ -46,7 +46,10 @@
             <span class="btn-icon">⏩</span> CONTINUE
           </button>
           <button id="menu-btn-play" class="menu-btn secondary">
-            <span class="btn-icon">⚔️</span> NEW GAME
+            <span class="btn-icon">⚔️</span> NEW GAME (SINGLE PLAYER)
+          </button>
+          <button id="menu-btn-coop" class="menu-btn coop-highlight">
+            <span class="btn-icon">👥</span> TWO-PLAYER CO-OP
           </button>
           <button id="menu-btn-settings" class="menu-btn">
             <span class="btn-icon">⚙️</span> SETTINGS
@@ -706,6 +709,86 @@
       </div>
     </div>
 
+    <!-- ==================== TWO-PLAYER CO-OP MODAL ==================== -->
+    <div id="modal-coop" class="game-modal hidden">
+      <div class="modal-card coop-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">ONLINE TWO-PLAYER CO-OP</h2>
+            <span class="coop-mode-pill">AUTHORITATIVE REAL-TIME SESSION</span>
+          </div>
+          <button id="close-coop-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body coop-modal-body">
+          <div class="coop-tabs">
+            <button id="tab-coop-host" class="coop-tab-btn active">👑 HOST NEW ROOM</button>
+            <button id="tab-coop-join" class="coop-tab-btn">🤝 JOIN EXISTING ROOM</button>
+          </div>
+
+          <!-- Panel 1: Host Room -->
+          <div id="coop-panel-host" class="coop-panel">
+            <p class="coop-desc">Create a private two-player room and invite a friend. You will explore, fight corrupted guardians, and cleanse the ancient sanctuary together.</p>
+            <div class="coop-field-group">
+              <label for="coop-host-name">Your Character Name</label>
+              <input type="text" id="coop-host-name" class="coop-input" value="Hero 1" maxlength="16" placeholder="Enter name..." />
+            </div>
+            <div class="coop-actions-row">
+              <button id="coop-create-room-btn" class="coop-action-btn primary">
+                <span>CREATE PRIVATE ROOM</span>
+              </button>
+            </div>
+
+            <!-- Host Lobby State -->
+            <div id="coop-host-lobby" class="coop-lobby-card hidden">
+              <div class="lobby-code-badge">
+                <span class="lobby-code-label">ROOM CODE:</span>
+                <span id="coop-display-room-code" class="lobby-code-text">-----</span>
+                <button id="coop-copy-code-btn" class="coop-copy-btn" title="Copy Room Code">📋 COPY</button>
+              </div>
+              <p class="lobby-hint">Share this code with your co-op partner so they can join your realm.</p>
+              
+              <div class="lobby-players-grid">
+                <div class="lobby-player-slot ready">
+                  <span class="slot-crown">👑</span>
+                  <span id="lobby-host-name" class="slot-name">Hero 1 (Host)</span>
+                  <span class="slot-status">READY</span>
+                </div>
+                <div id="lobby-guest-slot" class="lobby-player-slot waiting">
+                  <span class="slot-icon">⏳</span>
+                  <span id="lobby-guest-name" class="slot-name">Waiting for Player 2...</span>
+                  <span class="slot-status">WAITING</span>
+                </div>
+              </div>
+
+              <button id="coop-start-game-btn" class="coop-action-btn primary disabled" disabled>
+                <span>⚔️ EMBARK ON CO-OP QUEST</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel 2: Join Room -->
+          <div id="coop-panel-join" class="coop-panel hidden">
+            <p class="coop-desc">Enter the 5-character private room code provided by your co-op partner.</p>
+            <div class="coop-field-group">
+              <label for="coop-guest-name">Your Character Name</label>
+              <input type="text" id="coop-guest-name" class="coop-input" value="Hero 2" maxlength="16" placeholder="Enter name..." />
+            </div>
+            <div class="coop-field-group">
+              <label for="coop-input-code">5-Character Room Code</label>
+              <input type="text" id="coop-input-code" class="coop-input coop-code-input" maxlength="5" placeholder="e.g. 7K2X9" />
+            </div>
+            <div class="coop-actions-row">
+              <button id="coop-join-room-btn" class="coop-action-btn secondary">
+                <span>CONNECT & JOIN ROOM</span>
+              </button>
+            </div>
+            <div id="coop-join-status" class="coop-join-status hidden"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Location Discovery Floating Banner -->
     <div id="discovery-banner" class="discovery-banner hidden">
       <div class="discovery-banner-glow"></div>
@@ -775,6 +858,18 @@
         <div id="score-badge" class="score-badge">
           <span class="score-label">SCORE:</span>
           <span id="score-text" class="score-text">0 PTS</span>
+        </div>
+
+        <!-- Co-Op Online Session Status Badge -->
+        <div id="coop-status-badge" class="coop-status-badge hidden" title="Two-Player Co-Op Online Session">
+          <span class="coop-badge-icon">👥</span>
+          <span class="coop-room-code-label">ROOM:</span>
+          <span id="coop-room-code-text" class="coop-room-code-text">-----</span>
+          <span class="coop-divider">•</span>
+          <span id="coop-partner-text" class="coop-partner-text">Waiting for Player 2...</span>
+          <span class="coop-divider">•</span>
+          <span id="coop-ping-text" class="coop-ping-text">--ms</span>
+          <button id="coop-leave-btn" class="coop-leave-btn" title="Leave Co-Op Session">✕</button>
         </div>
 
         <div class="top-bar-right">
@@ -1063,6 +1158,7 @@
 
         <div class="pause-actions">
           <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
+          <button id="pause-coop-leave-btn" class="pause-btn danger hidden">👥 LEAVE CO-OP (RETURN TO SINGLE PLAYER)</button>
           <button id="pause-photo-btn" class="pause-btn">📷 PHOTO MODE</button>
           <button id="pause-save-btn" class="pause-btn save-btn">💾 QUICK SAVE</button>
           <button id="pause-slots-btn" class="pause-btn save-btn">📁 SAVE / LOAD SLOTS</button>

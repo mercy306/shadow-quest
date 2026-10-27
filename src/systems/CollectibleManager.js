@@ -11,12 +11,22 @@ export class CollectibleManager {
     this.totalCounts = new Map();
     this.collectedIds = new Set();
     this.onCollectCallbacks = [];
+    this.networkManager = null;
+  }
+
+  setNetworkManager(networkManager) {
+    this.networkManager = networkManager;
   }
 
   onCollect(callback) {
     if (typeof callback === 'function') {
       this.onCollectCallbacks.push(callback);
     }
+  }
+
+  getCollectibleById(id) {
+    if (!id) return null;
+    return this.collectibles.find(c => c.id === id) || null;
   }
 
   setPhysicsWorld(physicsWorld) {
@@ -199,6 +209,11 @@ export class CollectibleManager {
           }
 
           // Existing crystal collection logic (100% preserved)
+          if (this.networkManager && this.networkManager.isInRoom()) {
+            this.networkManager.sendPickupIntent(item.id);
+            continue;
+          }
+
           const success = item.collect();
           if (success) {
             this.collectedIds.add(item.id);

@@ -17,6 +17,7 @@ import { DialogueManager } from '../systems/DialogueManager.js';
 import { MerchantManager } from '../systems/MerchantManager.js';
 import { MountManager } from '../entities/MountManager.js';
 import { PhotoModeManager } from '../systems/PhotoModeManager.js';
+import { NetworkManager } from '../network/NetworkManager.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -42,6 +43,8 @@ export class Game {
     this.merchantManager = null;
     this.mountManager = null;
     this.photoModeManager = null;
+    this.networkManager = new NetworkManager(this);
+    this.isCoopMode = false;
     this.gameState = GameState.MAIN_MENU;
     this.currentGraphicsPreset = 'high';
   }
@@ -264,6 +267,11 @@ export class Game {
 
       // 13b. Dedicated Photo Mode System
       this.photoModeManager = new PhotoModeManager(this);
+
+      // 13c. Two-Player Co-Op Multiplayer System
+      this.combatSystem.setNetworkManager(this.networkManager);
+      this.collectibleManager.setNetworkManager(this.networkManager);
+      this.uiManager.setupCoopModal(this.networkManager, this);
 
       // 14. Pause & window resize listeners
       this.setupInputListeners();
@@ -619,6 +627,10 @@ export class Game {
   }
 
   async startNewGame(force = false) {
+    this.isCoopMode = false;
+    if (this.networkManager && this.networkManager.isInRoom()) {
+      this.networkManager.leaveRoom();
+    }
     if (!force && this.saveManager && await this.saveManager.hasAnySave()) {
       if (this.uiManager && typeof this.uiManager.showConfirmation === 'function') {
         const confirmed = await this.uiManager.showConfirmation(
@@ -662,6 +674,10 @@ export class Game {
   }
 
   async continueSavedGame() {
+    this.isCoopMode = false;
+    if (this.networkManager && this.networkManager.isInRoom()) {
+      this.networkManager.leaveRoom();
+    }
     const slotToLoad = await this.saveManager.getLatestSaveSlot();
     const hasSave = await this.saveManager.hasSave(slotToLoad);
     if (!hasSave) {
@@ -684,7 +700,61 @@ export class Game {
     }
   }
 
+  async startCoopGame(roomCode, isHost = true) {
+    this.isCoopMode = true;
+    this.levelManager.stageScores = [0, 0];
+    this.levelManager.cumulativeScore = 0;
+    if (this.levelManager.currentLevelIndex !== 0) {
+      await this.levelManager.loadLevel(0, true);
+    }
+    if (this.player) {
+      this.player.level = 1;
+      this.player.xp = 0;
+      this.player.gold = 150;
+      this.player.unlockedSkills = ['sword_slash', 'fast_sprint', 'ground_roll'];
+      this.player.discoveredLocations = ['dark-forest'];
+      if (this.player.inventorySystem) {
+        this.player.inventorySystem.slots = new Array(this.player.inventorySystem.capacity).fill(null);
+        this.player.inventorySystem.gold = 150;
+        this.player.inventorySystem.initDefaultLoadout();
+        this.player.inventory = this.player.inventorySystem.slots.filter(Boolean);
+      }
+      this.player.recalculateStats();
+      this.player.health = this.player.maxHealth;
+      // Stagger spawn positions so Host and Guest don't overlap
+      const spawnX = isHost ? 0.0 : 2.5;
+      const spawnZ = 2.0;
+      this.player.position.set(spawnX, 0.8, spawnZ);
+      this.player.groundToTerrain(spawnX, spawnZ);
+    }
+    if (this.questSystem) {
+      this.questSystem.initSideQuests();
+      this.questSystem.updateSideQuestHUD();
+    }
+    this.startGame();
+    if (this.networkManager) {
+      this.networkManager.updateHUDStatus();
+    }
+  }
+
+  leaveCoopGame() {
+    this.isCoopMode = false;
+    if (this.networkManager) {
+      this.networkManager.leaveRoom();
+      this.networkManager.updateHUDStatus();
+    }
+    if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+      this.uiManager.showCollectNotification('Returned to Single Player Mode.');
+    }
+  }
+
   async saveCurrentGame(slot = QUICK_SAVE_SLOT, options = {}) {
+    if (this.isCoopMode) {
+      if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
+        this.uiManager.showCollectNotification('Personal save data is isolated from transient Co-Op session.');
+      }
+      return { success: false, reason: 'Saving disabled during co-op session' };
+    }
     return await this.saveManager.saveGame(this, slot, options);
   }
 
@@ -697,6 +767,7 @@ export class Game {
   }
 
   async autoSave(reason = 'Checkpoint reached') {
+    if (this.isCoopMode) return;
     if (!this.saveManager) return;
     const canSaveRes = this.saveManager.canSave(this);
     if (!canSaveRes.allowed) {
@@ -906,6 +977,23 @@ export class Game {
     // Visual Effects (particles, sparks, trails)
     if (this.vfxManager) {
       this.vfxManager.update(deltaTime);
+    }
+
+    // Co-Op Network Manager & Remote Partner interpolation
+    if (this.networkManager) {
+      this.networkManager.update(deltaTime);
+
+      // Check stage exit portal step-in for co-op
+      if (this.isCoopMode && this.player && this.questSystem && this.questSystem.exitLocation) {
+        const quest = this.questSystem.getCurrentQuest();
+        if (quest && quest.isEntranceUnlocked) {
+          const pos = this.player.getPosition();
+          const dist = Math.hypot(pos.x - this.questSystem.exitLocation.x, pos.z - this.questSystem.exitLocation.z);
+          if (dist <= 3.2) {
+            this.networkManager.sendPortalEnterIntent();
+          }
+        }
+      }
     }
   }
 

@@ -124,6 +124,10 @@ async function connectToChrome(port, targetUrl, userDataDir) {
     throw new Error(`Failed to connect to Chrome on port ${port}`);
   }
 
+  await cdp.send('Page.enable');
+  await cdp.send('Runtime.enable');
+  await cdp.send('Page.navigate', { url: targetUrl });
+
   // Wait for game initialization
   let ready = false;
   for (let i = 0; i < 60; i++) {

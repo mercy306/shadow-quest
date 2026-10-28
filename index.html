@@ -802,136 +802,134 @@
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
-        <!-- Minimal Top-Left Player Status Capsule -->
-        <div id="hud-player-capsule" class="hud-player-capsule">
-          <!-- Row 1: Vitals & Level -->
-          <div class="hud-capsule-row vitals-row">
-            <!-- Level Pill -->
-            <div id="hud-level-badge" class="hud-pill level-pill" title="Hero Level & Experience">
-              <span class="level-star">⭐</span>
-              <span id="hud-level-text" class="level-text">LVL 1</span>
-              <div class="xp-mini-track" title="XP Progress to Next Level">
-                <div id="hud-xp-fill" class="xp-fill"></div>
-              </div>
-            </div>
-
-            <!-- Health Bar -->
-            <div id="player-health-bar" class="hud-vital-bar player-health-bar" title="Hero Health">
-              <span class="vital-icon">❤️</span>
-              <div class="vital-track health-track">
-                <div id="health-fill" class="vital-fill health-fill"></div>
-              </div>
-              <span id="health-text" class="vital-num health-text">100 / 100</span>
-            </div>
-
-            <!-- Stamina Bar -->
-            <div id="player-stamina-bar" class="hud-vital-bar player-stamina-bar" title="Hero Stamina (Sprint, Roll, Heavy Attack)">
-              <span class="vital-icon">⚡</span>
-              <div class="vital-track stamina-track">
-                <div id="stamina-fill" class="vital-fill stamina-fill"></div>
-              </div>
-              <span id="stamina-text" class="vital-num stamina-text">100 / 100</span>
+        <!-- Unified Single-Line Minimized Menu Bar -->
+        <div id="hud-bar" class="hud-bar">
+          <!-- Level -->
+          <div id="hud-level-badge" class="hud-item hud-level" title="Hero Level">
+            <span class="level-star">⭐</span>
+            <span id="hud-level-text" class="level-text">LVL 1</span>
+            <div class="xp-mini-track" title="XP Progress">
+              <div id="hud-xp-fill" class="xp-fill"></div>
             </div>
           </div>
 
-          <!-- Row 2: Status & Resources Mini-Strip -->
-          <div class="hud-capsule-row resources-row">
-            <!-- Stance Indicator -->
-            <div id="movement-stance-badge" class="hud-mini-chip movement-stance-badge" title="Press C to Crouch, Shift to Sprint">
-              <span id="stance-icon" class="stance-icon">🏃</span>
-              <span id="stance-label" class="stance-label">RUN</span>
-            </div>
+          <span class="hud-sep"></span>
 
-            <!-- Mount Riding Stance Indicator -->
-            <div id="mount-stance-badge" class="hud-mini-chip mount-stance-badge hidden" title="Riding Shadow Steed [E: Dismount, Shift: Gallop]">
-              <span class="mount-icon">🐎</span>
-              <span id="mount-speed-text" class="mount-speed-text">TROT</span>
+          <!-- Health -->
+          <div id="player-health-bar" class="hud-item player-health-bar" title="Hero Health">
+            <span class="hud-icon">❤️</span>
+            <div class="vital-track health-track">
+              <div id="health-fill" class="vital-fill health-fill"></div>
             </div>
-
-            <!-- Stealth Awareness Indicator -->
-            <div id="stealth-indicator-badge" class="hud-mini-chip stealth-indicator-badge" title="Stealth Visibility">
-              <span id="stealth-eye-icon" class="stealth-eye-icon">👁️</span>
-              <span id="stealth-status-text" class="stealth-status-text">HIDDEN</span>
-            </div>
-
-            <!-- Gold Counter -->
-            <div id="hud-gold-counter" class="hud-mini-chip gold-counter-badge" title="Gold Coins">
-              <span class="gold-icon">🪙</span>
-              <span id="hud-gold-text" class="gold-text">150</span>
-            </div>
-
-            <!-- Crystals Objective -->
-            <div id="crystal-counter" class="hud-mini-chip crystal-counter" title="Crystals Collected">
-              <span class="crystal-icon">💎</span>
-              <span id="crystal-text" class="crystal-text">0 / 5</span>
-            </div>
-
-            <!-- Score -->
-            <div id="score-badge" class="hud-mini-chip score-badge" title="Current Score">
-              <span class="score-label">PTS:</span>
-              <span id="score-text" class="score-text">0</span>
-            </div>
+            <span id="health-text" class="vital-num health-text">100 / 100</span>
           </div>
-        </div>
 
-        <!-- Top-Right: Minimalist Menu Button & Dropdown Drawer -->
-        <div id="hud-menu-wrapper" class="hud-menu-wrapper">
-          <button id="hud-menu-toggle-btn" class="hud-menu-pill-btn" title="Open Game Menu (Tab / M)">
+          <!-- Stamina -->
+          <div id="player-stamina-bar" class="hud-item player-stamina-bar" title="Hero Stamina">
+            <span class="hud-icon">⚡</span>
+            <div class="vital-track stamina-track">
+              <div id="stamina-fill" class="vital-fill stamina-fill"></div>
+            </div>
+            <span id="stamina-text" class="vital-num stamina-text">100 / 100</span>
+          </div>
+
+          <span class="hud-sep"></span>
+
+          <!-- Gold Counter -->
+          <div id="hud-gold-counter" class="hud-item gold-counter-badge" title="Hero Gold">
+            <span class="hud-icon">🪙</span>
+            <span id="hud-gold-text" class="gold-text">150</span>
+          </div>
+
+          <!-- Crystal Counter -->
+          <div id="crystal-counter" class="hud-item crystal-counter" title="Crystals Collected">
+            <span class="hud-icon">💎</span>
+            <span id="crystal-text" class="crystal-text">0 / 5</span>
+          </div>
+
+          <!-- Stealth Awareness Status -->
+          <div id="stealth-indicator-badge" class="hud-item stealth-indicator-badge" title="Stealth Awareness">
+            <span id="stealth-eye-icon" class="hud-icon">👁️</span>
+            <span id="stealth-status-text" class="stealth-text">HIDDEN</span>
+          </div>
+
+          <!-- Movement Stance (Running / Sneaking) -->
+          <div id="movement-stance-badge" class="hud-item movement-stance-badge" title="Movement Stance">
+            <span id="stance-icon" class="hud-icon">🏃</span>
+            <span id="stance-label" class="stance-text">RUN</span>
+          </div>
+
+          <!-- Mount Riding Stance -->
+          <div id="mount-stance-badge" class="hud-item mount-stance-badge hidden" title="Riding Mount">
+            <span class="mount-icon">🐎</span>
+            <span id="mount-speed-text" class="mount-speed-text">TROT</span>
+          </div>
+
+          <!-- Score -->
+          <div id="score-badge" class="hud-item score-badge" title="Score">
+            <span class="hud-icon">🏆</span>
+            <span id="score-text" class="score-text">0 PTS</span>
+          </div>
+
+          <span class="hud-sep"></span>
+
+          <!-- Menu Button inside the bar -->
+          <button id="hud-menu-toggle-btn" class="hud-item hud-menu-btn" title="Open Game Menu">
             <span id="hud-toggle-icon">☰</span>
             <span class="hud-toggle-label">MENU</span>
           </button>
+        </div>
 
-          <!-- Hidden Slide-Out Menu Drawer (Opens only when MENU is clicked) -->
-          <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
-            <div class="hud-dropdown-header">
-              <div id="game-header">
-                <span class="hud-dropdown-title">SHADOW QUEST</span>
-                <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
-              </div>
-              <button id="close-hud-menu-btn" class="hud-dropdown-close" title="Close Menu">✕</button>
+        <!-- Hidden Slide-Out Menu Drawer (Opens only when MENU is clicked) -->
+        <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
+          <div class="hud-dropdown-header">
+            <div id="game-header">
+              <span class="hud-dropdown-title">SHADOW QUEST</span>
+              <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
             </div>
+            <button id="close-hud-menu-btn" class="hud-dropdown-close" title="Close Menu">✕</button>
+          </div>
 
-            <!-- Dynamic Weather & Time in Menu -->
-            <div id="weather-time-badge" class="weather-time-badge" title="Current Weather & Time of Day">
-              <span id="weather-icon" class="weather-icon">☀️</span>
-              <span id="weather-name" class="weather-name">Clear Skies</span>
-              <span class="weather-divider">•</span>
-              <span id="time-text" class="time-text">02:00 PM</span>
-            </div>
+          <!-- Dynamic Weather & Time in Menu -->
+          <div id="weather-time-badge" class="weather-time-badge" title="Current Weather & Time of Day">
+            <span id="weather-icon" class="weather-icon">☀️</span>
+            <span id="weather-name" class="weather-name">Clear Skies</span>
+            <span class="weather-divider">•</span>
+            <span id="time-text" class="time-text">02:00 PM</span>
+          </div>
 
-            <!-- Quick Action Shortcuts -->
-            <div class="hud-dropdown-actions">
-              <button id="inventory-toggle-btn" class="hud-drawer-btn" title="Open Inventory (I)">
-                <span class="drawer-btn-icon">🎒</span>
-                <span class="drawer-btn-title">INVENTORY</span>
-                <span class="drawer-btn-key">I</span>
-              </button>
+          <!-- Quick Action Shortcuts -->
+          <div class="hud-dropdown-actions">
+            <button id="inventory-toggle-btn" class="hud-drawer-btn" title="Open Inventory (I)">
+              <span class="drawer-btn-icon">🎒</span>
+              <span class="drawer-btn-title">INVENTORY</span>
+              <span class="drawer-btn-key">I</span>
+            </button>
 
-              <button id="skills-toggle-btn" class="hud-drawer-btn" title="Open Skill Tree (K)">
-                <span class="drawer-btn-icon">🌳</span>
-                <span class="drawer-btn-title">SKILLS</span>
-                <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
-                <span class="drawer-btn-key">K</span>
-              </button>
+            <button id="skills-toggle-btn" class="hud-drawer-btn" title="Open Skill Tree (K)">
+              <span class="drawer-btn-icon">🌳</span>
+              <span class="drawer-btn-title">SKILLS</span>
+              <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
+              <span class="drawer-btn-key">K</span>
+            </button>
 
-              <button id="map-toggle-btn" class="hud-drawer-btn" title="Open World Map (M)">
-                <span class="drawer-btn-icon">🗺️</span>
-                <span class="drawer-btn-title">WORLD MAP</span>
-                <span class="drawer-btn-key">M</span>
-              </button>
+            <button id="map-toggle-btn" class="hud-drawer-btn" title="Open World Map (M)">
+              <span class="drawer-btn-icon">🗺️</span>
+              <span class="drawer-btn-title">WORLD MAP</span>
+              <span class="drawer-btn-key">M</span>
+            </button>
 
-              <button id="photo-mode-toggle-btn" class="hud-drawer-btn" title="Photo Mode (P)">
-                <span class="drawer-btn-icon">📷</span>
-                <span class="drawer-btn-title">PHOTO MODE</span>
-                <span class="drawer-btn-key">P</span>
-              </button>
+            <button id="photo-mode-toggle-btn" class="hud-drawer-btn" title="Photo Mode (P)">
+              <span class="drawer-btn-icon">📷</span>
+              <span class="drawer-btn-title">PHOTO MODE</span>
+              <span class="drawer-btn-key">P</span>
+            </button>
 
-              <button id="mute-btn" class="hud-drawer-btn" title="Toggle Audio (M)">
-                <span id="mute-icon" class="drawer-btn-icon">🔊</span>
-                <span class="drawer-btn-title">MUTE SOUND</span>
-                <span class="drawer-btn-key">M</span>
-              </button>
-            </div>
+            <button id="mute-btn" class="hud-drawer-btn" title="Toggle Audio (M)">
+              <span id="mute-icon" class="drawer-btn-icon">🔊</span>
+              <span class="drawer-btn-title">MUTE SOUND</span>
+              <span class="drawer-btn-key">M</span>
+            </button>
           </div>
         </div>
 

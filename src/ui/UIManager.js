@@ -2315,7 +2315,7 @@ export class UIManager {
       if (this.stealthStatusText) this.stealthStatusText.textContent = 'HIDDEN (COVER)';
     } else if (player.isCrouching) {
       if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '🤫';
-      if (this.stealthStatusText) this.stealthStatusText.textContent = 'SNEAKING';
+      if (this.stealthStatusText) this.stealthStatusText.textContent = 'HIDDEN';
     } else {
       if (this.stealthEyeIcon) this.stealthEyeIcon.textContent = '👁️';
       if (this.stealthStatusText) this.stealthStatusText.textContent = 'HIDDEN';
@@ -2330,7 +2330,7 @@ export class UIManager {
 
   updateCrystalCount(collected, total) {
     if (this.crystalText) {
-      this.crystalText.textContent = `CRYSTALS: ${collected} / ${total}`;
+      this.crystalText.textContent = `${collected} / ${total}`;
     }
     if (this.crystalCounter) {
       this.crystalCounter.classList.add('bump');

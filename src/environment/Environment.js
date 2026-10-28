@@ -58,8 +58,8 @@ export class Environment {
     this.dirLight.shadow.camera.right = d;
     this.dirLight.shadow.camera.top = d;
     this.dirLight.shadow.camera.bottom = -d;
-    this.dirLight.shadow.bias = -0.0004;
-    this.dirLight.shadow.normalBias = 0.035;
+    this.dirLight.shadow.bias = -0.0001;
+    this.dirLight.shadow.normalBias = 0.04;
 
     this.scene.add(this.dirLight);
 

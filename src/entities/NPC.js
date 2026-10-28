@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { CircleCollider } from '../physics/Colliders.js';
 
@@ -53,9 +54,8 @@ export class NPC {
   }
 
   async init() {
-    const loader = new GLTFLoader();
     try {
-      const gltf = await loader.loadAsync(this.modelPath);
+      const gltf = await loadSharedModel(this.modelPath);
       this.model = gltf.scene;
       this.model.scale.set(1.0, 1.0, 1.0);
 

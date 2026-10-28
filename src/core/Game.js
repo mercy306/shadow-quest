@@ -18,6 +18,7 @@ import { MerchantManager } from '../systems/MerchantManager.js';
 import { MountManager } from '../entities/MountManager.js';
 import { PhotoModeManager } from '../systems/PhotoModeManager.js';
 import { NetworkManager } from '../network/NetworkManager.js';
+import { loadSharedModel } from './ModelLoader.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -103,8 +104,15 @@ export class Game {
       this.vfxManager = new VFXManager(this.scene);
       this.initStep = 'vfx';
 
-      // 7. Player with Physics World & Audio
-      this.uiManager.setLoadingProgress(70, 'Loading adventurer character & animations...');
+      // 7. Parallel Preload of 3D Models
+      this.uiManager.setLoadingProgress(65, 'Loading 3D world assets in parallel...');
+      await Promise.allSettled([
+        loadSharedModel('./models/Soldier.glb'),
+        loadSharedModel('./models/EnemyGuardian.glb')
+      ]);
+
+      // 8. Player with Physics World & Audio
+      this.uiManager.setLoadingProgress(80, 'Loading adventurer character...');
       this.player = new Player(this.scene, this.environment, this.physicsWorld);
       this.player.setAudioManager(this.audioManager);
       this.player.setVFXManager(this.vfxManager);
@@ -842,7 +850,7 @@ export class Game {
     requestAnimationFrame(this.loop);
 
     const rawDelta = this.clock.getDelta();
-    const deltaTime = Math.min(rawDelta, 0.1);
+    const deltaTime = Math.min(rawDelta, 0.05);
 
     this.update(deltaTime);
     this.render();

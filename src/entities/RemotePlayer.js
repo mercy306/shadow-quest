@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
 
@@ -49,11 +49,10 @@ export class RemotePlayer {
   }
 
   async init() {
-    const loader = new GLTFLoader();
     const modelPath = './models/Soldier.glb';
 
     try {
-      const gltf = await loader.loadAsync(modelPath);
+      const gltf = await loadSharedModel(modelPath);
       this.model = gltf.scene;
 
       this.model.scale.set(1.0, 1.0, 1.0);

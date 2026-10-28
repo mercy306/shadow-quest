@@ -565,6 +565,21 @@ export class UIManager {
       this.tabLoadModeBtn.onclick = () => this.setSaveSlotsMode('load');
     }
 
+    // HUD Menu Dock Toggle (Compact / Minimized view)
+    const hudMenuToggleBtn = document.getElementById('hud-menu-toggle-btn');
+    const hudDock = document.getElementById('hud-dock');
+    if (hudMenuToggleBtn && hudDock) {
+      hudMenuToggleBtn.onclick = (e) => {
+        e.stopPropagation();
+        hudDock.classList.toggle('minimized');
+        const isMin = hudDock.classList.contains('minimized');
+        const icon = document.getElementById('hud-toggle-icon');
+        const label = hudMenuToggleBtn.querySelector('.hud-toggle-label');
+        if (icon) icon.textContent = isMin ? '➕' : '☰';
+        if (label) label.textContent = isMin ? 'EXPAND' : 'MENU';
+      };
+    }
+
     // Close on backdrop click
     [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalSkills, this.modalDialogue, this.modalMerchant, this.modalConfirm, this.modalSaveSlots].forEach(modal => {
       if (modal) {

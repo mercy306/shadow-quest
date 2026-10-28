@@ -134,11 +134,9 @@ export class NPCManager {
       ];
     }
 
-    for (const cfg of npcConfigs) {
-      const npc = new NPC(this.scene, this.physicsWorld, cfg);
-      await npc.init();
-      this.npcs.push(npc);
-    }
+    const npcs = npcConfigs.map(cfg => new NPC(this.scene, this.physicsWorld, cfg));
+    await Promise.all(npcs.map(npc => npc.init()));
+    this.npcs.push(...npcs);
 
     console.log(`[NPCManager] Loaded ${this.npcs.length} NPCs for Stage ${levelIndex + 1}`);
   }

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 
 export const BossState = {
@@ -160,11 +161,10 @@ export class BossGuardian {
   }
 
   async init() {
-    const loader = new GLTFLoader();
     const modelPath = './models/EnemyGuardian.glb';
 
     try {
-      const gltf = await loader.loadAsync(modelPath);
+      const gltf = await loadSharedModel(modelPath);
       this.model = gltf.scene;
 
       // Colossus imposing scale (1.45x)

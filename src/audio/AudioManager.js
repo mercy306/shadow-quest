@@ -78,7 +78,7 @@ export class AudioManager {
         this.masterGain.connect(this.audioCtx.destination);
 
         this.isInitialized = true;
-        this.preloadLocalAudioFiles();
+        setTimeout(() => this.preloadLocalAudioFiles(), 1500);
       }
     }
 
@@ -92,6 +92,9 @@ export class AudioManager {
   }
 
   async preloadLocalAudioFiles() {
+    if (this.isPreloadingAudio) return;
+    this.isPreloadingAudio = true;
+
     const soundFiles = [
       { key: 'sword_swing', url: './audio/sword_swing.wav' },
       { key: 'sword_hit', url: './audio/sword_hit.wav' },
@@ -106,20 +109,20 @@ export class AudioManager {
       { key: 'ruins_ambience', url: './audio/ruins_ambience.wav' }
     ];
 
-    for (const item of soundFiles) {
-      try {
-        const resp = await fetch(item.url);
-        if (resp.ok) {
-          const arrayBuffer = await resp.arrayBuffer();
-          if (this.audioCtx) {
+    await Promise.allSettled(
+      soundFiles.map(async (item) => {
+        try {
+          const resp = await fetch(item.url);
+          if (resp.ok && this.audioCtx) {
+            const arrayBuffer = await resp.arrayBuffer();
             const audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
             this.audioBuffers.set(item.key, audioBuffer);
           }
+        } catch (e) {
+          // Fallback to procedural synthesis if fetch fails
         }
-      } catch (e) {
-        // Fallback to procedural synthesis if fetch fails
-      }
-    }
+      })
+    );
   }
 
   playBuffer(key, gainTarget = this.sfxGain, volume = 1.0) {

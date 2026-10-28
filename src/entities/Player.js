@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
@@ -174,11 +175,10 @@ export class Player {
   }
 
   async init() {
-    const loader = new GLTFLoader();
     const modelPath = './models/Soldier.glb';
 
     try {
-      const gltf = await loader.loadAsync(modelPath);
+      const gltf = await loadSharedModel(modelPath);
       this.model = gltf.scene;
 
       this.model.scale.set(1.0, 1.0, 1.0);
@@ -1075,20 +1075,27 @@ export class Player {
 
       if (this.position.y <= groundY) {
         this.position.y = groundY;
+        const wasFallingHard = this.verticalVelocity < -3.5;
         this.verticalVelocity = 0;
-        const wasAir = !this.isGrounded;
         this.isGrounded = true;
 
-        if (wasAir && this.audioManager && typeof this.audioManager.playLand === 'function') {
+        if (wasFallingHard && this.audioManager && typeof this.audioManager.playLand === 'function') {
           this.audioManager.playLand();
         }
       }
     } else {
-      if (this.position.y > groundY + 0.25) {
+      const heightDiff = this.position.y - groundY;
+      if (heightDiff > 0.65) {
+        // True drop off a cliff or ledge
         this.isGrounded = false;
         this.verticalVelocity = 0;
       } else {
-        this.position.y = groundY;
+        // Smoothly adhere to ground height without vertical micro-jitter
+        if (Math.abs(heightDiff) < 0.04) {
+          this.position.y = groundY;
+        } else {
+          this.position.y = THREE.MathUtils.lerp(this.position.y, groundY, Math.min(1.0, 25.0 * deltaTime));
+        }
       }
     }
 

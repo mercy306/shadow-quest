@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 
 export const EnemyState = {
@@ -135,11 +136,10 @@ export class Enemy {
   }
 
   async init() {
-    const loader = new GLTFLoader();
     const modelPath = './models/EnemyGuardian.glb';
 
     try {
-      const gltf = await loader.loadAsync(modelPath);
+      const gltf = await loadSharedModel(modelPath);
       this.model = gltf.scene;
 
       // Imposing guardian scale

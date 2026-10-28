@@ -802,62 +802,130 @@
     <!-- ==================== IN-GAME HUD ==================== -->
     <div id="ui-overlay" class="hidden">
       <div id="top-bar">
-        <header id="game-header">
-          <h1 class="game-title">SHADOW QUEST</h1>
-          <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
-        </header>
-
-        <!-- Dynamic Weather & Time of Day HUD Badge -->
-        <div id="weather-time-badge" class="weather-time-badge" title="Current Weather & Time of Day">
-          <span id="weather-icon" class="weather-icon">☀️</span>
-          <span id="weather-name" class="weather-name">Clear Skies</span>
-          <span class="weather-divider">•</span>
-          <span id="time-text" class="time-text">02:00 PM</span>
-        </div>
-
-        <!-- Player Health & Status -->
-        <div class="vital-bars-container">
-          <div id="player-health-bar" class="player-health-bar">
-            <span class="health-icon">❤️</span>
-            <div class="health-track">
-              <div id="health-fill" class="health-fill"></div>
+        <!-- Unified Consolidated HUD Menu Dock -->
+        <div id="hud-dock" class="hud-dock">
+          <!-- Main Compact Status Bar -->
+          <div class="hud-dock-main">
+            <!-- Branding Header -->
+            <div id="game-header" class="hud-dock-brand">
+              <span class="game-title-mini">SHADOW QUEST</span>
+              <div id="stage-badge" class="stage-badge">STAGE 1</div>
             </div>
-            <span id="health-text" class="health-text">100 / 100</span>
+
+            <!-- Hero Level & XP Mini Badge -->
+            <div id="hud-level-badge" class="hud-dock-chip level-badge" title="Hero Level & Experience">
+              <span class="level-star">⭐</span>
+              <span id="hud-level-text" class="level-text">LVL 1</span>
+              <div class="xp-mini-track" title="XP Progress to Next Level">
+                <div id="hud-xp-fill" class="xp-fill"></div>
+              </div>
+            </div>
+
+            <!-- Player Vitals: Compact Health & Stamina Bars -->
+            <div class="vital-bars-container">
+              <div id="player-health-bar" class="player-health-bar" title="Hero Health">
+                <span class="health-icon">❤️</span>
+                <div class="health-track">
+                  <div id="health-fill" class="health-fill"></div>
+                </div>
+                <span id="health-text" class="health-text">100 / 100</span>
+              </div>
+
+              <div id="player-stamina-bar" class="player-stamina-bar" title="Hero Stamina (Sprint, Roll, Heavy Attack)">
+                <span class="stamina-icon">⚡</span>
+                <div class="stamina-track">
+                  <div id="stamina-fill" class="stamina-fill"></div>
+                </div>
+                <span id="stamina-text" class="stamina-text">100 / 100</span>
+              </div>
+            </div>
+
+            <!-- Movement Stance & Run Mode Indicator -->
+            <div id="movement-stance-badge" class="hud-dock-chip movement-stance-badge" title="Press C/Ctrl to Crouch/Sneak; hold Shift to Sprint">
+              <span id="stance-icon" class="stance-icon">🏃</span>
+              <span id="stance-label" class="stance-label">RUNNING</span>
+            </div>
+
+            <!-- Mount Riding Stance Indicator -->
+            <div id="mount-stance-badge" class="hud-dock-chip mount-stance-badge hidden" title="Riding Shadow Steed [E: Dismount, Shift: Gallop]">
+              <span class="mount-icon">🐎</span>
+              <span id="mount-speed-text" class="mount-speed-text">TROT</span>
+            </div>
+
+            <!-- Stealth Awareness Indicator -->
+            <div id="stealth-indicator-badge" class="hud-dock-chip stealth-indicator-badge" title="Hero Stealth Visibility">
+              <span id="stealth-eye-icon" class="stealth-eye-icon">👁️</span>
+              <span id="stealth-status-text" class="stealth-status-text">HIDDEN</span>
+            </div>
+
+            <!-- Player Currency Counter -->
+            <div id="hud-gold-counter" class="hud-dock-chip gold-counter-badge" title="Hero Currency">
+              <span class="gold-icon">🪙</span>
+              <span id="hud-gold-text" class="gold-text">150 G</span>
+            </div>
+
+            <!-- Live Crystals Counter -->
+            <div id="crystal-counter" class="hud-dock-chip crystal-counter" title="Crystals Collected">
+              <span class="crystal-icon">💎</span>
+              <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
+            </div>
+
+            <!-- Live Score Counter -->
+            <div id="score-badge" class="hud-dock-chip score-badge" title="Player Score">
+              <span class="score-label">SCORE:</span>
+              <span id="score-text" class="score-text">0 PTS</span>
+            </div>
+
+            <!-- Dynamic Weather & Time of Day HUD Badge -->
+            <div id="weather-time-badge" class="hud-dock-chip weather-time-badge" title="Current Weather & Time of Day">
+              <span id="weather-icon" class="weather-icon">☀️</span>
+              <span id="weather-name" class="weather-name">Clear</span>
+              <span class="weather-divider">•</span>
+              <span id="time-text" class="time-text">02:00 PM</span>
+            </div>
+
+            <!-- Minimized HUD Menu Collapse/Expand Toggle -->
+            <button id="hud-menu-toggle-btn" class="hud-menu-toggle-btn" title="Toggle HUD Quick Menu Bar">
+              <span id="hud-toggle-icon">☰</span>
+              <span class="hud-toggle-label">MENU</span>
+            </button>
           </div>
 
-          <div id="player-stamina-bar" class="player-stamina-bar" title="Hero Stamina (Sprint, Roll, Heavy Attack)">
-            <span class="stamina-icon">⚡</span>
-            <div class="stamina-track">
-              <div id="stamina-fill" class="stamina-fill"></div>
+          <!-- Quick Action Drawer (Menu Buttons) -->
+          <div id="hud-dock-drawer" class="hud-dock-drawer">
+            <div class="top-bar-right">
+              <!-- Skill Tree Toggle Button -->
+              <button id="skills-toggle-btn" class="hud-action-btn skills-toggle-btn" title="Open Skill Tree (K)">
+                <span class="skills-btn-icon">🌳</span>
+                <span class="hud-action-label">SKILLS (K)</span>
+                <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
+              </button>
+
+              <!-- Inventory & Equipment Toggle Button -->
+              <button id="inventory-toggle-btn" class="hud-action-btn inventory-toggle-btn" title="Open Inventory & Equipment (I)">
+                <span class="inventory-icon">🎒</span>
+                <span class="hud-action-label">BAG (I)</span>
+              </button>
+
+              <!-- World Map Toggle Button -->
+              <button id="map-toggle-btn" class="hud-action-btn map-toggle-btn" title="Open World Map (M)">
+                <span class="map-icon">🗺️</span>
+                <span class="hud-action-label">MAP (M)</span>
+              </button>
+
+              <!-- Photo Mode Toggle Button -->
+              <button id="photo-mode-toggle-btn" class="hud-action-btn photo-mode-toggle-btn" title="Open Photo Mode (P)">
+                <span class="photo-icon">📷</span>
+                <span class="hud-action-label">PHOTO (P)</span>
+              </button>
+
+              <!-- Quick Audio Mute Toggle -->
+              <button id="mute-btn" class="hud-action-btn audio-toggle-btn" title="Toggle Audio (M)">
+                <span id="mute-icon">🔊</span>
+                <span class="hud-action-label">MUTE (M)</span>
+              </button>
             </div>
-            <span id="stamina-text" class="stamina-text">100 / 100</span>
           </div>
-        </div>
-
-        <!-- Movement Stance & Run Mode Indicator -->
-        <div id="movement-stance-badge" class="movement-stance-badge" title="Press C/Ctrl to Crouch/Sneak; hold Shift to Sprint">
-          <span id="stance-icon" class="stance-icon">🏃</span>
-          <span id="stance-label" class="stance-label">RUNNING</span>
-          <span class="stance-hint">C: Crouch • Shift: Sprint</span>
-        </div>
-
-        <!-- Mount Riding Stance Indicator -->
-        <div id="mount-stance-badge" class="mount-stance-badge hidden" title="Riding Shadow Steed [E: Dismount, Shift: Gallop]">
-          <span class="mount-icon">🐎</span>
-          <span id="mount-speed-text" class="mount-speed-text">TROT</span>
-          <span class="stance-hint">E: Dismount • Shift: Gallop</span>
-        </div>
-
-        <!-- Stealth Awareness Indicator -->
-        <div id="stealth-indicator-badge" class="stealth-indicator-badge" title="Hero Stealth Visibility">
-          <span id="stealth-eye-icon" class="stealth-eye-icon">👁️</span>
-          <span id="stealth-status-text" class="stealth-status-text">HIDDEN</span>
-        </div>
-
-        <!-- Live Score Counter -->
-        <div id="score-badge" class="score-badge">
-          <span class="score-label">SCORE:</span>
-          <span id="score-text" class="score-text">0 PTS</span>
         </div>
 
         <!-- Co-Op Online Session Status Badge -->
@@ -870,54 +938,6 @@
           <span class="coop-divider">•</span>
           <span id="coop-ping-text" class="coop-ping-text">--ms</span>
           <button id="coop-leave-btn" class="coop-leave-btn" title="Leave Co-Op Session">✕</button>
-        </div>
-
-        <div class="top-bar-right">
-          <!-- Hero Level & XP Mini Badge -->
-          <div id="hud-level-badge" class="level-badge" title="Hero Level & Experience">
-            <span class="level-star">⭐</span>
-            <span id="hud-level-text" class="level-text">LVL 1</span>
-            <div class="xp-mini-track" title="XP Progress to Next Level">
-              <div id="hud-xp-fill" class="xp-fill"></div>
-            </div>
-          </div>
-
-          <!-- Player Currency Counter -->
-          <div id="hud-gold-counter" class="gold-counter-badge" title="Hero Currency">
-            <span class="gold-icon">🪙</span>
-            <span id="hud-gold-text" class="gold-text">150 G</span>
-          </div>
-
-          <div id="crystal-counter" class="crystal-counter">
-            <span class="crystal-icon">💎</span>
-            <span id="crystal-text" class="crystal-text">CRYSTALS: 0 / 5</span>
-          </div>
-
-          <!-- Skill Tree Toggle Button -->
-          <button id="skills-toggle-btn" class="skills-toggle-btn" title="Open Skill Tree (K)">
-            <span class="skills-btn-icon">🌳</span>
-            <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
-          </button>
-
-          <!-- Inventory & Equipment Toggle Button -->
-          <button id="inventory-toggle-btn" class="inventory-toggle-btn" title="Open Inventory & Equipment (I)">
-            <span class="inventory-icon">🎒</span>
-          </button>
-
-          <!-- World Map Toggle Button -->
-          <button id="map-toggle-btn" class="map-toggle-btn" title="Open World Map (M)">
-            <span class="map-icon">🗺️</span>
-          </button>
-
-          <!-- Photo Mode Toggle Button -->
-          <button id="photo-mode-toggle-btn" class="photo-mode-toggle-btn" title="Open Photo Mode (P)">
-            <span class="photo-icon">📷</span>
-          </button>
-
-          <!-- Quick Audio Mute Toggle -->
-          <button id="mute-btn" class="audio-toggle-btn" title="Toggle Audio (M)">
-            <span id="mute-icon">🔊</span>
-          </button>
         </div>
       </div>
 

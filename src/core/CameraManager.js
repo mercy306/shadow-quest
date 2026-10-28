@@ -171,10 +171,11 @@ export class CameraManager {
       targetLook.z + actualDistance * sinPhi * cosTheta
     );
 
-    // Collision avoidance: raycast against terrain and solid obstacles (walls, pillars)
+    // Collision avoidance with spring-arm distance smoothing (prevents camera popping)
+    let collisionTargetDist = actualDistance;
     if (physicsWorld && typeof physicsWorld.raycastCamera === 'function') {
       const safePos = physicsWorld.raycastCamera(targetLook, this.desiredPosition, 0.9);
-      this.desiredPosition.copy(safePos);
+      collisionTargetDist = safePos.distanceTo(targetLook);
     } else if (environment && typeof environment.getTerrainHeight === 'function') {
       const terrainHeight = environment.getTerrainHeight(this.desiredPosition.x, this.desiredPosition.z);
       const minAltitude = terrainHeight + 0.9;
@@ -182,6 +183,24 @@ export class CameraManager {
         this.desiredPosition.y = minAltitude;
       }
     }
+
+    if (this.springDistance === undefined) {
+      this.springDistance = actualDistance;
+    }
+
+    if (collisionTargetDist < this.springDistance) {
+      // Responsive inward pull so camera never clips into geometry
+      this.springDistance = THREE.MathUtils.lerp(this.springDistance, collisionTargetDist, Math.min(1.0, 24.0 * deltaTime));
+    } else {
+      // Smooth, cinematic spring arm release to eliminate camera jitter/glitches
+      this.springDistance = THREE.MathUtils.lerp(this.springDistance, Math.min(actualDistance, collisionTargetDist), Math.min(1.0, 6.0 * deltaTime));
+    }
+
+    this.desiredPosition.set(
+      targetLook.x + this.springDistance * sinPhi * sinTheta,
+      targetLook.y + this.springDistance * cosPhi,
+      targetLook.z + this.springDistance * sinPhi * cosTheta
+    );
 
     // Smooth exponential damping to eliminate camera jitter and sudden snaps
     const lerpFactor = 1.0 - Math.exp(-this.smoothSpeed * deltaTime);

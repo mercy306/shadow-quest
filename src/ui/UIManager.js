@@ -565,20 +565,33 @@ export class UIManager {
       this.tabLoadModeBtn.onclick = () => this.setSaveSlotsMode('load');
     }
 
-    // HUD Menu Dock Toggle (Compact / Minimized view)
+    // Top-Right Minimalist HUD Menu Toggle
     const hudMenuToggleBtn = document.getElementById('hud-menu-toggle-btn');
-    const hudDock = document.getElementById('hud-dock');
-    if (hudMenuToggleBtn && hudDock) {
+    const hudMenuDropdown = document.getElementById('hud-menu-dropdown');
+    const closeHudMenuBtn = document.getElementById('close-hud-menu-btn');
+
+    if (hudMenuToggleBtn && hudMenuDropdown) {
       hudMenuToggleBtn.onclick = (e) => {
         e.stopPropagation();
-        hudDock.classList.toggle('minimized');
-        const isMin = hudDock.classList.contains('minimized');
-        const icon = document.getElementById('hud-toggle-icon');
-        const label = hudMenuToggleBtn.querySelector('.hud-toggle-label');
-        if (icon) icon.textContent = isMin ? '➕' : '☰';
-        if (label) label.textContent = isMin ? 'EXPAND' : 'MENU';
+        hudMenuDropdown.classList.toggle('hidden');
       };
     }
+
+    if (closeHudMenuBtn && hudMenuDropdown) {
+      closeHudMenuBtn.onclick = (e) => {
+        e.stopPropagation();
+        hudMenuDropdown.classList.add('hidden');
+      };
+    }
+
+    // Close menu when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+      if (hudMenuDropdown && !hudMenuDropdown.classList.contains('hidden')) {
+        if (!hudMenuDropdown.contains(e.target) && e.target !== hudMenuToggleBtn && !hudMenuToggleBtn.contains(e.target)) {
+          hudMenuDropdown.classList.add('hidden');
+        }
+      }
+    });
 
     // Close on backdrop click
     [this.modalSettings, this.modalControls, this.modalCredits, this.modalInventory, this.modalSkills, this.modalDialogue, this.modalMerchant, this.modalConfirm, this.modalSaveSlots].forEach(modal => {
@@ -1607,6 +1620,8 @@ export class UIManager {
 
   openModal(modal) {
     if (modal) modal.classList.remove('hidden');
+    const hudMenuDropdown = document.getElementById('hud-menu-dropdown');
+    if (hudMenuDropdown) hudMenuDropdown.classList.add('hidden');
   }
 
   closeModal(modal) {

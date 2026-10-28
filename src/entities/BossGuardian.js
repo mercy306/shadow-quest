@@ -26,7 +26,7 @@ export class BossGuardian {
     this.physicsWorld = physicsWorld;
 
     this.id = config.id || 'boss-malakor';
-    this.name = config.name || 'Malakor, Verdant Colossus';
+    this.name = config.name || 'አርዌ — የጥንቱ ዘንዶ • ARWE THE ANCIENT ZANDO';
     this.isBoss = true;
 
     // Entity root group
@@ -231,7 +231,7 @@ export class BossGuardian {
     }
 
     if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
-      this.uiManager.showCollectNotification('⚠️ BOSS ENCOUNTER: MALAKOR, VERDANT COLOSSUS!');
+      this.uiManager.showCollectNotification('⚠️ BOSS ENCOUNTER: አርዌ (ARWE THE ANCIENT ZANDO)!');
     }
 
     this.setState(BossState.INTRO);
@@ -702,7 +702,7 @@ export class BossGuardian {
 
       // Victory fanfare notification
       if (this.uiManager && typeof this.uiManager.showCollectNotification === 'function') {
-        this.uiManager.showCollectNotification('🏆 VICTORY: MALAKOR DEFEATED! +400 XP, +250 G, Sanctuary Keystone!');
+        this.uiManager.showCollectNotification('🏆 VICTORY: አርዌ (ARWE) BANISHED! +400 XP, +250 ብር, Axumite Keystone!');
       }
 
       // Auto-save defeat state

@@ -2170,7 +2170,7 @@ export class UIManager {
     if (!this.bossEncounterHud || !boss) return;
 
     if (this.bossHudName) {
-      this.bossHudName.textContent = boss.name || 'MALAKOR — VERDANT COLOSSUS';
+      this.bossHudName.textContent = boss.name || 'አርዌ — የጥንቱ ዘንዶ • ARWE THE ANCIENT ZANDO';
     }
 
     const currentHP = Math.max(0, Math.ceil(boss.health));
@@ -2330,7 +2330,7 @@ export class UIManager {
 
   updateCrystalCount(collected, total) {
     if (this.crystalText) {
-      this.crystalText.textContent = `${collected} / ${total}`;
+      this.crystalText.textContent = `${collected} / ${total} ዕንቁ`;
     }
     if (this.crystalCounter) {
       this.crystalCounter.classList.add('bump');
@@ -2419,7 +2419,7 @@ export class UIManager {
 
   updateGold(amount) {
     const val = Math.max(0, Math.floor(amount || 0));
-    if (this.hudGoldText) this.hudGoldText.textContent = `${val} G`;
+    if (this.hudGoldText) this.hudGoldText.textContent = `${val} ብር`;
     if (this.invGoldBadge) this.invGoldBadge.textContent = `🪙 ${val} G`;
     if (this.merchantGoldDisplay) this.merchantGoldDisplay.textContent = `${val}`;
   }

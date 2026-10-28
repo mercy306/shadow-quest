@@ -36,9 +36,9 @@
       <div class="menu-backdrop-gradient"></div>
       <div class="menu-container">
         <div class="menu-header">
-          <div class="menu-eyebrow">A 3D THIRD-PERSON ADVENTURE</div>
-          <h1 class="menu-title">SHADOW QUEST</h1>
-          <p class="menu-tagline">Cleanse the ancient forest. Restore the lost sanctuary.</p>
+          <div class="menu-eyebrow">A 3D ETHIOPIAN HEROIC ADVENTURE • ጥንታዊ ጀብዱ</div>
+          <h1 class="menu-title">ጥላ ፍለጋ<br><span style="font-size: 0.58em; letter-spacing: 0.14em; opacity: 0.95;">SHADOW QUEST: CHRONICLES OF AXUM</span></h1>
+          <p class="menu-tagline">Cleanse the sacred Simien highlands. Restore the ancient sanctuary of Axum.</p>
         </div>
 
         <nav class="menu-actions">
@@ -836,15 +836,15 @@
           <span class="hud-sep"></span>
 
           <!-- Gold Counter -->
-          <div id="hud-gold-counter" class="hud-item gold-counter-badge" title="Hero Gold">
+          <div id="hud-gold-counter" class="hud-item gold-counter-badge" title="Ethiopian Birr Currency (ብር)">
             <span class="hud-icon">🪙</span>
-            <span id="hud-gold-text" class="gold-text">150</span>
+            <span id="hud-gold-text" class="gold-text">150 ብር</span>
           </div>
 
-          <!-- Crystal Counter -->
-          <div id="crystal-counter" class="hud-item crystal-counter" title="Crystals Collected">
+          <!-- Crystal / Wollo Opal Counter -->
+          <div id="crystal-counter" class="hud-item crystal-counter" title="Sacred Wollo Opals (የወሎ ዕንቁዎች)">
             <span class="hud-icon">💎</span>
-            <span id="crystal-text" class="crystal-text">0 / 5</span>
+            <span id="crystal-text" class="crystal-text">0 / 5 ዕንቁ</span>
           </div>
 
           <!-- Stealth Awareness Status -->
@@ -859,8 +859,8 @@
             <span id="stance-label" class="stance-text">RUN</span>
           </div>
 
-          <!-- Mount Riding Stance -->
-          <div id="mount-stance-badge" class="hud-item mount-stance-badge hidden" title="Riding Mount">
+          <!-- Mount Riding Stance (Walia Highland Steed) -->
+          <div id="mount-stance-badge" class="hud-item mount-stance-badge hidden" title="Riding Sacred Walia Mount (ዋላ)">
             <span class="mount-icon">🐎</span>
             <span id="mount-speed-text" class="mount-speed-text">TROT</span>
           </div>
@@ -874,7 +874,7 @@
           <span class="hud-sep"></span>
 
           <!-- Menu Button inside the bar -->
-          <button id="hud-menu-toggle-btn" class="hud-item hud-menu-btn" title="Open Game Menu">
+          <button id="hud-menu-toggle-btn" class="hud-item hud-menu-btn" title="Open Game Menu (Tab / M)">
             <span id="hud-toggle-icon">☰</span>
             <span class="hud-toggle-label">MENU</span>
           </button>
@@ -884,8 +884,8 @@
         <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
           <div class="hud-dropdown-header">
             <div id="game-header">
-              <span class="hud-dropdown-title">SHADOW QUEST</span>
-              <div id="stage-badge" class="stage-badge">STAGE 1: THE DARK FOREST</div>
+              <span class="hud-dropdown-title">ጥላ ፍለጋ • SHADOW QUEST</span>
+              <div id="stage-badge" class="stage-badge">ደረጃ ፩: ደብረ ስሜን • STAGE 1: SIMIEN HIGHLANDS</div>
             </div>
             <button id="close-hud-menu-btn" class="hud-dropdown-close" title="Close Menu">✕</button>
           </div>
@@ -902,32 +902,32 @@
           <div class="hud-dropdown-actions">
             <button id="inventory-toggle-btn" class="hud-drawer-btn" title="Open Inventory (I)">
               <span class="drawer-btn-icon">🎒</span>
-              <span class="drawer-btn-title">INVENTORY</span>
+              <span class="drawer-btn-title">INVENTORY • እቃ</span>
               <span class="drawer-btn-key">I</span>
             </button>
 
             <button id="skills-toggle-btn" class="hud-drawer-btn" title="Open Skill Tree (K)">
               <span class="drawer-btn-icon">🌳</span>
-              <span class="drawer-btn-title">SKILLS</span>
+              <span class="drawer-btn-title">SKILLS • ችሎታ</span>
               <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
               <span class="drawer-btn-key">K</span>
             </button>
 
             <button id="map-toggle-btn" class="hud-drawer-btn" title="Open World Map (M)">
               <span class="drawer-btn-icon">🗺️</span>
-              <span class="drawer-btn-title">WORLD MAP</span>
+              <span class="drawer-btn-title">WORLD MAP • ካርታ</span>
               <span class="drawer-btn-key">M</span>
             </button>
 
             <button id="photo-mode-toggle-btn" class="hud-drawer-btn" title="Photo Mode (P)">
               <span class="drawer-btn-icon">📷</span>
-              <span class="drawer-btn-title">PHOTO MODE</span>
+              <span class="drawer-btn-title">PHOTO MODE • ፎቶ</span>
               <span class="drawer-btn-key">P</span>
             </button>
 
             <button id="mute-btn" class="hud-drawer-btn" title="Toggle Audio (M)">
               <span id="mute-icon" class="drawer-btn-icon">🔊</span>
-              <span class="drawer-btn-title">MUTE SOUND</span>
+              <span class="drawer-btn-title">MUTE SOUND • ድምጽ</span>
               <span class="drawer-btn-key">M</span>
             </button>
           </div>
@@ -945,18 +945,11 @@
           <button id="coop-leave-btn" class="coop-leave-btn" title="Leave Co-Op Session">✕</button>
         </div>
       </div>
-          <span class="coop-divider">•</span>
-          <span id="coop-partner-text" class="coop-partner-text">Waiting for Player 2...</span>
-          <span class="coop-divider">•</span>
-          <span id="coop-ping-text" class="coop-ping-text">--ms</span>
-          <button id="coop-leave-btn" class="coop-leave-btn" title="Leave Co-Op Session">✕</button>
-        </div>
-      </div>
 
       <!-- Targeted Enemy Health HUD (Boss / Nearby Hostile) -->
       <div id="targeted-enemy-hud" class="targeted-enemy-hud hidden">
         <div class="enemy-hud-info">
-          <span id="enemy-hud-name" class="enemy-hud-name">Forest Sentinel</span>
+          <span id="enemy-hud-name" class="enemy-hud-name">የስሜን ጠባቂ • Highland Sentinel</span>
           <span id="enemy-hud-hp" class="enemy-hud-hp">80 / 80</span>
         </div>
         <div class="enemy-hud-track">
@@ -969,7 +962,7 @@
         <div class="boss-hud-header">
           <div class="boss-name-wrap">
             <span class="boss-crown-icon">👑</span>
-            <span id="boss-hud-name" class="boss-hud-name">MALAKOR — VERDANT COLOSSUS</span>
+            <span id="boss-hud-name" class="boss-hud-name">አርዌ — የጥንቱ ዘንዶ • ARWE THE ANCIENT ZANDO</span>
           </div>
           <span id="boss-hud-phase" class="boss-hud-phase phase-1">PHASE 1: GUARDIAN AWAKENING</span>
         </div>

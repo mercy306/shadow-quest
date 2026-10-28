@@ -1,130 +1,130 @@
 export const STAGE_CONFIGS = [
   {
     index: 0,
-    id: 'dark-forest',
-    name: 'The Dark Forest',
-    badgeText: 'STAGE 1: THE DARK FOREST',
+    id: 'simien-highlands',
+    name: 'The Simien Highlands',
+    badgeText: 'ደረጃ ፩: ደብረ ስሜን • STAGE 1: SIMIEN HIGHLANDS',
     playerSpawn: { x: 0, z: 2, rotY: Math.PI },
     passages: [
       {
         id: 'forest-to-ruins',
-        name: 'The Ancient Ruins',
+        name: 'Axumite Sanctuary',
         targetLevelIndex: 1,
         targetSpawn: { x: 0, z: 28, rotY: 0 },
         x: 40,
         z: -75,
         radius: 4.5,
-        prompt: '[E] Enter Ancient Ruins Altar'
+        prompt: '[E] Enter Axumite Sanctuary Altar'
       },
       {
         id: 'forest-to-mountain',
-        name: 'The Mountain Pass',
+        name: 'Gorge of Ras Dashen',
         targetLevelIndex: 2,
         targetSpawn: { x: 30, z: 25, rotY: -Math.PI / 4 },
         x: -55,
         z: -20,
         radius: 5.0,
-        prompt: '[E] Ascend Mountain Pass'
+        prompt: '[E] Ascend to Ras Dashen Pass'
       },
       {
         id: 'forest-to-village',
-        name: 'The Abandoned Village',
+        name: 'Lalibela Monasteries',
         targetLevelIndex: 3,
         targetSpawn: { x: 0, z: -35, rotY: 0 },
         x: 10,
         z: 30,
         radius: 5.0,
-        prompt: '[E] Enter Abandoned Village'
+        prompt: '[E] Travel to Lalibela Village'
       },
       {
         id: 'forest-to-cavern',
-        name: 'The Whispering Cavern',
+        name: 'Caverns of Lake Tana',
         targetLevelIndex: 4,
         targetSpawn: { x: -28, z: 28, rotY: Math.PI / 4 },
         x: -32,
         z: -35,
         radius: 5.0,
-        prompt: '[E] Descend into Whispering Cavern'
+        prompt: '[E] Descend into Lake Tana Caverns'
       }
     ],
     landmarks: [
-      { id: 'df-clearing', name: 'Verdant Clearing', x: 0, z: 0, radius: 10.0, xpReward: 30 },
-      { id: 'df-ridge', name: 'Guardian Ridge', x: 24, z: -45, radius: 11.0, xpReward: 30 },
-      { id: 'df-altar', name: 'Altar of the Ancients', x: 40, z: -75, radius: 10.0, xpReward: 40 },
-      { id: 'df-grove', name: "Malakor's Sacred Grove", x: -38, z: -66, radius: 14.0, xpReward: 50 },
-      { id: 'df-canyon-trail', name: 'Highland Trailhead', x: -55, z: -20, radius: 9.0, xpReward: 30 }
+      { id: 'df-clearing', name: 'Highland Escarpment', x: 0, z: 0, radius: 10.0, xpReward: 30 },
+      { id: 'df-ridge', name: 'Ras Dashen Ridge', x: 24, z: -45, radius: 11.0, xpReward: 30 },
+      { id: 'df-altar', name: 'Altar of Axumite Kings', x: 40, z: -75, radius: 10.0, xpReward: 40 },
+      { id: 'df-grove', name: "Arwe's Sacred Acacia Grove", x: -38, z: -66, radius: 14.0, xpReward: 50 },
+      { id: 'df-canyon-trail', name: 'Sanctuary of the Walia', x: -55, z: -20, radius: 9.0, xpReward: 30 }
     ],
     quest: {
       id: 'mission-restore-the-forest',
-      title: 'RESTORE THE FOREST',
-      subtitle: 'The ancient darkness recedes as the forest comes back to life.',
-      description: 'Defeat hostile guardians, gather magical crystals, and escape through the ancient ruins portal.',
+      title: 'ደብረ ስሜንን ማደስ • RESTORE THE HIGHLANDS',
+      subtitle: 'The sacred Simien peaks awaken as ancient blessings return.',
+      description: 'Defeat shadow sentinels, gather sacred Wollo Opals (ዕንቁ), and open the ancient Axumite portal.',
       enemiesRequired: 3,
       crystalsRequired: 5,
-      enemiesLabel: 'Enemies defeated',
-      crystalsLabel: 'Crystals collected',
-      entranceLabel: 'Ancient entrance',
-      exitLabel: 'Ruins Exit Portal',
+      enemiesLabel: 'Sentinels banished',
+      crystalsLabel: 'Wollo Opals collected',
+      entranceLabel: 'Highland Sanctuary',
+      exitLabel: 'Axum Sanctuary Portal',
       exitLocation: { x: 40, z: -75, radius: 3.5 },
-      unlockMessage: 'ANCIENT RUINS UNLOCKED - The barrier has dissolved! Enter the Altar Portal.'
+      unlockMessage: 'AXUMITE GATEWAY AWAKENED - The sacred seal is broken! Enter the Obelisk Portal.'
     }
   },
   {
     index: 1,
-    id: 'ancient-ruins',
-    name: 'The Ancient Ruins',
-    badgeText: 'STAGE 2: THE ANCIENT RUINS',
+    id: 'axum-sanctuary',
+    name: 'Axumite Sanctuary',
+    badgeText: 'ደረጃ ፪: አክሱም ሐውልት • STAGE 2: AXUMITE SANCTUARY',
     playerSpawn: { x: 0, z: 30, rotY: 0 },
     passages: [
       {
         id: 'ruins-to-forest',
-        name: 'The Dark Forest',
+        name: 'The Simien Highlands',
         targetLevelIndex: 0,
         targetSpawn: { x: 38, z: -70, rotY: 0 },
         x: 0,
         z: 35,
         radius: 4.5,
-        prompt: '[E] Return to Dark Forest'
+        prompt: '[E] Return to Simien Highlands'
       },
       {
         id: 'ruins-to-mountain',
-        name: 'The Mountain Pass',
+        name: 'Gorge of Ras Dashen',
         targetLevelIndex: 2,
         targetSpawn: { x: 28, z: -18, rotY: -Math.PI / 2 },
         x: -35,
         z: 0,
         radius: 4.5,
-        prompt: '[E] Cross to Mountain Pass'
+        prompt: '[E] Cross to Ras Dashen'
       },
       {
         id: 'ruins-to-cavern',
-        name: 'The Whispering Cavern',
+        name: 'Caverns of Lake Tana',
         targetLevelIndex: 4,
         targetSpawn: { x: 25, z: -25, rotY: -Math.PI / 4 },
         x: 35,
         z: 0,
         radius: 4.5,
-        prompt: '[E] Descend to Whispering Cavern'
+        prompt: '[E] Descend to Tana Caverns'
       }
     ],
     landmarks: [
-      { id: 'ar-antechamber', name: 'Sanctuary Antechamber', x: 0, z: 30, radius: 10.0, xpReward: 30 },
-      { id: 'ar-dais', name: 'Central Sanctum Dais', x: 0, z: 0, radius: 8.0, xpReward: 40 },
-      { id: 'ar-catacombs', name: 'Sunken Catacombs', x: -18, z: 18, radius: 9.0, xpReward: 30 }
+      { id: 'ar-antechamber', name: 'Great Obelisk Plaza (ሐውልት)', x: 0, z: 30, radius: 10.0, xpReward: 30 },
+      { id: 'ar-dais', name: 'Sanctum of the Ark (ጽዮን)', x: 0, z: 0, radius: 8.0, xpReward: 40 },
+      { id: 'ar-catacombs', name: 'Monolithic Royal Vaults', x: -18, z: 18, radius: 9.0, xpReward: 30 }
     ],
     quest: {
       id: 'mission-sanctuary-of-the-ancients',
-      title: 'SANCTUARY OF THE ANCIENTS',
-      subtitle: 'The corrupted sanctum is cleansed. The Shadow Lord’s reign has ended.',
-      description: 'Defeat the elite void guardians, gather the lost relic orbs, and activate the sanctum dais.',
+      title: 'የአክሱም መቅደስ • SANCTUARY OF AXUM',
+      subtitle: 'The sacred obelisks shine once more. Ancient peace reigns.',
+      description: 'Defeat the elite void guardians, recover the golden Axumite relics, and kindle the Central Obelisk.',
       enemiesRequired: 4,
       crystalsRequired: 3,
-      enemiesLabel: 'Guardians defeated',
-      crystalsLabel: 'Void Relics gathered',
-      entranceLabel: 'Sanctum Seal',
-      exitLabel: 'Sanctum Dais Portal',
+      enemiesLabel: 'Guardians banished',
+      crystalsLabel: 'Axumite Relics recovered',
+      entranceLabel: 'Sanctum Gate',
+      exitLabel: 'Great Obelisk Dais',
       exitLocation: { x: 0, z: 0, radius: 3.5 },
-      unlockMessage: 'SANCTUM SEAL BROKEN - The Central Dais Beacon is active! Enter the Dais to complete the trial.'
+      unlockMessage: 'AXUMITE SEAL RESTORED - The Great Obelisk Beacon is ablaze! Enter the Dais to complete the trial.'
     }
   },
   {

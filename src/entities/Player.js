@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
+import { Shield } from './Shield.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
 import { SkillTreeSystem } from '../systems/SkillTreeSystem.js';
 
@@ -185,6 +186,7 @@ export class Player {
       this.model.rotation.y = Math.PI;
 
       let rightHandBone = null;
+      let leftHandBone = null;
 
       this.model.traverse(child => {
         if (child.isMesh) {
@@ -201,19 +203,30 @@ export class Player {
           if (boneName.includes('righthand') || boneName.includes('handr')) {
             rightHandBone = child;
           }
+          if (boneName.includes('lefthand') || boneName.includes('handl') || boneName.includes('leftforearm') || boneName.includes('forearml')) {
+            if (!leftHandBone) leftHandBone = child;
+          }
         }
       });
 
       this.mesh.add(this.model);
 
-      // Attach adventurer sword to character's hand bone
+      // Attach traditional Ethiopian Shotel sword to right hand
       this.sword = new Sword();
       if (rightHandBone) {
         this.sword.attachToHand(rightHandBone);
       } else {
-        console.warn('Right hand bone not detected; attaching sword to model root.');
         this.sword.mesh.position.set(0.4, 1.0, 0);
         this.model.add(this.sword.mesh);
+      }
+
+      // Attach traditional Ethiopian Gasha shield to left arm
+      this.shield = new Shield();
+      if (leftHandBone) {
+        this.shield.attachToArm(leftHandBone);
+      } else {
+        this.shield.mesh.position.set(-0.35, 1.1, 0.1);
+        this.model.add(this.shield.mesh);
       }
 
       // Initialize Animation Controller

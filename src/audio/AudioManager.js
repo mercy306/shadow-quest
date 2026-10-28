@@ -190,30 +190,30 @@ export class AudioManager {
       const padGain = this.audioCtx.createGain();
 
       if (levelIndex === 0) {
-        // Forest Warm Drone (D3 + A3)
-        osc1.frequency.setValueAtTime(146.83, now);
-        osc2.frequency.setValueAtTime(220.00, now);
-        filter.frequency.setValueAtTime(600, now);
+        // Simien Highlands: Ethiopian Tizita (ትዝታ) Warm Pentatonic Resonance
+        osc1.frequency.setValueAtTime(146.83, now); // D3
+        osc2.frequency.setValueAtTime(220.00, now); // A3 (Quintal harmony)
+        filter.frequency.setValueAtTime(620, now);
       } else if (levelIndex === 1) {
-        // Ancient Ruins Nocturne Drone (A2 + E3)
-        osc1.frequency.setValueAtTime(110.00, now);
-        osc2.frequency.setValueAtTime(164.81, now);
-        filter.frequency.setValueAtTime(450, now);
+        // Axumite Sanctuary: Ethiopian Bati (ባቲ) Heroic Pentatonic Drone
+        osc1.frequency.setValueAtTime(130.81, now); // C3
+        osc2.frequency.setValueAtTime(196.00, now); // G3
+        filter.frequency.setValueAtTime(480, now);
       } else if (levelIndex === 2) {
-        // Mountain Pass Highwind Alpine Drone (F3 + C4)
-        osc1.frequency.setValueAtTime(174.61, now);
-        osc2.frequency.setValueAtTime(261.63, now);
+        // Gorge of Ras Dashen: Ethiopian Ambassel (አምባሰል) Highland Drone
+        osc1.frequency.setValueAtTime(174.61, now); // F3
+        osc2.frequency.setValueAtTime(261.63, now); // C4
         filter.frequency.setValueAtTime(750, now);
       } else if (levelIndex === 3) {
-        // Abandoned Village Twilight Drone (G2 + D3)
-        osc1.frequency.setValueAtTime(98.00, now);
-        osc2.frequency.setValueAtTime(146.83, now);
-        filter.frequency.setValueAtTime(400, now);
+        // Lalibela Rock Monasteries: Sacred Choral Resonance Drone
+        osc1.frequency.setValueAtTime(98.00, now);  // G2
+        osc2.frequency.setValueAtTime(146.83, now); // D3
+        filter.frequency.setValueAtTime(420, now);
       } else {
-        // Whispering Cavern Deep Subterranean Drone (E2 + B2)
-        osc1.frequency.setValueAtTime(82.41, now);
-        osc2.frequency.setValueAtTime(123.47, now);
-        filter.frequency.setValueAtTime(320, now);
+        // Lake Tana Caverns: Ancient Monastic Sanctum Drone
+        osc1.frequency.setValueAtTime(82.41, now);  // E2
+        osc2.frequency.setValueAtTime(123.47, now); // B2
+        filter.frequency.setValueAtTime(340, now);
       }
 
       osc1.type = 'sine';

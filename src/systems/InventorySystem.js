@@ -32,82 +32,82 @@ export const RARITY_CONFIG = {
 };
 
 export const ITEM_DATABASE = {
-  // --- WEAPONS ---
+  // --- WEAPONS (የኢትዮጵያ ሾተልና ጦር) ---
   iron_sword: {
     id: 'iron_sword',
-    name: 'Steel Broadsword',
+    name: 'ሾተል (Axumite Steel Shotel)',
     type: ItemType.WEAPON,
     rarity: ItemRarity.COMMON,
     icon: '⚔️',
-    description: 'A finely balanced steel blade forged by kingdom armorers. Reliable and sharp.',
+    description: 'Iconic curved Ethiopian sickle sword forged by Axumite masters. Curves past enemy defenses.',
     stats: { damage: 35 },
     value: 50,
     stackable: false
   },
   shadow_cleaver: {
     id: 'shadow_cleaver',
-    name: 'Shadow Cleaver',
+    name: 'የነብር ሾተል (Simien Shadow Shotel)',
     type: ItemType.WEAPON,
     rarity: ItemRarity.RARE,
     icon: '🗡️',
-    description: 'Carved from dark abyssal glass. Cuts through enemy armor with ease.',
+    description: 'Forged from Simien obsidian and tempered in mountain springs. Slices through armor like a phantom.',
     stats: { damage: 55 },
     value: 180,
     stackable: false
   },
   void_reaver: {
     id: 'void_reaver',
-    name: 'Void Reaver',
+    name: 'የሰለሞን ሾተል (Imperial Shotel of Sheba)',
     type: ItemType.WEAPON,
     rarity: ItemRarity.EPIC,
     icon: '⚡',
-    description: 'An ancient relic blade pulsing with raw void thunder. Inflicts massive damage.',
+    description: 'Ancient royal curved blade inscribed with Ge’ez runes. Inflicts thunderous damage upon evil.',
     stats: { damage: 80 },
     value: 350,
     stackable: false
   },
 
-  // --- ARMOR ---
+  // --- ARMOR & SHIELDS (የኢትዮጵያ ካባና ጋሻ) ---
   adventurer_tunic: {
     id: 'adventurer_tunic',
-    name: 'Adventurer Tunic',
+    name: 'የጥበብ ካባ (Tibeb Warrior Shamma)',
     type: ItemType.ARMOR,
     rarity: ItemRarity.COMMON,
     icon: '🥋',
-    description: 'Sturdy leather garment providing foundational protection on the trails.',
+    description: 'Traditional Ethiopian woven white cotton robe with hand-embroidered green, yellow, and red borders.',
     stats: { defense: 10, maxHealth: 20 },
     value: 60,
     stackable: false
   },
   shadow_plate: {
     id: 'shadow_plate',
-    name: 'Rune Guard Plate',
+    name: 'የነሐስ ጋሻ (Embossed Bronze Gasha)',
     type: ItemType.ARMOR,
     rarity: ItemRarity.RARE,
     icon: '🛡️',
-    description: 'Tempered steel plate inscribed with protective defensive runes.',
+    description: 'Conical hardened ox-hide warrior shield reinforced with concentric bronze rings and raised Kubet boss.',
     stats: { defense: 25, maxHealth: 50 },
     value: 220,
     stackable: false
   },
   sanctuary_aegis: {
     id: 'sanctuary_aegis',
-    name: 'Sanctuary Aegis',
+    name: 'የንጉሥ ጋሻ (Imperial Axumite Gold Gasha)',
     type: ItemType.ARMOR,
     rarity: ItemRarity.EPIC,
     icon: '⚜️',
-    description: 'Consecrated armor once worn by high guardians of the sacred sanctum.',
+    description: 'Consecrated royal warrior shield plated with pure Axumite gold filigree and crimson velvet backing.',
     stats: { defense: 45, maxHealth: 100 },
     value: 400,
     stackable: false
   },
   verdant_colossus_aegis: {
     id: 'verdant_colossus_aegis',
-    name: 'Verdant Colossus Aegis',
+    name: 'የአርዌ ጋሻ (Dragon Scale Gasha of Arwe)',
     type: ItemType.ARMOR,
     rarity: ItemRarity.EPIC,
     icon: '🛡️',
-    description: 'Forged from the living petrified bark and core of Malakor. Grants +40 Max HP and +20 Defense.',
+    description: 'Forged from the mythical serpent scales and ancient core of the legendary Arwe. Grants +40 Max HP and +20 Defense.',
     stats: { defense: 20, maxHealth: 40 },
     value: 300,
     stackable: false

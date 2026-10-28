@@ -18,6 +18,7 @@ export class RuinsStage {
     this.buildGround();
     this.buildRuinedCorridors();
     this.buildColonnade();
+    this.buildAxumiteObelisks();
     this.buildBraziers();
     this.buildSanctumAltar();
 
@@ -194,6 +195,104 @@ export class RuinsStage {
         ));
       }
     }
+  }
+
+  buildAxumiteObelisks() {
+    // Majestic Axumite Hawilti Obelisks standing as sacred monuments
+    const obeliskPositions = [
+      { x: -18, z: 0, h: 16, rot: Math.PI / 2 },
+      { x: 18, z: 0, h: 16, rot: -Math.PI / 2 },
+      { x: 0, z: -28, h: 20, rot: 0 }
+    ];
+
+    const darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x1f1915, roughness: 0.85 });
+    const discMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
+
+    obeliskPositions.forEach(cfg => {
+      const obeliskGroup = new THREE.Group();
+      obeliskGroup.position.set(cfg.x, 0, cfg.z);
+      obeliskGroup.rotation.y = cfg.rot;
+
+      // Base stepped plinth
+      const plinth1 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.6, 3.6), this.stoneMat);
+      plinth1.position.y = 0.3;
+      plinth1.castShadow = true;
+      plinth1.receiveShadow = true;
+      obeliskGroup.add(plinth1);
+
+      const plinth2 = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 2.8), this.stoneMat);
+      plinth2.position.y = 0.85;
+      plinth2.castShadow = true;
+      plinth2.receiveShadow = true;
+      obeliskGroup.add(plinth2);
+
+      // Monolithic Tapered Stele
+      const baseW = 2.0;
+      const topW = 1.3;
+      const shaftH = cfg.h - 2.5;
+      const shaftGeo = new THREE.BoxGeometry(baseW, shaftH, baseW);
+      const pos = shaftGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const py = pos.getY(i);
+        const factor = (py + shaftH / 2) / shaftH;
+        const scale = 1.0 - factor * (1.0 - topW / baseW);
+        pos.setX(i, pos.getX(i) * scale);
+        pos.setZ(i, pos.getZ(i) * scale);
+      }
+      shaftGeo.computeVertexNormals();
+
+      const shaft = new THREE.Mesh(shaftGeo, this.stoneMat);
+      shaft.position.y = 1.1 + shaftH / 2;
+      shaft.castShadow = true;
+      shaft.receiveShadow = true;
+      obeliskGroup.add(shaft);
+
+      // Axumite false architectural stories & beam ends
+      const stories = Math.floor(shaftH / 2.3);
+      for (let s = 1; s <= stories; s++) {
+        const sy = 1.1 + s * 2.3;
+        const factor = (sy - 1.1) / shaftH;
+        const currentW = baseW - factor * (baseW - topW);
+
+        const ledge = new THREE.Mesh(new THREE.BoxGeometry(currentW + 0.14, 0.12, currentW + 0.14), this.stoneMat);
+        ledge.position.y = sy;
+        ledge.castShadow = true;
+        obeliskGroup.add(ledge);
+
+        const win = new THREE.Mesh(new THREE.BoxGeometry(currentW * 0.44, 0.95, currentW + 0.04), darkWoodMat);
+        win.position.set(0, sy - 0.95, 0);
+        obeliskGroup.add(win);
+      }
+
+      // Semicircular crown arch
+      const crownApexY = 1.1 + shaftH;
+      const archGeo = new THREE.CylinderGeometry(topW * 0.48, topW * 0.48, topW * 0.9, 16);
+      archGeo.rotateZ(Math.PI / 2);
+      const arch = new THREE.Mesh(archGeo, this.stoneMat);
+      arch.position.set(0, crownApexY, 0);
+      arch.castShadow = true;
+      obeliskGroup.add(arch);
+
+      // Gold Axumite Solar Disc
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.08, 12), discMat);
+      disc.rotation.x = Math.PI / 2;
+      disc.position.set(0, crownApexY + 0.55, 0);
+      disc.castShadow = true;
+      obeliskGroup.add(disc);
+
+      this.group.add(obeliskGroup);
+
+      if (this.physicsWorld) {
+        this.physicsWorld.addCollider(new CircleCollider(
+          cfg.x,
+          cfg.z,
+          1.8,
+          -0.5,
+          cfg.h + 1,
+          'obelisk'
+        ));
+      }
+    });
   }
 
   buildBraziers() {

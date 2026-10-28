@@ -152,12 +152,24 @@ export class MountCreature {
     torsoGroup.add(rumpMesh);
 
     // 2. Saddle & Tack
-    // Saddle blanket
+    // Saddle blanket with traditional Ethiopian Tibeb embroidered borders
     const blanketGeom = new THREE.BoxGeometry(0.85, 0.04, 0.88);
     const blanketMesh = new THREE.Mesh(blanketGeom, blanketMat);
     blanketMesh.position.set(0, 0.44, 0.02);
     blanketMesh.castShadow = true;
     torsoGroup.add(blanketMesh);
+
+    // Tibeb tricolor embroidery trim (green, gold, red) along both flanks
+    const tibebColors = [0x15803d, 0xeab308, 0xb91c1c];
+    [-0.43, 0.43].forEach(xSide => {
+      tibebColors.forEach((col, idx) => {
+        const stripeMat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7 });
+        const stripeGeom = new THREE.BoxGeometry(0.015, 0.02, 0.86);
+        const stripe = new THREE.Mesh(stripeGeom, stripeMat);
+        stripe.position.set(xSide, 0.42 - idx * 0.025, 0.02);
+        torsoGroup.add(stripe);
+      });
+    });
 
     // Leather saddle seat with pommel and cantle
     const saddleGroup = new THREE.Group();
@@ -268,6 +280,47 @@ export class MountCreature {
       earMesh.castShadow = true;
       headGroup.add(earMesh);
     });
+
+    // Authentic Simien Walia Horns & Axumite Headwear
+    const hornMat = new THREE.MeshStandardMaterial({
+      color: 0x2b221a,
+      roughness: 0.7,
+      metalness: 0.25
+    });
+    [-0.08, 0.08].forEach((xSide) => {
+      const hornGroup = new THREE.Group();
+      hornGroup.position.set(xSide, 0.26, 0.02);
+      // Swept-back arch characteristic of Simien Walia Ibex
+      const segments = 6;
+      for (let s = 0; s < segments; s++) {
+        const segR = 0.05 * (1 - (s / segments) * 0.7);
+        const segLen = 0.16;
+        const segGeom = new THREE.CylinderGeometry(segR * 0.82, segR, segLen, 8);
+        const segMesh = new THREE.Mesh(segGeom, hornMat);
+        segMesh.position.set(0, s * 0.11, -Math.pow(s * 0.14, 1.45));
+        segMesh.rotation.x = -0.32 - s * 0.22;
+        segMesh.rotation.z = (xSide > 0 ? 1 : -1) * 0.12;
+        segMesh.castShadow = true;
+        hornGroup.add(segMesh);
+
+        // Ribbed ridges on the horn front edge
+        if (s > 0) {
+          const ridgeGeom = new THREE.TorusGeometry(segR * 0.95, 0.012, 4, 8);
+          const ridge = new THREE.Mesh(ridgeGeom, metalMat);
+          ridge.position.copy(segMesh.position);
+          ridge.rotation.copy(segMesh.rotation);
+          hornGroup.add(ridge);
+        }
+      }
+      headGroup.add(hornGroup);
+    });
+
+    // Traditional Ethiopian forehead brass medallion (Meskel / Rosette)
+    const medalGeom = new THREE.CylinderGeometry(0.065, 0.065, 0.02, 8);
+    medalGeom.rotateX(Math.PI / 2);
+    const medallion = new THREE.Mesh(medalGeom, metalMat);
+    medallion.position.set(0, 0.08, 0.35);
+    headGroup.add(medallion);
 
     // 4. Flowing Tail
     const tailGroup = new THREE.Group();

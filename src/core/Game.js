@@ -956,7 +956,7 @@ export class Game {
 
     // Environment dynamics
     if (this.environment) {
-      this.environment.update(deltaTime);
+      this.environment.update(deltaTime, this.player ? this.player.getPosition() : null);
     }
 
     // Enemy AI & Hostile Guardians

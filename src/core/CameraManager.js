@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export class CameraManager {
-  constructor(fov = 60, aspect = window.innerWidth / window.innerHeight, near = 0.1, far = 1000) {
+  constructor(fov = 60, aspect = window.innerWidth / window.innerHeight, near = 0.1, far = 2500) {
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this.baseFOV = fov;
     this.targetFOV = fov;
@@ -20,9 +20,9 @@ export class CameraManager {
     this.theta = Math.PI; // Face down negative Z by default
     this.phi = Math.PI * 0.38; // Slightly looking down from above
 
-    // Pitch constraints (prevent camera from flipping upside down or dipping through floor)
-    this.minPhi = Math.PI * 0.12; // Looking steep downward (~21 degrees from zenith)
-    this.maxPhi = Math.PI * 0.48; // Looking near horizon (~86 degrees, preventing dipping below floor)
+    // Pitch constraints (allows looking high up into the sky and down to feet)
+    this.minPhi = Math.PI * 0.08; // Looking steep downward from above
+    this.maxPhi = Math.PI * 0.56; // Tilts upward so player can admire the sky, clouds, and tall buildings
 
     // Sensitivity and smoothing
     this.mouseSensitivity = 0.0022;

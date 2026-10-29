@@ -20,11 +20,11 @@ export const WEATHER_CONFIGS = {
     icon: '☀️',
     rainIntensity: 0.0,
     targetWetness: 0.0,
-    fogDensityMultiplier: 1.0,
-    lightIntensityMultiplier: 1.0,
+    fogDensityMultiplier: 0.5,
+    lightIntensityMultiplier: 1.15,
     ambientMultiplier: 1.0,
-    turbidity: 4.5,
-    rayleigh: 1.8,
+    turbidity: 2.2,
+    rayleigh: 1.6,
     cloudCover: 0.0,
     hasLightning: false,
     visibilityMultiplier: 1.0
@@ -462,10 +462,14 @@ export class WeatherManager {
       env.hemiLight.intensity = (isDay ? 0.5 : 0.25) * this.ambientMultiplier;
     }
 
-    // Dynamic Fog modulation
+    // Dynamic Fog modulation (crystal clear sky for city street in clear weather)
     if (env.scene.fog) {
-      const baseStageFog = (env.currentLevelIndex === 2 ? 0.007 : 0.0085);
+      const baseStageFog = (env.currentLevelIndex === 0 ? 0.0012 : (env.currentLevelIndex === 2 ? 0.004 : 0.006));
       env.scene.fog.density = baseStageFog * this.fogDensityMultiplier;
+    }
+
+    if (env.sunSprite) {
+      env.sunSprite.visible = isDay && (this.cloudCover < 0.7);
     }
   }
 

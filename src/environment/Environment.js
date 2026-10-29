@@ -71,8 +71,116 @@ export class Environment {
 
   initSky() {
     this.sky = new Sky();
-    this.sky.scale.setScalar(450000);
+    this.sky.scale.setScalar(1800);
     this.scene.add(this.sky);
+
+    // Initial clear Ethiopian highland sky parameters
+    const skyUniforms = this.sky.material.uniforms;
+    skyUniforms['turbidity'].value = 2.2;
+    skyUniforms['rayleigh'].value = 1.6; // Deep vivid sky blue
+    skyUniforms['mieCoefficient'].value = 0.003;
+    skyUniforms['mieDirectionalG'].value = 0.85;
+
+    this.initClouds();
+    this.initSunGlow();
+    this.initDistantMountains();
+  }
+
+  initClouds() {
+    this.cloudGroup = new THREE.Group();
+
+    // Soft illuminated cumulus cloud material
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.92,
+      metalness: 0.0,
+      flatShading: true,
+      transparent: true,
+      opacity: 0.92
+    });
+
+    const cloudCount = 28;
+    for (let c = 0; c < cloudCount; c++) {
+      const cluster = new THREE.Group();
+
+      // Distribute broadly across the sky
+      const cx = (Math.random() - 0.5) * 600;
+      const cy = 85 + Math.random() * 45; // Altitude 85m to 130m
+      const cz = (Math.random() - 0.5) * 600;
+      cluster.position.set(cx, cy, cz);
+
+      // Overlapping puffs to form a billowing cumulus cloud
+      const puffCount = 5 + Math.floor(Math.random() * 5);
+      const clusterScale = 1.2 + Math.random() * 1.5;
+
+      for (let p = 0; p < puffCount; p++) {
+        const radius = (8 + Math.random() * 8) * clusterScale;
+        const puffGeo = new THREE.DodecahedronGeometry(radius, 1);
+        const puff = new THREE.Mesh(puffGeo, cloudMat);
+        puff.position.set(
+          (Math.random() - 0.5) * 22 * clusterScale,
+          (Math.random() - 0.2) * 8 * clusterScale,
+          (Math.random() - 0.5) * 18 * clusterScale
+        );
+        puff.scale.set(1.4, 0.75, 1.1); // Slightly flat on underside like real cumulus
+        cluster.add(puff);
+      }
+
+      this.cloudGroup.add(cluster);
+    }
+
+    this.scene.add(this.cloudGroup);
+  }
+
+  initSunGlow() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(128, 128, 12, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    grad.addColorStop(0.15, 'rgba(254, 240, 138, 0.9)');
+    grad.addColorStop(0.4, 'rgba(251, 191, 36, 0.4)');
+    grad.addColorStop(0.7, 'rgba(245, 158, 11, 0.12)');
+    grad.addColorStop(1.0, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 256, 256);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const sunSpriteMat = new THREE.SpriteMaterial({
+      map: tex,
+      color: 0xffffff,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    this.sunSprite = new THREE.Sprite(sunSpriteMat);
+    this.sunSprite.scale.set(110, 110, 1);
+    this.scene.add(this.sunSprite);
+  }
+
+  initDistantMountains() {
+    this.mountainGroup = new THREE.Group();
+    const mtnMat = new THREE.MeshStandardMaterial({
+      color: 0x475569, // Atmospheric hazy mountain blue-slate
+      roughness: 0.95,
+      metalness: 0.05
+    });
+
+    const count = 24;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const r = 260 + (i % 4) * 35;
+      const mtnH = 65 + (i * 19) % 55;
+      const mtnW = 110 + (i * 29) % 50;
+
+      const coneGeo = new THREE.ConeGeometry(mtnW, mtnH, 7);
+      const mtn = new THREE.Mesh(coneGeo, mtnMat);
+      mtn.position.set(Math.cos(angle) * r, mtnH * 0.42, Math.sin(angle) * r);
+      mtn.rotation.y = angle + 0.4;
+      this.mountainGroup.add(mtn);
+    }
+    this.scene.add(this.mountainGroup);
   }
 
   loadLevel(levelIndex, physicsWorld = this.physicsWorld) {
@@ -82,15 +190,15 @@ export class Environment {
 
     if (levelIndex === 0) {
       // ===== STAGE 1: GONDAR IMPERIAL CITY & BAZAAR (ደረጃ ፩: ጎንደር ከተማ) =====
-      // Crisp Ethiopian Highland morning sunshine with golden warmth
+      // Crisp Ethiopian Highland morning sunshine with golden warmth and crystal clear blue sky
       this.ambientLight.color.setHex(0xfef3c7);
-      this.ambientLight.intensity = 0.45;
+      this.ambientLight.intensity = 0.55;
       this.hemiLight.color.setHex(0x38bdf8);
       this.hemiLight.groundColor.setHex(0xb45309);
-      this.hemiLight.intensity = 0.55;
+      this.hemiLight.intensity = 0.65;
 
       this.dirLight.color.setHex(0xfffbeb);
-      this.dirLight.intensity = 1.4;
+      this.dirLight.intensity = 1.5;
 
       if (this.rimLight) {
         this.rimLight.color.setHex(0xfacc15);
@@ -98,20 +206,20 @@ export class Environment {
       }
 
       const skyUniforms = this.sky.material.uniforms;
-      skyUniforms['turbidity'].value = 5.0;
-      skyUniforms['rayleigh'].value = 1.2;
-      skyUniforms['mieCoefficient'].value = 0.005;
-      skyUniforms['mieDirectionalG'].value = 0.8;
+      skyUniforms['turbidity'].value = 2.2;
+      skyUniforms['rayleigh'].value = 1.6; // Deep vivid sky blue
+      skyUniforms['mieCoefficient'].value = 0.003;
+      skyUniforms['mieDirectionalG'].value = 0.85;
 
-      const elevation = 32;
-      const azimuth = 140;
+      const elevation = 42;
+      const azimuth = 135;
       const phi = THREE.MathUtils.degToRad(90 - elevation);
       const theta = THREE.MathUtils.degToRad(azimuth);
       this.sun.setFromSphericalCoords(1, phi, theta);
       skyUniforms['sunPosition'].value.copy(this.sun);
-      this.dirLight.position.copy(this.sun).multiplyScalar(90);
+      this.dirLight.position.copy(this.sun).multiplyScalar(120);
 
-      this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.004); // Clear crisp highland atmosphere
+      this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.0012); // Clear crisp highland atmosphere
 
       // Build vibrant Ethiopian Imperial City
       this.abandonedVillageStage = new AbandonedVillageStage(this.scene, this.physicsWorld);
@@ -347,6 +455,33 @@ export class Environment {
     // Dynamic Weather and Day/Night update
     if (this.weatherManager) {
       this.weatherManager.update(deltaTime, playerPosition, this.currentLevelIndex);
+    }
+
+    // Keep sky dome & mountain horizon centered around player
+    if (playerPosition) {
+      if (this.sky) {
+        this.sky.position.set(playerPosition.x, 0, playerPosition.z);
+      }
+      if (this.mountainGroup) {
+        this.mountainGroup.position.set(playerPosition.x, 0, playerPosition.z);
+      }
+    }
+
+    // Realistic wind drifting of cumulus clouds
+    if (this.cloudGroup) {
+      this.cloudGroup.position.x += deltaTime * 2.5;
+      if (this.cloudGroup.position.x > 300) {
+        this.cloudGroup.position.x -= 600;
+      }
+    }
+
+    // Celestial Sun sprite tracking
+    if (this.sunSprite && this.dirLight) {
+      this.sunSprite.position.copy(this.dirLight.position);
+    }
+
+    if (this.abandonedVillageStage) {
+      this.abandonedVillageStage.update(deltaTime);
     }
 
     if (this.currentLevelIndex === 0) {

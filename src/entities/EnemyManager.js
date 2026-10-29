@@ -30,45 +30,35 @@ export class EnemyManager {
 
     let guardianConfigs = [];
     if (levelIndex === 0) {
-      // STAGE 1: THE DARK FOREST (4 Standard Guardians + Malakor Boss)
+      // STAGE 1: GONDAR IMPERIAL CITY (3 Outskirt Sentinels guarding the outer gates)
       guardianConfigs = [
         {
-          id: 'ruins-sentinel-1',
-          name: 'Forest Sentinel',
-          patrolCenter: new THREE.Vector3(16, 0, -32),
-          patrolRadius: 6.0,
+          id: 'city-gate-sentinel-1',
+          name: 'Highland Infiltrator',
+          patrolCenter: new THREE.Vector3(-26, 0, 24),
+          patrolRadius: 5.0,
           health: 80,
           damage: 12,
-          detectionRadius: 15.0,
+          detectionRadius: 13.0,
           attackRange: 2.3
         },
         {
-          id: 'ruins-sentinel-2',
-          name: 'Ridge Guardian',
-          patrolCenter: new THREE.Vector3(26, 0, -48),
-          patrolRadius: 6.5,
+          id: 'city-gate-sentinel-2',
+          name: 'Rogue Raider',
+          patrolCenter: new THREE.Vector3(26, 0, -24),
+          patrolRadius: 5.5,
+          health: 95,
+          damage: 14,
+          detectionRadius: 14.0,
+          attackRange: 2.3
+        },
+        {
+          id: 'city-gate-sentinel-3',
+          name: 'Outer Wall Scout',
+          patrolCenter: new THREE.Vector3(-28, 0, -28),
+          patrolRadius: 5.0,
           health: 100,
           damage: 15,
-          detectionRadius: 16.0,
-          attackRange: 2.3
-        },
-        {
-          id: 'ruins-golem-3',
-          name: 'Ruins Gatekeeper',
-          patrolCenter: new THREE.Vector3(34, 0, -66),
-          patrolRadius: 6.0,
-          health: 110,
-          damage: 18,
-          detectionRadius: 16.0,
-          attackRange: 2.4
-        },
-        {
-          id: 'grimfang-alpha',
-          name: 'Grimfang (Shadow Stalker)',
-          patrolCenter: new THREE.Vector3(-22, 0, -45),
-          patrolRadius: 5.0,
-          health: 130,
-          damage: 18,
           detectionRadius: 14.0,
           attackRange: 2.3
         }
@@ -161,38 +151,47 @@ export class EnemyManager {
         }
       ];
     } else if (levelIndex === 3) {
-      // STAGE 4: THE ABANDONED VILLAGE (Restless Phantoms & Dread Knights)
+      // STAGE 4: THE SIMIEN HIGHLANDS WILDERNESS (4 Forest Sentinels + Malakor)
       guardianConfigs = [
         {
-          id: 'village-phantom-1',
-          name: 'Restless Spirit',
-          patrolCenter: new THREE.Vector3(-10, 0, -10),
+          id: 'ruins-sentinel-1',
+          name: 'Forest Sentinel',
+          patrolCenter: new THREE.Vector3(16, 0, -32),
           patrolRadius: 6.0,
-          health: 110,
+          health: 100,
           damage: 15,
           detectionRadius: 15.0,
           attackRange: 2.3
         },
         {
-          id: 'village-phantom-2',
-          name: 'Shadow Revenant',
-          patrolCenter: new THREE.Vector3(10, 0, 10),
-          patrolRadius: 5.5,
-          health: 130,
+          id: 'ruins-sentinel-2',
+          name: 'Ridge Guardian',
+          patrolCenter: new THREE.Vector3(26, 0, -48),
+          patrolRadius: 6.5,
+          health: 120,
           damage: 18,
+          detectionRadius: 16.0,
+          attackRange: 2.3
+        },
+        {
+          id: 'ruins-golem-3',
+          name: 'Ruins Gatekeeper',
+          patrolCenter: new THREE.Vector3(34, 0, -66),
+          patrolRadius: 6.0,
+          health: 140,
+          damage: 20,
           detectionRadius: 16.0,
           attackRange: 2.4
         },
         {
-          id: 'dread-knight-3',
-          name: 'Cursed Mill Warden',
-          patrolCenter: new THREE.Vector3(20, 0, -5),
+          id: 'grimfang-alpha',
+          name: 'Grimfang (Shadow Stalker)',
+          patrolCenter: new THREE.Vector3(-22, 0, -45),
           patrolRadius: 5.0,
-          health: 175,
+          health: 160,
           damage: 22,
-          detectionRadius: 17.0,
-          attackRange: 2.5,
-          chaseSpeed: 5.0
+          detectionRadius: 15.0,
+          attackRange: 2.3
         }
       ];
     } else if (levelIndex === 4) {
@@ -241,8 +240,8 @@ export class EnemyManager {
       this.enemies.push(enemy);
     });
 
-    // In Stage 1: The Dark Forest, spawn Malakor the Verdant Colossus in the Ancient Grove
-    if (levelIndex === 0) {
+    // In Stage 4: The Simien Highlands Wilderness, spawn Malakor the Verdant Colossus in the Ancient Grove
+    if (levelIndex === 3) {
       this.boss = new BossGuardian(this.scene, this.physicsWorld, {
         id: 'boss-malakor',
         name: 'Malakor, Verdant Colossus',

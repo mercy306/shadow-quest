@@ -81,46 +81,41 @@ export class Environment {
     this.physicsWorld = physicsWorld;
 
     if (levelIndex === 0) {
-      // ===== STAGE 1: THE DARK FOREST =====
-      // Golden afternoon sunlight
-      this.ambientLight.color.setHex(0x334155);
-      this.ambientLight.intensity = 0.35;
-      this.hemiLight.color.setHex(0x93c5fd);
-      this.hemiLight.groundColor.setHex(0x22381f);
-      this.hemiLight.intensity = 0.5;
+      // ===== STAGE 1: GONDAR IMPERIAL CITY & BAZAAR (ደረጃ ፩: ጎንደር ከተማ) =====
+      // Crisp Ethiopian Highland morning sunshine with golden warmth
+      this.ambientLight.color.setHex(0xfef3c7);
+      this.ambientLight.intensity = 0.45;
+      this.hemiLight.color.setHex(0x38bdf8);
+      this.hemiLight.groundColor.setHex(0xb45309);
+      this.hemiLight.intensity = 0.55;
 
-      this.dirLight.color.setHex(0xfff3d6);
-      this.dirLight.intensity = 1.45;
+      this.dirLight.color.setHex(0xfffbeb);
+      this.dirLight.intensity = 1.4;
 
       if (this.rimLight) {
-        this.rimLight.color.setHex(0x7dd3fc);
-        this.rimLight.intensity = 0.45;
+        this.rimLight.color.setHex(0xfacc15);
+        this.rimLight.intensity = 0.5;
       }
 
       const skyUniforms = this.sky.material.uniforms;
-      skyUniforms['turbidity'].value = 9.0;
-      skyUniforms['rayleigh'].value = 2.4;
+      skyUniforms['turbidity'].value = 5.0;
+      skyUniforms['rayleigh'].value = 1.2;
       skyUniforms['mieCoefficient'].value = 0.005;
-      skyUniforms['mieDirectionalG'].value = 0.82;
+      skyUniforms['mieDirectionalG'].value = 0.8;
 
-      const elevation = 20;
-      const azimuth = 130;
+      const elevation = 32;
+      const azimuth = 140;
       const phi = THREE.MathUtils.degToRad(90 - elevation);
       const theta = THREE.MathUtils.degToRad(azimuth);
       this.sun.setFromSphericalCoords(1, phi, theta);
       skyUniforms['sunPosition'].value.copy(this.sun);
       this.dirLight.position.copy(this.sun).multiplyScalar(90);
 
-      this.scene.fog = new THREE.FogExp2(0x38485c, 0.0085);
+      this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.004); // Clear crisp highland atmosphere
 
-      // Build forest environment
-      this.terrain = new Terrain(this.scene);
-      if (this.physicsWorld) {
-        this.physicsWorld.setTerrain(this.terrain);
-      }
-      this.ruins = new Ruins(this.scene, this.terrain, this.physicsWorld);
-      this.vegetation = new Vegetation(this.scene, this.terrain, this.physicsWorld);
-      this.arenaGrove = new ArenaGrove(this.scene, this.terrain, this.physicsWorld);
+      // Build vibrant Ethiopian Imperial City
+      this.abandonedVillageStage = new AbandonedVillageStage(this.scene, this.physicsWorld);
+      this.terrain = this.abandonedVillageStage.terrain;
 
     } else if (levelIndex === 1) {
       // ===== STAGE 2: THE ANCIENT RUINS SANCTUARY =====
@@ -198,40 +193,46 @@ export class Environment {
       this.terrain = this.mountainPassStage.terrain;
 
     } else if (levelIndex === 3) {
-      // ===== STAGE 4: THE ABANDONED VILLAGE =====
-      // Twilight dusk with amber and purple mist
-      this.ambientLight.color.setHex(0x4a044e);
-      this.ambientLight.intensity = 0.38;
-      this.hemiLight.color.setHex(0xf472b6);
-      this.hemiLight.groundColor.setHex(0x1c1917);
-      this.hemiLight.intensity = 0.45;
+      // ===== STAGE 4: THE SIMIEN HIGHLANDS WILDERNESS (ደረጃ ፬: ደብረ ስሜን) =====
+      // Golden afternoon sunlight with mountain breeze
+      this.ambientLight.color.setHex(0x334155);
+      this.ambientLight.intensity = 0.35;
+      this.hemiLight.color.setHex(0x93c5fd);
+      this.hemiLight.groundColor.setHex(0x22381f);
+      this.hemiLight.intensity = 0.5;
 
-      this.dirLight.color.setHex(0xfb923c);
-      this.dirLight.intensity = 1.1;
+      this.dirLight.color.setHex(0xfff3d6);
+      this.dirLight.intensity = 1.45;
 
       if (this.rimLight) {
-        this.rimLight.color.setHex(0xa855f7);
-        this.rimLight.intensity = 0.65;
+        this.rimLight.color.setHex(0x7dd3fc);
+        this.rimLight.intensity = 0.45;
       }
 
       const skyUniforms = this.sky.material.uniforms;
-      skyUniforms['turbidity'].value = 10.0;
-      skyUniforms['rayleigh'].value = 3.5;
-      skyUniforms['mieCoefficient'].value = 0.015;
-      skyUniforms['mieDirectionalG'].value = 0.85;
+      skyUniforms['turbidity'].value = 9.0;
+      skyUniforms['rayleigh'].value = 2.4;
+      skyUniforms['mieCoefficient'].value = 0.005;
+      skyUniforms['mieDirectionalG'].value = 0.82;
 
-      const elevation = 12;
-      const azimuth = 240;
+      const elevation = 20;
+      const azimuth = 130;
       const phi = THREE.MathUtils.degToRad(90 - elevation);
       const theta = THREE.MathUtils.degToRad(azimuth);
       this.sun.setFromSphericalCoords(1, phi, theta);
       skyUniforms['sunPosition'].value.copy(this.sun);
       this.dirLight.position.copy(this.sun).multiplyScalar(90);
 
-      this.scene.fog = new THREE.FogExp2(0x2e1065, 0.012);
+      this.scene.fog = new THREE.FogExp2(0x38485c, 0.0085);
 
-      this.abandonedVillageStage = new AbandonedVillageStage(this.scene, this.physicsWorld);
-      this.terrain = this.abandonedVillageStage.terrain;
+      // Build forest environment
+      this.terrain = new Terrain(this.scene);
+      if (this.physicsWorld) {
+        this.physicsWorld.setTerrain(this.terrain);
+      }
+      this.ruins = new Ruins(this.scene, this.terrain, this.physicsWorld);
+      this.vegetation = new Vegetation(this.scene, this.terrain, this.physicsWorld);
+      this.arenaGrove = new ArenaGrove(this.scene, this.terrain, this.physicsWorld);
 
     } else if (levelIndex === 4) {
       // ===== STAGE 5: THE WHISPERING CAVERN =====

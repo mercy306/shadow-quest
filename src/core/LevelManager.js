@@ -1,72 +1,75 @@
 export const STAGE_CONFIGS = [
   {
     index: 0,
-    id: 'simien-highlands',
-    name: 'The Simien Highlands',
-    badgeText: 'ደረጃ ፩: ደብረ ስሜን • STAGE 1: SIMIEN HIGHLANDS',
-    playerSpawn: { x: 0, z: 2, rotY: Math.PI },
+    id: 'gondar-city',
+    name: 'Gondar Imperial City',
+    badgeText: 'ደረጃ ፩: ጎንደር ታሪካዊ ከተማ • STAGE 1: GONDAR IMPERIAL CITY',
+    playerSpawn: { x: 0, z: -20, rotY: 0 },
     passages: [
       {
-        id: 'forest-to-ruins',
+        id: 'city-to-ruins',
         name: 'Axumite Sanctuary',
         targetLevelIndex: 1,
         targetSpawn: { x: 0, z: 28, rotY: 0 },
-        x: 40,
-        z: -75,
+        x: 0,
+        z: -38,
         radius: 4.5,
-        prompt: '[E] Enter Axumite Sanctuary Altar'
+        prompt: '[E] Journey to Axumite Sanctuary'
       },
       {
-        id: 'forest-to-mountain',
+        id: 'city-to-mountain',
         name: 'Gorge of Ras Dashen',
         targetLevelIndex: 2,
         targetSpawn: { x: 30, z: 25, rotY: -Math.PI / 4 },
-        x: -55,
-        z: -20,
-        radius: 5.0,
-        prompt: '[E] Ascend to Ras Dashen Pass'
+        x: -35,
+        z: 15,
+        radius: 4.5,
+        prompt: '[E] Climb Ras Dashen Mountain Trail'
       },
       {
-        id: 'forest-to-village',
-        name: 'Lalibela Monasteries',
+        id: 'city-to-forest',
+        name: 'Simien Highlands Wilderness',
         targetLevelIndex: 3,
-        targetSpawn: { x: 0, z: -35, rotY: 0 },
+        targetSpawn: { x: 0, z: 2, rotY: Math.PI },
         x: 10,
         z: 30,
         radius: 5.0,
-        prompt: '[E] Travel to Lalibela Village'
+        prompt: '[E] Venture into Simien Highlands'
       },
       {
-        id: 'forest-to-cavern',
-        name: 'Caverns of Lake Tana',
+        id: 'city-to-cavern',
+        name: 'Sof Omar Sacred Caverns',
         targetLevelIndex: 4,
         targetSpawn: { x: -28, z: 28, rotY: Math.PI / 4 },
-        x: -32,
-        z: -35,
-        radius: 5.0,
-        prompt: '[E] Descend into Lake Tana Caverns'
+        x: -5,
+        z: 5,
+        radius: 4.0,
+        prompt: '[E] Descend into Holy Crypt / Cavern'
       }
     ],
     landmarks: [
-      { id: 'df-clearing', name: 'Highland Escarpment', x: 0, z: 0, radius: 10.0, xpReward: 30 },
-      { id: 'df-ridge', name: 'Ras Dashen Ridge', x: 24, z: -45, radius: 11.0, xpReward: 30 },
-      { id: 'df-altar', name: 'Altar of Axumite Kings', x: 40, z: -75, radius: 10.0, xpReward: 40 },
-      { id: 'df-grove', name: "Arwe's Sacred Acacia Grove", x: -38, z: -66, radius: 14.0, xpReward: 50 },
-      { id: 'df-canyon-trail', name: 'Sanctuary of the Walia', x: -55, z: -20, radius: 9.0, xpReward: 30 }
+      { id: 'av-square', name: 'የፋሲል ግቢ አደባባይ • Fasilides Royal Plaza', x: 0, z: 0, radius: 9.0, xpReward: 30 },
+      { id: 'av-obelisk', name: 'የአክሱም ሐውልት • Axum Obelisk Roundabout', x: 0, z: 0, radius: 8.0, xpReward: 40 },
+      { id: 'av-taxi', name: 'የታክሲና ባጃጅ ማቆሚያ • Taxi & Bajaj Stand', x: 7, z: -14, radius: 7.0, xpReward: 30 },
+      { id: 'av-bunna', name: 'የባህል ቡና ቤት • Traditional Bunna Bet', x: 12, z: -5, radius: 7.0, xpReward: 35 },
+      { id: 'av-castle', name: 'የፋሲል ግንብ • Fasilides Castle Keep', x: 16, z: 16, radius: 10.0, xpReward: 50 },
+      { id: 'av-bazaar', name: 'የጎንደር ገበያና ቡና ስነ-ስርዓት • Bazaar & Coffee Ceremony', x: 6, z: -8, radius: 8.0, xpReward: 40 },
+      { id: 'av-music', name: 'የአዝማሪ ቤት • Azmari Minstrel Station', x: -8, z: -8, radius: 7.0, xpReward: 30 },
+      { id: 'av-well', name: 'የቅዱስ ጸበል ምንጭ • Sacred Tsebel Holy Spring', x: -5, z: 5, radius: 7.0, xpReward: 30 }
     ],
     quest: {
-      id: 'mission-restore-the-forest',
-      title: 'ደብረ ስሜንን ማደስ • RESTORE THE HIGHLANDS',
-      subtitle: 'The sacred Simien peaks awaken as ancient blessings return.',
-      description: 'Defeat shadow sentinels, gather sacred Wollo Opals (ዕንቁ), and open the ancient Axumite portal.',
+      id: 'mission-gondar-city',
+      title: 'የጎንደር ከተማ ክብር • GLORY OF GONDAR CITY',
+      subtitle: 'The imperial cobblestone city of Gondar welcomes you in golden morning light.',
+      description: 'Explore the imperial city of Gondar, experience the coffee ceremony, gather 3 imperial relics, and banish 3 intruders.',
       enemiesRequired: 3,
-      crystalsRequired: 5,
-      enemiesLabel: 'Sentinels banished',
-      crystalsLabel: 'Wollo Opals collected',
-      entranceLabel: 'Highland Sanctuary',
-      exitLabel: 'Axum Sanctuary Portal',
-      exitLocation: { x: 40, z: -75, radius: 3.5 },
-      unlockMessage: 'AXUMITE GATEWAY AWAKENED - The sacred seal is broken! Enter the Obelisk Portal.'
+      crystalsRequired: 3,
+      enemiesLabel: 'Intruders banished',
+      crystalsLabel: 'Imperial Relics recovered',
+      entranceLabel: 'Gondar City Gate',
+      exitLabel: 'Sanctuary Passage',
+      exitLocation: { x: -5, z: 5, radius: 3.5 },
+      unlockMessage: 'GONDAR SANCTUARY RESTORED - The passage to the ancient realm is open!'
     }
   },
   {
@@ -188,63 +191,62 @@ export const STAGE_CONFIGS = [
   },
   {
     index: 3,
-    id: 'abandoned-village',
-    name: 'Gondar Imperial City',
-    badgeText: 'ደረጃ ፬: ጎንደር ፋሲል ግቢ • STAGE 4: GONDAR IMPERIAL CITY',
-    playerSpawn: { x: 0, z: -35, rotY: 0 },
+    id: 'simien-highlands',
+    name: 'The Simien Highlands',
+    badgeText: 'ደረጃ ፬: ደብረ ስሜን • STAGE 4: SIMIEN HIGHLANDS WILDERNESS',
+    playerSpawn: { x: 0, z: 2, rotY: Math.PI },
     passages: [
       {
-        id: 'village-to-forest',
-        name: 'The Simien Highlands',
+        id: 'forest-to-city',
+        name: 'Gondar Imperial City',
         targetLevelIndex: 0,
-        targetSpawn: { x: 10, z: 24, rotY: Math.PI },
+        targetSpawn: { x: 0, z: -20, rotY: 0 },
         x: 0,
         z: -40,
         radius: 4.5,
-        prompt: '[E] Return to Simien Highlands'
+        prompt: '[E] Return to Gondar Imperial City'
       },
       {
-        id: 'village-to-mountain',
-        name: 'Ras Dashen Pass',
+        id: 'forest-to-mountain',
+        name: 'Gorge of Ras Dashen',
         targetLevelIndex: 2,
-        targetSpawn: { x: -26, z: -26, rotY: Math.PI / 4 },
-        x: -35,
-        z: 15,
-        radius: 4.5,
-        prompt: '[E] Climb Ras Dashen Trail'
+        targetSpawn: { x: 30, z: 25, rotY: -Math.PI / 4 },
+        x: -55,
+        z: -20,
+        radius: 5.0,
+        prompt: '[E] Ascend to Ras Dashen Pass'
       },
       {
-        id: 'village-to-cavern',
-        name: 'Sof Omar Sacred Caverns',
+        id: 'forest-to-cavern',
+        name: 'Caverns of Lake Tana',
         targetLevelIndex: 4,
-        targetSpawn: { x: -5, z: -25, rotY: Math.PI },
-        x: -5,
-        z: 5,
-        radius: 4.0,
-        prompt: '[E] Descend into Holy Crypt'
+        targetSpawn: { x: -28, z: 28, rotY: Math.PI / 4 },
+        x: -32,
+        z: -35,
+        radius: 5.0,
+        prompt: '[E] Descend into Lake Tana Caverns'
       }
     ],
     landmarks: [
-      { id: 'av-square', name: 'የፋሲል ግቢ አደባባይ • Fasilides Royal Plaza', x: 0, z: 0, radius: 9.0, xpReward: 30 },
-      { id: 'av-castle', name: 'የፋሲል ግንብ • Fasilides Castle Keep', x: 16, z: 16, radius: 10.0, xpReward: 50 },
-      { id: 'av-bazaar', name: 'የጎንደር ገበያና ቡና ቤት • Royal Bazaar & Coffee Ceremony', x: 6, z: -8, radius: 8.0, xpReward: 40 },
-      { id: 'av-music', name: 'የአዝማሪ ቤት • Azmari Minstrel Station', x: -8, z: -8, radius: 7.0, xpReward: 30 },
-      { id: 'av-well', name: 'የቅዱስ ጸበል ምንጭ • Sacred Tsebel Holy Spring', x: -5, z: 5, radius: 7.0, xpReward: 30 },
-      { id: 'av-manor', name: "የቤተ ጊዮርጊስ ቅዱስ መቅደስ • Bet Giyorgis Rock-Hewn Sanctuary", x: -1, z: -2, radius: 9.0, xpReward: 40 }
+      { id: 'df-clearing', name: 'Highland Escarpment', x: 0, z: 0, radius: 10.0, xpReward: 30 },
+      { id: 'df-ridge', name: 'Ras Dashen Ridge', x: 24, z: -45, radius: 11.0, xpReward: 30 },
+      { id: 'df-altar', name: 'Altar of Axumite Kings', x: 40, z: -75, radius: 10.0, xpReward: 40 },
+      { id: 'df-grove', name: "Arwe's Sacred Acacia Grove", x: -38, z: -66, radius: 14.0, xpReward: 50 },
+      { id: 'df-canyon-trail', name: 'Sanctuary of the Walia', x: -55, z: -20, radius: 9.0, xpReward: 30 }
     ],
     quest: {
-      id: 'mission-abandoned-village',
-      title: 'የጎንደር ግርማ ሞገስ • GLORY OF GONDAR',
-      subtitle: 'The imperial city of Gondar rejoices as peace returns to the royal court.',
-      description: 'Protect the royal imperial city of Gondar, partake in the sacred coffee ceremony, gather traditional relics, and unseal the Holy Crypt.',
+      id: 'mission-restore-the-forest',
+      title: 'ደብረ ስሜንን ማደስ • RESTORE THE HIGHLANDS',
+      subtitle: 'The sacred Simien peaks awaken as ancient blessings return.',
+      description: 'Defeat shadow sentinels, gather sacred Wollo Opals (ዕንቁ), and open the ancient Axumite portal.',
       enemiesRequired: 3,
-      crystalsRequired: 3,
-      enemiesLabel: 'Blight sentinels banished',
-      crystalsLabel: 'Imperial Relics recovered',
-      entranceLabel: 'Gondar Ras Ber Gate',
-      exitLabel: 'Holy Crypt Descent',
-      exitLocation: { x: -5, z: 5, radius: 3.5 },
-      unlockMessage: 'GONDAR IMPERIAL SANCTUARY RESTORED - The Holy Crypt seal has opened!'
+      crystalsRequired: 5,
+      enemiesLabel: 'Sentinels banished',
+      crystalsLabel: 'Wollo Opals collected',
+      entranceLabel: 'Highland Sanctuary',
+      exitLabel: 'Axum Sanctuary Portal',
+      exitLocation: { x: 40, z: -75, radius: 3.5 },
+      unlockMessage: 'AXUMITE GATEWAY AWAKENED - The sacred seal is broken! Enter the Obelisk Portal.'
     }
   },
   {

@@ -1007,7 +1007,7 @@ export class UIManager {
           <path d="M74,66 Q70,55 62,58" stroke="#0f172a" stroke-width="2.5" fill="none"/>
         </svg>
       `;
-    } else if (stageId === 'abandoned-village') {
+    } else if (stageId === 'gondar-city' || stageId === 'abandoned-village') {
       return `
         <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
           <defs>

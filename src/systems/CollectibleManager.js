@@ -40,22 +40,19 @@ export class CollectibleManager {
     let itemPickups = [];
 
     if (levelIndex === 0) {
-      // STAGE 1: THE DARK FOREST (5 Shadow Crystals)
+      // STAGE 1: GONDAR IMPERIAL CITY & BAZAAR (3 Imperial Relics + Cultural Feasts)
       crystalLocations = [
-        { id: 'crystal-1', x: 3.5, z: 8.0, desc: 'Forest Trailhead' },
-        { id: 'crystal-2', x: -14.0, z: -16.0, desc: 'Boulder Clearing' },
-        { id: 'crystal-3', x: 15.0, z: -32.0, desc: 'Fallen Log Glade' },
-        { id: 'crystal-4', x: 23.0, z: -48.0, desc: 'Winding Trail Ridge' },
-        { id: 'crystal-5', x: 34.0, z: -68.0, desc: 'Ancient Ruins Approach' }
+        { id: 'city-cryst-1', x: 0.0, z: 2.0, desc: 'Axum Obelisk Monument Relic' },
+        { id: 'city-cryst-2', x: 16.0, z: 16.0, desc: 'Fasilides Royal Castle Relic' },
+        { id: 'city-cryst-3', x: 6.0, z: -8.0, desc: 'Bazaar Coffee Ceremony Relic' }
       ];
       itemPickups = [
-        { id: 'pickup-blade-1', itemId: 'shadow_cleaver', x: -8.0, z: -10.0, quantity: 1 },
-        { id: 'pickup-armor-1', itemId: 'shadow_plate', x: 20.0, z: -40.0, quantity: 1 },
-        { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
-        { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
-        { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
-        { id: 'pickup-hermit-satchel', itemId: 'hermit_satchel', x: -12.0, z: -58.0, quantity: 1 },
-        { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
+        { id: 'pickup-bunna-bet', itemId: 'injera_doro_wat', x: 12.0, z: -5.0, quantity: 1 },
+        { id: 'pickup-coffee-ceremony', itemId: 'ethiopian_bunna', x: 6.0, z: -8.0, quantity: 2 },
+        { id: 'pickup-cultural-shop', itemId: 'tej_honey_mead', x: 12.0, z: 7.5, quantity: 1 },
+        { id: 'pickup-kolo-stand', itemId: 'kolo_snack', x: 4.8, z: -18.0, quantity: 3 },
+        { id: 'pickup-elder-lockbox', itemId: 'radiant_crystal_heart', x: -25.0, z: -15.0, quantity: 1 },
+        { id: 'pickup-village-blade', itemId: 'shadow_cleaver', x: 16.0, z: -18.0, quantity: 1 }
       ];
     } else if (levelIndex === 1) {
       // STAGE 2: THE ANCIENT RUINS (3 Void Relic Orbs)
@@ -83,16 +80,22 @@ export class CollectibleManager {
         { id: 'pickup-mountain-ore', itemId: 'starfall_ore', x: -18.0, z: -10.0, quantity: 4 }
       ];
     } else if (levelIndex === 3) {
-      // STAGE 4: THE ABANDONED VILLAGE (3 Heirloom Crystals + Village Lockbox)
+      // STAGE 4: THE SIMIEN HIGHLANDS WILDERNESS (5 Wollo Opals)
       crystalLocations = [
-        { id: 'village-cryst-1', x: 0.0, z: 0.0, desc: 'Town Square Crystal' },
-        { id: 'village-cryst-2', x: 26.0, z: -2.0, desc: 'Crowfall Windmill Crystal' },
-        { id: 'village-cryst-3', x: -22.0, z: 16.0, desc: 'Elder Manor Crystal' }
+        { id: 'crystal-1', x: 3.5, z: 8.0, desc: 'Forest Trailhead' },
+        { id: 'crystal-2', x: -14.0, z: -16.0, desc: 'Boulder Clearing' },
+        { id: 'crystal-3', x: 15.0, z: -32.0, desc: 'Fallen Log Glade' },
+        { id: 'crystal-4', x: 23.0, z: -48.0, desc: 'Winding Trail Ridge' },
+        { id: 'crystal-5', x: 34.0, z: -68.0, desc: 'Ancient Ruins Approach' }
       ];
       itemPickups = [
-        { id: 'pickup-elder-lockbox', itemId: 'radiant_crystal_heart', x: -25.0, z: -15.0, quantity: 1 },
-        { id: 'pickup-village-blade', itemId: 'shadow_cleaver', x: 16.0, z: -18.0, quantity: 1 },
-        { id: 'pickup-village-stamina', itemId: 'stamina_potion', x: -5.0, z: 10.0, quantity: 2 }
+        { id: 'pickup-blade-1', itemId: 'shadow_cleaver', x: -8.0, z: -10.0, quantity: 1 },
+        { id: 'pickup-armor-1', itemId: 'shadow_plate', x: 20.0, z: -40.0, quantity: 1 },
+        { id: 'pickup-pot-1', itemId: 'healing_potion', x: 8.0, z: -5.0, quantity: 2 },
+        { id: 'pickup-pot-2', itemId: 'stamina_potion', x: -12.0, z: -25.0, quantity: 2 },
+        { id: 'pickup-mat-1', itemId: 'starfall_ore', x: 28.0, z: -55.0, quantity: 3 },
+        { id: 'pickup-hermit-satchel', itemId: 'hermit_satchel', x: -12.0, z: -58.0, quantity: 1 },
+        { id: 'pickup-quest-1', itemId: 'sealed_scroll', x: 38.0, z: -70.0, quantity: 1 }
       ];
     } else if (levelIndex === 4) {
       // STAGE 5: THE WHISPERING CAVERN (3 Luminescent Cavern Crystals + Smuggler Chest)

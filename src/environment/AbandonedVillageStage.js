@@ -3,10 +3,17 @@ import { TextureGenerator } from './TextureGenerator.js';
 import { BoxCollider, CircleCollider } from '../physics/Colliders.js';
 
 /**
- * Level 4 Playable Environment: The Abandoned Village
- * A deserted medieval settlement with ruined timber-framed cottages,
- * the Crowfall Windmill with rotating vanes, the central Sunken Wellhouse,
- * and palisade gate barricades.
+ * Level 1 Playable Environment: Gondar City & Emperor Fasilides Avenue
+ * Authentic modern Ethiopian city street featuring:
+ * - Dual-lane aggregate asphalt roadway with painted yellow center lines, zebra crossings, and red-white curbs
+ * - Multi-storey commercial and residential buildings with Amharic storefront signs, roll-up shutters, balconies,
+ *   rooftop black Roto water tanks (ሮቶ), and satellite dish antennas
+ * - Authentic Ethiopian vehicle fleet: Toyota HiAce Minibus Taxis (blue & white, luggage roof racks, decals),
+ *   Bajaj auto-rickshaws, classic blue & white Lada 2101 taxi, Isuzu cargo truck loaded with grain sacks,
+ *   and parked modern silver sedan (Toyota Corolla)
+ * - Central Axum Obelisk traffic roundabout monument
+ * - Sidewalk Bunna Bet coffee ceremony terrace and cultural minstrel station
+ * - Modern traffic light gantries, concrete power poles with transformers, and municipal highway portal signs
  */
 export class AbandonedVillageStage {
   constructor(scene, physicsWorld = null) {
@@ -15,8 +22,6 @@ export class AbandonedVillageStage {
     this.group = new THREE.Group();
     this.colliders = [];
 
-    this.windmillSails = null;
-
     this.initMaterials();
     this.buildTerrain();
     this.buildRealisticEthiopianStreetAndAvenue();
@@ -24,15 +29,8 @@ export class AbandonedVillageStage {
     this.buildEthiopianVehicleFleet();
     this.buildEthiopianStreetBuildings();
     this.buildEthiopianFlagsAndStreetLights();
-    this.buildFasilidesCastle();
     this.buildEthiopianBazaarAndCoffeeCeremony();
     this.buildAzmariMusicStation();
-    this.buildCityWallsAndArchedGates();
-    this.buildCottages();
-    this.buildBetGiyorgisShrine();
-    this.buildCrowfallWindmill();
-    this.buildVillageWellhouse();
-    this.buildSecretElderLockbox();
     this.buildPassagePortals();
 
     this.scene.add(this.group);
@@ -62,12 +60,6 @@ export class AbandonedVillageStage {
       metalness: 0.15
     });
 
-    this.tuffMat = new THREE.MeshStandardMaterial({
-      color: 0x8b4538, // Warm reddish-brown volcanic tuff stone of Lalibela
-      roughness: 0.92,
-      metalness: 0.08
-    });
-
     this.timberMat = new THREE.MeshStandardMaterial({
       map: this.woodTex,
       roughness: 0.8,
@@ -87,24 +79,24 @@ export class AbandonedVillageStage {
     });
 
     this.clayMat = new THREE.MeshStandardMaterial({
-      color: 0x221814, // Traditional blackened pottery clay of Ethiopian Jebena
+      color: 0x221814,
       roughness: 0.8,
       metalness: 0.1
     });
 
     this.qetemaMat = new THREE.MeshStandardMaterial({
-      color: 0x16a34a, // Fresh aromatic green grass carpet (ቀጤማ)
+      color: 0x16a34a,
       roughness: 0.85,
       metalness: 0.05
     });
 
     this.berbereMat = new THREE.MeshStandardMaterial({
-      color: 0xb91c1c, // Vibrant red Ethiopian Berbere spice
+      color: 0xb91c1c,
       roughness: 0.95
     });
 
     this.parchmentMat = new THREE.MeshStandardMaterial({
-      color: 0xfef3c7, // Goatskin parchment resonator of Masenqo
+      color: 0xfef3c7,
       roughness: 0.85
     });
 
@@ -130,10 +122,11 @@ export class AbandonedVillageStage {
     this.flagRedMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.7 });
     this.flagBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.6 });
 
-    // Ethiopian Public Transport (Blue & White Minibus Taxi, Lada & Bajaj)
+    // Ethiopian Public Transport Livery & Automotive Finishes
     this.taxiBlueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af, roughness: 0.35, metalness: 0.4 });
     this.taxiWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.2 });
     this.ladaBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.35, metalness: 0.45 });
+    this.sedanSilverMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.25, metalness: 0.75 });
     this.truckGreenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.75 });
     this.burlapMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.95 });
     this.glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.85 });
@@ -143,7 +136,7 @@ export class AbandonedVillageStage {
     this.kioskMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4, metalness: 0.3 });
     this.graniteMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85, metalness: 0.15 });
 
-    // Urban Street Infrastructure & Buildings
+    // Urban Street Infrastructure & Multi-Storey Buildings
     this.rotoMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.45, metalness: 0.1 });
     this.shutterMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.5, metalness: 0.55 });
     this.buildingWallMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.9, metalness: 0.05 });
@@ -170,8 +163,7 @@ export class AbandonedVillageStage {
     ctx.font = 'bold 22px sans-serif';
     ctx.fillStyle = '#fef08a';
     ctx.fillText(english, 256, 96);
-    const tex = new THREE.CanvasTexture(canvas);
-    return tex;
+    return new THREE.CanvasTexture(canvas);
   }
 
   buildTerrain() {
@@ -184,10 +176,10 @@ export class AbandonedVillageStage {
       const z = pos.getZ(i);
       const dist = Math.hypot(x, z);
 
-      // Smooth central plateau for the Ethiopian City, surrounded by Simien mountain ranges
+      // Smooth central urban plateau, rising into distant highland hills beyond city borders
       let y = 0;
-      if (dist > 36) {
-        y = Math.pow((dist - 36) / 22, 1.8) * 12.0;
+      if (dist > 42) {
+        y = Math.pow((dist - 42) / 22, 1.8) * 10.0;
       }
       pos.setY(i, y);
     }
@@ -200,8 +192,8 @@ export class AbandonedVillageStage {
     this.terrain = {
       getTerrainHeight: (x, z) => {
         const dist = Math.hypot(x, z);
-        if (dist > 36) {
-          return Math.pow((dist - 36) / 22, 1.8) * 12.0;
+        if (dist > 42) {
+          return Math.pow((dist - 42) / 22, 1.8) * 10.0;
         }
         return 0;
       }
@@ -213,9 +205,9 @@ export class AbandonedVillageStage {
   }
 
   /**
-   * Realistic Modern/Historic Ethiopian Street:
+   * Realistic Modern Ethiopian Street:
    * Dual-lane Asphalt Avenue with textured aggregate, painted dashed yellow centerline,
-   * solid white gutter lines, broad realistic Zebra Crossings (ዜብራ መንገድ), elevated concrete sidewalks,
+   * solid white shoulder lines, broad Zebra Crossings (ዜብራ መንገድ), elevated concrete sidewalks,
    * red-white curb blocks, overhead cantilever traffic signals, taxi stop shelter, and billboards.
    */
   buildRealisticEthiopianStreetAndAvenue() {
@@ -238,7 +230,7 @@ export class AbandonedVillageStage {
       streetGroup.add(walk);
     });
 
-    // 3. Alternating Red and White Stone Road Curbs with sloped ramp cuts at Zebra Crossings
+    // 3. Alternating Red and White Stone Road Curbs with ramp cuts at Zebra Crossings
     [-5.35, 5.35].forEach(xCur => {
       const curbCount = 32;
       const curbLen = 2.25;
@@ -315,7 +307,7 @@ export class AbandonedVillageStage {
 
     // 6. Modern Ethiopian Taxi & Bus Stop Shelter (የታክሲ ማቆሚያ ዳስ)
     const shelterGroup = new THREE.Group();
-    shelterGroup.position.set(7.5, 0.22, -8.0);
+    shelterGroup.position.set(8.5, 0.22, -10.0);
 
     const sPostGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.8, 8);
     [
@@ -327,7 +319,7 @@ export class AbandonedVillageStage {
       shelterGroup.add(p);
     });
 
-    const sRoof = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.12, 2.6), this.timberMat);
+    const sRoof = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.12, 2.6), this.balconyMat);
     sRoof.position.set(0, 2.85, 0);
     sRoof.rotation.x = -0.05;
     shelterGroup.add(sRoof);
@@ -380,34 +372,38 @@ export class AbandonedVillageStage {
     cbeGroup.add(cBoard);
     streetGroup.add(cbeGroup);
 
-    // 8. Green Ethiopian Street Name Signs
-    const streetSignMat = new THREE.MeshBasicMaterial({
-      map: this.createSignTexture('አፄ ፋሲል ጎዳና', 'EMPEROR FASILIDES AVENUE', '#15803d', '#ffffff')
+    // 8. Municipal Street Name Signs (አረንጓዴ የጎዳና ስም ሰሌዳ)
+    [-5.4, 5.4].forEach((sx, sIdx) => {
+      const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 3.2, 8), this.tireMat);
+      signPost.position.set(sx, 1.6, -16.0);
+      streetGroup.add(signPost);
+
+      const stSignMat = new THREE.MeshBasicMaterial({
+        map: this.createSignTexture('አፄ ፋሲል ጎዳና', 'EMPEROR FASILIDES AVENUE', '#15803d', '#ffffff')
+      });
+      const stPlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.04), stSignMat);
+      stPlate.position.set(sx + (sIdx === 0 ? 0.6 : -0.6), 2.9, -16.0);
+      streetGroup.add(stPlate);
     });
-    [-5.6, 5.6].forEach(sx => {
-      const sPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 3.4, 8), this.tireMat);
-      sPole.position.set(sx, 1.7, -3.0);
-      streetGroup.add(sPole);
 
-      const sPlacard = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.45, 0.06), streetSignMat);
-      sPlacard.position.set(sx, 3.2, -3.0);
-      streetGroup.add(sPlacard);
-    });
+    // 9. Sidewalk Concrete Tree Planters with lush ornamental greenery
+    [-7.8, 7.8].forEach(px => {
+      [-26.0, -12.0, 12.0, 26.0].forEach(pz => {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, 1.2), this.curbWhiteMat);
+        box.position.set(px, 0.44, pz);
+        streetGroup.add(box);
 
-    // 9. Concrete Sidewalk Tree Planters
-    [-7.2, 7.2].forEach(px => {
-      [-26, -10, 10, 26].forEach(pz => {
-        const planter = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 1.2), this.cobbleMat);
-        planter.position.set(px, 0.4, pz);
-        streetGroup.add(planter);
+        const soil = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.05, 1.0), this.clayMat);
+        soil.position.set(px, 0.68, pz);
+        streetGroup.add(soil);
 
-        const treeStem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.8, 6), this.timberMat);
-        treeStem.position.set(px, 1.2, pz);
-        streetGroup.add(treeStem);
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.8, 6), this.timberMat);
+        trunk.position.set(px, 1.5, pz);
+        streetGroup.add(trunk);
 
-        const treeCrown = new THREE.Mesh(new THREE.SphereGeometry(0.65, 8, 8), this.qetemaMat);
-        treeCrown.position.set(px, 2.0, pz);
-        streetGroup.add(treeCrown);
+        const canopy = new THREE.Mesh(new THREE.DodecahedronGeometry(0.75), this.flagGreenMat);
+        canopy.position.set(px, 2.5, pz);
+        streetGroup.add(canopy);
       });
     });
 
@@ -416,6 +412,7 @@ export class AbandonedVillageStage {
 
   /**
    * Towering Granite Axum Obelisk / Stela (የአክሱም ሐውልት)
+   * Positioned inside the central roundabout ring at (0, 0, 0).
    */
   buildAxumObeliskMonument() {
     const obeliskGroup = new THREE.Group();
@@ -458,12 +455,9 @@ export class AbandonedVillageStage {
       obeliskGroup.add(winMesh);
     }
 
-    const apexGeo = new THREE.CylinderGeometry(0.68, 0.68, baseD, 16);
-    apexGeo.rotateZ(Math.PI / 2);
-    apexGeo.rotateY(Math.PI / 2);
+    const apexGeo = new THREE.CylinderGeometry(0.85, baseW * 0.45, 1.8, 12);
     const apex = new THREE.Mesh(apexGeo, this.graniteMat);
-    apex.position.y = stepY + shaftH + 0.2;
-    apex.castShadow = true;
+    apex.position.y = stepY + shaftH + 0.9;
     obeliskGroup.add(apex);
 
     const solarDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, baseD + 0.05, 12), this.goldMat);
@@ -489,44 +483,52 @@ export class AbandonedVillageStage {
    * Authentic Fleet of Ethiopian Vehicles:
    * 1. Toyota HiAce Minibus Taxi #1 (Luggage roof rack, decal "እግዚአብሔር ይመስገን", Piazza tag)
    * 2. Toyota HiAce Minibus Taxi #2 (Roof rack, decal "የእናት ምርቃት", Merkato tag)
-   * 3. Blue Ethiopian Bajaj #1
-   * 4. Yellow/Green Ethiopian Bajaj #2
-   * 5. Classic Blue & White Lada 2101 City Taxi
-   * 6. Isuzu Commercial Cargo Truck (Loaded with burlap grain/coffee sacks)
+   * 3. Classic Blue & White Lada 2101 City Taxi
+   * 4. Modern Silver Sedan (Toyota Corolla)
+   * 5. Blue Ethiopian Bajaj #1
+   * 6. Yellow/Green Ethiopian Bajaj #2
+   * 7. Isuzu Commercial Cargo Truck (Loaded with burlap grain/coffee sacks)
    */
   buildEthiopianVehicleFleet() {
     const fleetGroup = new THREE.Group();
 
+    // Helper: Build Toyota HiAce Minibus Taxi
     const buildMinibus = (x, z, rotY, decalAmharic, routeTag, plateNum) => {
       const taxi = new THREE.Group();
       taxi.position.set(x, 0, z);
       taxi.rotation.y = rotY;
 
+      // Lower navy blue chassis
       const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.0, 4.6), this.taxiBlueMat);
       lowerBody.position.y = 0.85;
       lowerBody.castShadow = true;
       taxi.add(lowerBody);
 
+      // Upper crisp white passenger cabin
       const upperBody = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.95, 4.2), this.taxiWhiteMat);
       upperBody.position.y = 1.75;
       upperBody.castShadow = true;
       taxi.add(upperBody);
 
+      // Windshield (sloped forward)
       const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.7, 0.1), this.glassMat);
       windshield.position.set(0, 1.7, 2.06);
       windshield.rotation.x = -0.15;
       taxi.add(windshield);
 
+      // Rear window
       const rearWindow = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.65, 0.1), this.glassMat);
       rearWindow.position.set(0, 1.7, -2.06);
       taxi.add(rearWindow);
 
+      // Side passenger windows
       [-1.01, 1.01].forEach(sideX => {
         const sideWin = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.6, 3.2), this.glassMat);
         sideWin.position.set(sideX, 1.7, 0);
         taxi.add(sideWin);
       });
 
+      // Rooftop luggage carrier rack (የሻንጣ መጫኛ)
       const rack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 2.8), this.balconyMat);
       rack.position.set(0, 2.3, -0.2);
       taxi.add(rack);
@@ -539,6 +541,7 @@ export class AbandonedVillageStage {
       luggage2.position.set(0.35, 2.52, 0.4);
       taxi.add(luggage2);
 
+      // Alloy hubcap wheels with rubber tread tires
       const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 14);
       wheelGeo.rotateZ(Math.PI / 2);
       const hubMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.8, roughness: 0.2 });
@@ -556,17 +559,40 @@ export class AbandonedVillageStage {
         taxi.add(hub);
       });
 
+      // Chrome radiator grille & front bumper
       const grille = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.28, 0.1), this.tireMat);
       grille.position.set(0, 0.85, 2.32);
       taxi.add(grille);
 
+      const fBump = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.2, 0.18), this.balconyMat);
+      fBump.position.set(0, 0.45, 2.34);
+      taxi.add(fBump);
+
+      const rBump = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.2, 0.18), this.balconyMat);
+      rBump.position.set(0, 0.45, -2.34);
+      taxi.add(rBump);
+
+      // Headlights & amber turn indicators
       [-0.75, 0.75].forEach(lx => {
         const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.1, 10), this.lanternGlowMat);
         headlight.rotateX(Math.PI / 2);
         headlight.position.set(lx, 0.88, 2.33);
         taxi.add(headlight);
+
+        const indicator = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.08), this.trafficYellowMat);
+        indicator.position.set(lx + (lx > 0 ? 0.2 : -0.2), 0.88, 2.31);
+        taxi.add(indicator);
+
+        // Side mirrors
+        const mirrorArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.04), this.tireMat);
+        mirrorArm.position.set(lx * 1.45, 1.6, 1.8);
+        taxi.add(mirrorArm);
+        const mirrorHead = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 0.14), this.tireMat);
+        mirrorHead.position.set(lx * 1.55, 1.6, 1.8);
+        taxi.add(mirrorHead);
       });
 
+      // Destination Route Card (e.g., "ፒያሳ • PIAZZA")
       const routeSignMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(routeTag, 'SERVICE', '#dc2626', '#ffffff')
       });
@@ -574,6 +600,7 @@ export class AbandonedVillageStage {
       routeCard.position.set(0.45, 1.55, 2.08);
       taxi.add(routeCard);
 
+      // Rear Window Blessing Decal (e.g., "እግዚአብሔር ይመስገን")
       const decalSignMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(decalAmharic, 'BLESSING', '#15803d', '#fef08a')
       });
@@ -581,6 +608,7 @@ export class AbandonedVillageStage {
       decalCard.position.set(0, 1.85, -2.12);
       taxi.add(decalCard);
 
+      // Yellow Taxi License Plate
       const plateMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(plateNum, 'TAXI', '#facc15', '#1e1b4b')
       });
@@ -591,15 +619,115 @@ export class AbandonedVillageStage {
       return taxi;
     };
 
-    const taxi1 = buildMinibus(3.8, -13.0, -Math.PI / 16, 'እግዚአብሔር ይመስገን', 'ፒያሳ', 'አ.አ 3 - 48291');
+    // Helper: Build Modern Sedan (Toyota Corolla)
+    const buildSedan = (x, z, rotY, paintMat) => {
+      const car = new THREE.Group();
+      car.position.set(x, 0, z);
+      car.rotation.y = rotY;
+
+      // Lower body chassis
+      const lower = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.65, 4.4), paintMat);
+      lower.position.y = 0.55;
+      lower.castShadow = true;
+      car.add(lower);
+
+      // Cabin greenhouse
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.58, 2.4), paintMat);
+      cabin.position.set(0, 1.12, -0.2);
+      cabin.castShadow = true;
+      car.add(cabin);
+
+      // Front & rear sloped glass
+      const fGlass = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.55, 0.08), this.glassMat);
+      fGlass.position.set(0, 1.1, 1.05);
+      fGlass.rotation.x = -0.35;
+      car.add(fGlass);
+
+      const rGlass = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.52, 0.08), this.glassMat);
+      rGlass.position.set(0, 1.1, -1.45);
+      rGlass.rotation.x = 0.35;
+      car.add(rGlass);
+
+      // Wheels
+      const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 14);
+      wGeo.rotateZ(Math.PI / 2);
+      const hubMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
+      [
+        { x: -0.92, z: 1.3 }, { x: 0.92, z: 1.3 },
+        { x: -0.92, z: -1.3 }, { x: 0.92, z: -1.3 }
+      ].forEach(pos => {
+        const w = new THREE.Mesh(wGeo, this.tireMat);
+        w.position.set(pos.x, 0.32, pos.z);
+        car.add(w);
+        const h = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.24, 8), hubMat);
+        h.rotateZ(Math.PI / 2);
+        h.position.set(pos.x, 0.32, pos.z);
+        car.add(h);
+      });
+
+      // Headlamps
+      [-0.68, 0.68].forEach(hx => {
+        const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.1), this.lanternGlowMat);
+        hl.position.set(hx, 0.62, 2.2);
+        car.add(hl);
+      });
+
+      return car;
+    };
+
+    // Helper: Build Bajaj Auto-Rickshaw
+    const buildBajaj = (x, z, rotY, bodyMat) => {
+      const bajaj = new THREE.Group();
+      bajaj.position.set(x, 0, z);
+      bajaj.rotation.y = rotY;
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.75, 2.3), bodyMat);
+      body.position.y = 0.6;
+      body.castShadow = true;
+      bajaj.add(body);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.75, 2.1), this.tireMat);
+      roof.position.y = 1.35;
+      roof.castShadow = true;
+      bajaj.add(roof);
+
+      const win = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.55, 0.08), this.glassMat);
+      win.position.set(0, 1.28, 1.05);
+      win.rotation.x = -0.18;
+      bajaj.add(win);
+
+      const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 10), this.lanternGlowMat);
+      headlight.rotateX(Math.PI / 2);
+      headlight.position.set(0, 0.68, 1.18);
+      bajaj.add(headlight);
+
+      const bWheelGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.18, 12);
+      bWheelGeo.rotateZ(Math.PI / 2);
+
+      const fWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
+      fWheel.position.set(0, 0.26, 0.95);
+      bajaj.add(fWheel);
+
+      [-0.65, 0.65].forEach(wx => {
+        const rWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
+        rWheel.position.set(wx, 0.26, -0.72);
+        bajaj.add(rWheel);
+      });
+
+      return bajaj;
+    };
+
+    // 1. Minibus Taxi 1 (Facing North towards Piazza)
+    const taxi1 = buildMinibus(3.8, -14.0, 0, 'እግዚአብሔር ይመስገን', 'ፒያሳ', 'አ.አ 3 - 48291');
     fleetGroup.add(taxi1);
     if (this.physicsWorld) {
-      const colTaxi1 = new BoxCollider(3.8, -13.0, 1.3, 2.4);
+      const colTaxi1 = new BoxCollider(3.8, -14.0, 1.3, 2.4);
       this.physicsWorld.addCollider(colTaxi1);
       this.colliders.push(colTaxi1);
     }
 
-    const taxi2 = buildMinibus(-3.8, 18.0, Math.PI - 0.1, 'የእናት ምርቃት', 'መርካቶ', 'አ.አ 3 - 19284');
+    // 2. Minibus Taxi 2 (Facing South towards Merkato)
+    const taxi2 = buildMinibus(-3.8, 18.0, Math.PI, 'የእናት ምርቃት', 'መርካቶ', 'አ.አ 3 - 19284');
     fleetGroup.add(taxi2);
     if (this.physicsWorld) {
       const colTaxi2 = new BoxCollider(-3.8, 18.0, 1.3, 2.4);
@@ -607,69 +735,31 @@ export class AbandonedVillageStage {
       this.colliders.push(colTaxi2);
     }
 
-    const buildBajaj = (x, z, rotY, bodyMat) => {
-      const bajaj = new THREE.Group();
-      bajaj.position.set(x, 0, z);
-      bajaj.rotation.y = rotY;
-
-      const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.85, 2.4), bodyMat);
-      body.position.y = 0.65;
-      body.castShadow = true;
-      bajaj.add(body);
-
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.8, 2.2), this.tireMat);
-      roof.position.y = 1.45;
-      roof.castShadow = true;
-      bajaj.add(roof);
-
-      const win = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 0.08), this.glassMat);
-      win.position.set(0, 1.35, 1.08);
-      win.rotation.x = -0.15;
-      bajaj.add(win);
-
-      const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 10), this.lanternGlowMat);
-      headlight.rotateX(Math.PI / 2);
-      headlight.position.set(0, 0.72, 1.22);
-      bajaj.add(headlight);
-
-      const bWheelGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.2, 12);
-      bWheelGeo.rotateZ(Math.PI / 2);
-
-      const fWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
-      fWheel.position.set(0, 0.28, 0.95);
-      bajaj.add(fWheel);
-
-      [-0.68, 0.68].forEach(wx => {
-        const rWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
-        rWheel.position.set(wx, 0.28, -0.75);
-        bajaj.add(rWheel);
-      });
-
-      return bajaj;
-    };
-
-    const bajaj1 = buildBajaj(7.5, -4.5, -Math.PI / 4, this.taxiBlueMat);
-    fleetGroup.add(bajaj1);
-    const bajaj2 = buildBajaj(-7.2, -8.0, Math.PI / 3, this.flagYellowMat);
-    fleetGroup.add(bajaj2);
-
+    // 3. Classic Blue & White Lada 2101 City Taxi
     const lada = new THREE.Group();
-    lada.position.set(3.6, 0, -24.0);
-    lada.rotation.y = -Math.PI / 18;
+    lada.position.set(3.6, 0, -25.0);
+    lada.rotation.y = -0.05;
 
-    const ladaLower = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.75, 4.2), this.ladaBlueMat);
-    ladaLower.position.y = 0.65;
+    const ladaLower = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.72, 4.2), this.ladaBlueMat);
+    ladaLower.position.y = 0.62;
     ladaLower.castShadow = true;
     lada.add(ladaLower);
 
-    const ladaCabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.7, 2.4), this.taxiWhiteMat);
-    ladaCabin.position.set(0, 1.35, -0.2);
+    const ladaCabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.68, 2.4), this.taxiWhiteMat);
+    ladaCabin.position.set(0, 1.3, -0.2);
     lada.add(ladaCabin);
 
-    const ladaWind = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.08), this.glassMat);
-    ladaWind.position.set(0, 1.32, 1.02);
+    const ladaWind = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.58, 0.08), this.glassMat);
+    ladaWind.position.set(0, 1.28, 1.02);
     ladaWind.rotation.x = -0.25;
     lada.add(ladaWind);
+
+    const taxiRoofSignMat = new THREE.MeshBasicMaterial({
+      map: this.createSignTexture('ታክሲ', 'TAXI', '#facc15', '#1e1b4b')
+    });
+    const taxiRoofSign = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.2), taxiRoofSignMat);
+    taxiRoofSign.position.set(0, 1.72, -0.1);
+    lada.add(taxiRoofSign);
 
     const ladaWheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.24, 12);
     ladaWheelGeo.rotateZ(Math.PI / 2);
@@ -685,18 +775,36 @@ export class AbandonedVillageStage {
     [-0.65, 0.65].forEach(hx => {
       const lhl = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 10), this.lanternGlowMat);
       lhl.rotateX(Math.PI / 2);
-      lhl.position.set(hx, 0.68, 2.12);
+      lhl.position.set(hx, 0.66, 2.12);
       lada.add(lhl);
     });
-    const bumper = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.15), this.tireMat);
+    const bumper = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.15), this.balconyMat);
     bumper.position.set(0, 0.42, 2.15);
     lada.add(bumper);
 
     fleetGroup.add(lada);
 
+    // 4. Modern Silver Sedan (Toyota Corolla) Parked along East Curb
+    const sedan = buildSedan(3.8, 10.0, 0.05, this.sedanSilverMat);
+    fleetGroup.add(sedan);
+    if (this.physicsWorld) {
+      const colSedan = new BoxCollider(3.8, 10.0, 1.2, 2.3);
+      this.physicsWorld.addCollider(colSedan);
+      this.colliders.push(colSedan);
+    }
+
+    // 5. Blue Ethiopian Bajaj
+    const bajaj1 = buildBajaj(7.2, -3.0, -Math.PI / 4, this.taxiBlueMat);
+    fleetGroup.add(bajaj1);
+
+    // 6. Yellow/Green Ethiopian Bajaj
+    const bajaj2 = buildBajaj(-7.2, 8.0, Math.PI / 3, this.flagYellowMat);
+    fleetGroup.add(bajaj2);
+
+    // 7. Isuzu Commercial Cargo Truck
     const truck = new THREE.Group();
-    truck.position.set(-3.8, 0, 8.0);
-    truck.rotation.y = Math.PI - 0.05;
+    truck.position.set(-3.8, 0, 5.0);
+    truck.rotation.y = Math.PI;
 
     const truckCab = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 1.8), this.taxiWhiteMat);
     truckCab.position.y = 1.6;
@@ -737,7 +845,7 @@ export class AbandonedVillageStage {
 
     fleetGroup.add(truck);
     if (this.physicsWorld) {
-      const colTruck = new BoxCollider(-3.8, 8.0, 1.4, 3.2);
+      const colTruck = new BoxCollider(-3.8, 5.0, 1.4, 3.2);
       this.physicsWorld.addCollider(colTruck);
       this.colliders.push(colTruck);
     }
@@ -747,9 +855,10 @@ export class AbandonedVillageStage {
 
   /**
    * Continuous Multi-Storey Urban Ethiopian Street Buildings Framing the Avenue:
-   * Ground-floor commercial shops with roll-up shutters and Amharic signs,
-   * upper floor residential balconies with railings and laundry,
-   * and black cylindrical Roto water tanks (ሮቶ) & satellite dishes on every rooftop.
+   * Both sides of the street are lined with 3-storey commercial concrete/plaster buildings:
+   * Ground-floor shops facing the street with roll-up security shutters and vibrant Amharic signage,
+   * upper floor residential balconies with metal railings,
+   * and black cylindrical Roto water tanks (ሮቶ) & satellite dish antennas on every rooftop.
    */
   buildEthiopianStreetBuildings() {
     const buildingsGroup = new THREE.Group();
@@ -757,11 +866,13 @@ export class AbandonedVillageStage {
     const buildUrbanBuilding = (config) => {
       const bldg = new THREE.Group();
       bldg.position.set(config.x, 0, config.z);
+      bldg.rotation.y = config.rotY || 0;
 
       const w = config.w || 7.5;
-      const h = config.h || 7.8;
+      const h = config.h || 8.4;
       const d = config.d || 7.0;
 
+      // Concrete/plaster building shell
       const shellGeo = new THREE.BoxGeometry(w, h, d);
       const shell = new THREE.Mesh(shellGeo, this.buildingWallMat);
       shell.position.y = h / 2;
@@ -769,28 +880,32 @@ export class AbandonedVillageStage {
       shell.receiveShadow = true;
       bldg.add(shell);
 
-      const shutter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, 2.6, 0.12), this.shutterMat);
-      shutter.position.set(0, 1.3, d / 2 + 0.08);
+      // Roll-up corrugated metal shop shutter (የሱቅ መዝጊያ ሻተር)
+      const shutter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, 2.7, 0.12), this.shutterMat);
+      shutter.position.set(0, 1.35, d / 2 + 0.08);
       bldg.add(shutter);
 
+      // Large Amharic & English storefront fascia sign board
       const signMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(config.amharicSign, config.englishSign, config.signBg, config.signFg)
       });
-      const sign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.85, 0.95, 0.14), signMat);
-      sign.position.set(0, 3.2, d / 2 + 0.15);
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.88, 1.05, 0.14), signMat);
+      sign.position.set(0, 3.3, d / 2 + 0.15);
       bldg.add(sign);
 
+      // Storefront canvas/metal awning
       if (config.hasAwning) {
         const awningMat = config.awningMat || this.curbRedMat;
         const awning = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, 0.15, 2.2), awningMat);
-        awning.position.set(0, 2.8, d / 2 + 1.1);
+        awning.position.set(0, 2.85, d / 2 + 1.1);
         awning.rotation.x = 0.14;
         awning.castShadow = true;
         bldg.add(awning);
       }
 
-      for (let floor = 2; floor <= Math.floor(h / 3.0); floor++) {
-        const floorY = floor * 2.8;
+      // Upper floor residential balconies with railings and windows
+      for (let floor = 2; floor <= Math.floor(h / 2.8); floor++) {
+        const floorY = floor * 2.7;
         if (floorY + 1.2 < h) {
           const bSlab = new THREE.Mesh(new THREE.BoxGeometry(w * 0.75, 0.18, 1.4), this.cobbleMat);
           bSlab.position.set(0, floorY, d / 2 + 0.7);
@@ -800,31 +915,34 @@ export class AbandonedVillageStage {
           bRail.position.set(0, floorY + 0.45, d / 2 + 1.35);
           bldg.add(bRail);
 
-          const uWin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.1), this.glassMat);
+          const uWin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 0.1), this.glassMat);
           uWin.position.set(0, floorY + 0.9, d / 2 + 0.06);
           bldg.add(uWin);
         }
       }
 
+      // Roof parapet
       const parapet = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.65, d + 0.1), this.buildingWallMat);
       parapet.position.y = h + 0.32;
       bldg.add(parapet);
 
+      // Rooftop black plastic Roto water tank (የጣሪያ ሮቶ የውሃ ታንከር)
       const rotoGroup = new THREE.Group();
       rotoGroup.position.set(-w * 0.25, h, -d * 0.2);
 
-      const stand = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.65, 1.4), this.balconyMat);
-      stand.position.y = 0.32;
+      const stand = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 1.5), this.balconyMat);
+      stand.position.y = 0.35;
       rotoGroup.add(stand);
 
-      const tankGeo = new THREE.CylinderGeometry(0.65, 0.65, 1.4, 16);
+      const tankGeo = new THREE.CylinderGeometry(0.7, 0.7, 1.5, 16);
       const tank = new THREE.Mesh(tankGeo, this.rotoMat);
-      tank.position.y = 1.35;
+      tank.position.y = 1.45;
       tank.castShadow = true;
       rotoGroup.add(tank);
 
       bldg.add(rotoGroup);
 
+      // Rooftop satellite dish antenna (የዲሽ አንቴና)
       const dishGroup = new THREE.Group();
       dishGroup.position.set(w * 0.25, h + 0.2, d * 0.2);
 
@@ -839,8 +957,11 @@ export class AbandonedVillageStage {
 
       bldg.add(dishGroup);
 
+      // Aligned physics collider
       if (this.physicsWorld) {
-        const col = new BoxCollider(config.x, config.z, w / 2 + 0.2, d / 2 + 0.2);
+        const halfX = config.rotY ? (d / 2 + 0.2) : (w / 2 + 0.2);
+        const halfZ = config.rotY ? (w / 2 + 0.2) : (d / 2 + 0.2);
+        const col = new BoxCollider(config.x, config.z, halfX, halfZ);
         this.physicsWorld.addCollider(col);
         this.colliders.push(col);
       }
@@ -848,86 +969,95 @@ export class AbandonedVillageStage {
       return bldg;
     };
 
-    // WEST STREET BLOCK (x: -14.5)
-    const bunnaBet = buildUrbanBuilding({
-      x: -14.5, z: -4.0, w: 7.2, h: 7.6, d: 7.0,
-      amharicSign: 'ቡና ቤት', englishSign: 'TRADITIONAL BUNNA BET',
-      signBg: '#78350f', signFg: '#fef08a', hasAwning: true, awningMat: this.timberMat
-    });
-    const stoolMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
-    [
-      { x: -9.8, z: -3.2 }, { x: -8.8, z: -4.4 }, { x: -9.6, z: -5.6 }
-    ].forEach(sp => {
-      const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.38, 10), stoolMat);
-      stool.position.set(sp.x, 0.4, sp.z);
-      buildingsGroup.add(stool);
-    });
-    buildingsGroup.add(bunnaBet);
-
-    const sigaBet = buildUrbanBuilding({
-      x: -14.5, z: -13.0, w: 6.8, h: 7.4, d: 6.8,
-      amharicSign: 'ስጋ ቤት', englishSign: 'SIGA BET • BUTCHERY',
-      signBg: '#991b1b', signFg: '#ffffff', hasAwning: true, awningMat: this.curbRedMat
-    });
-    buildingsGroup.add(sigaBet);
-
-    const awashBank = buildUrbanBuilding({
-      x: -14.5, z: 6.0, w: 7.6, h: 9.8, d: 7.0,
-      amharicSign: 'አዋሽ ባንክ', englishSign: 'AWASH BANK • PIASSA BRANCH',
-      signBg: '#0369a1', signFg: '#f97316', hasAwning: false
-    });
-    buildingsGroup.add(awashBank);
+    // WEST STREET BLOCK (x: -14.0, facing East towards street: rotY = Math.PI / 2)
+    const westRot = Math.PI / 2;
 
     const teleKiosk = buildUrbanBuilding({
-      x: -14.5, z: -21.0, w: 6.5, h: 7.2, d: 6.5,
+      x: -14.0, z: -24.0, w: 7.2, h: 8.2, d: 7.0, rotY: westRot,
       amharicSign: 'ቴሌብር ኪዮስክ', englishSign: 'TELEBIRR & MINI-MARKET',
       signBg: '#0284c7', signFg: '#ffffff', hasAwning: true, awningMat: this.flagYellowMat
     });
     buildingsGroup.add(teleKiosk);
 
+    const sigaBet = buildUrbanBuilding({
+      x: -14.0, z: -14.0, w: 7.0, h: 8.0, d: 7.0, rotY: westRot,
+      amharicSign: 'ስጋ ቤት', englishSign: 'SIGA BET • BUTCHERY',
+      signBg: '#991b1b', signFg: '#ffffff', hasAwning: true, awningMat: this.curbRedMat
+    });
+    buildingsGroup.add(sigaBet);
+
+    const bunnaBet = buildUrbanBuilding({
+      x: -14.0, z: -4.0, w: 7.4, h: 8.4, d: 7.0, rotY: westRot,
+      amharicSign: 'ቡና ቤት', englishSign: 'TRADITIONAL BUNNA BET',
+      signBg: '#78350f', signFg: '#fef08a', hasAwning: true, awningMat: this.timberMat
+    });
+    buildingsGroup.add(bunnaBet);
+
+    const awashBank = buildUrbanBuilding({
+      x: -14.0, z: 6.0, w: 7.6, h: 9.8, d: 7.0, rotY: westRot,
+      amharicSign: 'አዋሽ ባንክ', englishSign: 'AWASH BANK • PIASSA BRANCH',
+      signBg: '#0369a1', signFg: '#f97316', hasAwning: false
+    });
+    buildingsGroup.add(awashBank);
+
     const juiceBet = buildUrbanBuilding({
-      x: -14.5, z: 14.5, w: 6.6, h: 7.4, d: 6.8,
+      x: -14.0, z: 16.0, w: 7.0, h: 8.0, d: 7.0, rotY: westRot,
       amharicSign: 'ጁስ ቤት', englishSign: 'SPECIAL SPRIS JUICE BET',
       signBg: '#15803d', signFg: '#fef08a', hasAwning: true, awningMat: this.flagGreenMat
     });
     buildingsGroup.add(juiceBet);
 
-    // EAST STREET BLOCK (x: 14.5)
-    const clothShop = buildUrbanBuilding({
-      x: 14.5, z: 6.5, w: 7.2, h: 7.6, d: 7.0,
-      amharicSign: 'የባህል ልብስ', englishSign: 'ETHIOPIAN CULTURAL DRESS',
-      signBg: '#15803d', signFg: '#fef08a', hasAwning: true, awningMat: this.flagYellowMat
+    const pharmacyWest = buildUrbanBuilding({
+      x: -14.0, z: 26.0, w: 7.0, h: 8.2, d: 7.0, rotY: westRot,
+      amharicSign: 'አንበሳ ፋርማሲ', englishSign: 'LION COMMUNITY PHARMACY',
+      signBg: '#059669', signFg: '#ffffff', hasAwning: true, awningMat: this.flagGreenMat
     });
-    [-1.2, 1.2].forEach(mx => {
-      const dress = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.52, 1.4, 12), this.parchmentMat);
-      dress.position.set(11.2, 1.0, 6.5 + mx);
-      buildingsGroup.add(dress);
-      const tibeb = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.18, 12), this.flagYellowMat);
-      tibeb.position.set(11.2, 0.45, 6.5 + mx);
-      buildingsGroup.add(tibeb);
+    buildingsGroup.add(pharmacyWest);
+
+    // EAST STREET BLOCK (x: 14.0, facing West towards street: rotY = -Math.PI / 2)
+    const eastRot = -Math.PI / 2;
+
+    const cbeBank = buildUrbanBuilding({
+      x: 14.0, z: -24.0, w: 7.6, h: 10.2, d: 7.0, rotY: eastRot,
+      amharicSign: 'የኢትዮጵያ ንግድ ባንክ', englishSign: 'COMMERCIAL BANK OF ETHIOPIA',
+      signBg: '#6b21a8', signFg: '#fef08a', hasAwning: false
     });
-    buildingsGroup.add(clothShop);
+    buildingsGroup.add(cbeBank);
 
     const dashenBank = buildUrbanBuilding({
-      x: 14.5, z: -4.0, w: 7.6, h: 9.8, d: 7.0,
+      x: 14.0, z: -14.0, w: 7.4, h: 9.6, d: 7.0, rotY: eastRot,
       amharicSign: 'ዳሽን ባንክ', englishSign: 'DASHEN BANK • ALWAYS AHEAD',
       signBg: '#1e3a8a', signFg: '#fbbf24', hasAwning: false
     });
     buildingsGroup.add(dashenBank);
 
-    const pharmacy = buildUrbanBuilding({
-      x: 14.5, z: -13.0, w: 6.8, h: 7.4, d: 6.8,
-      amharicSign: 'ፋርማሲ', englishSign: 'COMMUNITY HEALTH PHARMACY',
-      signBg: '#059669', signFg: '#ffffff', hasAwning: true, awningMat: this.flagGreenMat
+    const busOffice = buildUrbanBuilding({
+      x: 14.0, z: -4.0, w: 7.2, h: 8.2, d: 7.0, rotY: eastRot,
+      amharicSign: 'አንበሳ የከተማ አውቶቡስ', englishSign: 'ANBESSA CITY BUS TERMINAL',
+      signBg: '#b91c1c', signFg: '#ffffff', hasAwning: true, awningMat: this.flagYellowMat
     });
-    buildingsGroup.add(pharmacy);
+    buildingsGroup.add(busOffice);
+
+    const clothShop = buildUrbanBuilding({
+      x: 14.0, z: 6.0, w: 7.2, h: 8.4, d: 7.0, rotY: eastRot,
+      amharicSign: 'የሀበሻ ባህል ልብስ', englishSign: 'HABESHA CULTURAL DRESS',
+      signBg: '#15803d', signFg: '#fef08a', hasAwning: true, awningMat: this.flagYellowMat
+    });
+    buildingsGroup.add(clothShop);
 
     const craftShop = buildUrbanBuilding({
-      x: 14.5, z: 15.0, w: 6.8, h: 7.4, d: 6.8,
-      amharicSign: 'የዕደ ጥበብ', englishSign: 'TRADITIONAL MESOB & CRAFTS',
+      x: 14.0, z: 16.0, w: 7.2, h: 8.2, d: 7.0, rotY: eastRot,
+      amharicSign: 'የዕደ ጥበብና መሶብ', englishSign: 'TRADITIONAL MESOB & CRAFTS',
       signBg: '#b45309', signFg: '#fef3c7', hasAwning: true, awningMat: this.timberMat
     });
     buildingsGroup.add(craftShop);
+
+    const bakeryShop = buildUrbanBuilding({
+      x: 14.0, z: 26.0, w: 7.0, h: 8.0, d: 7.0, rotY: eastRot,
+      amharicSign: 'ዳቦና ኬክ ቤት', englishSign: 'FRESH PASTRY & BAKERY',
+      signBg: '#ea580c', signFg: '#ffffff', hasAwning: true, awningMat: this.curbRedMat
+    });
+    buildingsGroup.add(bakeryShop);
 
     this.group.add(buildingsGroup);
   }
@@ -940,10 +1070,10 @@ export class AbandonedVillageStage {
 
     // 1. Tall Flagpoles Flying Ethiopian Tricolor (Green, Gold, Red)
     const flagpolePositions = [
-      { x: -3.5, z: -24.0 },
-      { x: 3.5, z: -24.0 },
-      { x: -5.0, z: 2.0 },
-      { x: 5.0, z: 2.0 }
+      { x: -5.4, z: -24.0 },
+      { x: 5.4, z: -24.0 },
+      { x: -5.4, z: 2.0 },
+      { x: 5.4, z: 2.0 }
     ];
 
     flagpolePositions.forEach(fp => {
@@ -981,21 +1111,26 @@ export class AbandonedVillageStage {
       decGroup.add(rStripe);
     });
 
-    // 2. Utility Power Poles
+    // 2. Concrete Utility Power Poles with Cylindrical Transformers and Lines
     const polePositions = [
-      { x: -5.5, z: -28.0 },
-      { x: -5.5, z: -8.0 },
-      { x: -5.5, z: 12.0 }
+      { x: -5.4, z: -28.0 },
+      { x: -5.4, z: -8.0 },
+      { x: -5.4, z: 12.0 }
     ];
     polePositions.forEach(pp => {
-      const uPole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9.2, 8), this.timberMat);
+      const uPole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9.2, 8), this.balconyMat);
       uPole.position.set(pp.x, 4.6, pp.z);
       uPole.castShadow = true;
       decGroup.add(uPole);
 
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 2.2), this.timberMat);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 2.2), this.balconyMat);
       arm.position.set(pp.x, 8.6, pp.z);
       decGroup.add(arm);
+
+      // Transformer cylinder
+      const trans = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.75, 10), this.shutterMat);
+      trans.position.set(pp.x, 7.8, pp.z + 0.35);
+      decGroup.add(trans);
 
       [-0.8, 0, 0.8].forEach(iz => {
         const ins = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.14, 6), this.parchmentMat);
@@ -1004,14 +1139,14 @@ export class AbandonedVillageStage {
       });
     });
 
-    // 3. Ornate Street Lamps with Warm Amber Lanterns
+    // 3. Ornate Street Lamps with Warm Amber Illumination
     const lampPositions = [
-      { x: -4.3, z: -20.0 },
-      { x: 4.3, z: -20.0 },
-      { x: -4.3, z: -4.0 },
-      { x: 4.3, z: -4.0 },
-      { x: -4.3, z: 16.0 },
-      { x: 4.3, z: 16.0 }
+      { x: -5.3, z: -20.0 },
+      { x: 5.3, z: -20.0 },
+      { x: -5.3, z: -4.0 },
+      { x: 5.3, z: -4.0 },
+      { x: -5.3, z: 16.0 },
+      { x: 5.3, z: 16.0 }
     ];
     lampPositions.forEach(lp => {
       const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 4.8, 8), this.tireMat);
@@ -1032,693 +1167,221 @@ export class AbandonedVillageStage {
   }
 
   /**
-   * The Imperial Stone Castle of Emperor Fasilides (የፋሲል ግንብ)
-   * The famed 17th-century royal castle of Gondar with 4 corner towers, domed caps, and battlements.
-   */
-  buildFasilidesCastle() {
-    const castleGroup = new THREE.Group();
-    castleGroup.position.set(16, 0, 16);
-
-    // 1. Central 2-Story Rectangular Stone Keep
-    const keepW = 13.5;
-    const keepD = 10.5;
-    const keepH = 8.5;
-    const keepGeo = new THREE.BoxGeometry(keepW, keepH, keepD);
-    const keepMesh = new THREE.Mesh(keepGeo, this.cobbleMat);
-    keepMesh.position.y = keepH / 2;
-    keepMesh.castShadow = true;
-    keepMesh.receiveShadow = true;
-    castleGroup.add(keepMesh);
-
-    // 2. Four Cylindrical Corner Towers with Domed Caps (iconic Gondar architecture)
-    const towerR = 1.7;
-    const towerH = 10.8;
-    const cornerOffsets = [
-      { x: -keepW / 2, z: -keepD / 2 },
-      { x: keepW / 2, z: -keepD / 2 },
-      { x: -keepW / 2, z: keepD / 2 },
-      { x: keepW / 2, z: keepD / 2 }
-    ];
-
-    cornerOffsets.forEach(pos => {
-      // Tower shaft
-      const towerGeo = new THREE.CylinderGeometry(towerR, towerR * 1.08, towerH, 16);
-      const tower = new THREE.Mesh(towerGeo, this.cobbleMat);
-      tower.position.set(pos.x, towerH / 2, pos.z);
-      tower.castShadow = true;
-      tower.receiveShadow = true;
-      castleGroup.add(tower);
-
-      // Egg-shaped Gondarine stone dome cap
-      const domeGeo = new THREE.SphereGeometry(towerR * 1.05, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
-      const dome = new THREE.Mesh(domeGeo, this.cobbleMat);
-      dome.position.set(pos.x, towerH, pos.z);
-      dome.castShadow = true;
-      castleGroup.add(dome);
-
-      // Golden Ethiopian Cross finial at tower apex (የጉልላት መስቀል)
-      const crossFinial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 6), this.goldMat);
-      crossFinial.position.set(pos.x, towerH + towerR + 0.25, pos.z);
-      castleGroup.add(crossFinial);
-      const crossCross = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.06, 0.06), this.goldMat);
-      crossCross.position.set(pos.x, towerH + towerR + 0.35, pos.z);
-      castleGroup.add(crossCross);
-
-      if (this.physicsWorld) {
-        const cCol = new CircleCollider(16 + pos.x, 16 + pos.z, towerR + 0.3);
-        this.physicsWorld.addCollider(cCol);
-        this.colliders.push(cCol);
-      }
-    });
-
-    // 3. Crenelated Parapet along castle roof (የግንብ አናት ዙፋን)
-    const parapetGeo = new THREE.BoxGeometry(keepW + 0.4, 0.7, keepD + 0.4);
-    const parapet = new THREE.Mesh(parapetGeo, this.cobbleMat);
-    parapet.position.y = keepH + 0.35;
-    castleGroup.add(parapet);
-
-    // 4. Ras Balcony on the front facade
-    const balconyGeo = new THREE.BoxGeometry(3.6, 0.25, 1.4);
-    const balcony = new THREE.Mesh(balconyGeo, this.timberMat);
-    balcony.position.set(0, 5.2, -keepD / 2 - 0.7);
-    balcony.castShadow = true;
-    castleGroup.add(balcony);
-
-    // Arched Main Entrance Gate
-    const doorGeo = new THREE.BoxGeometry(2.4, 3.4, 0.4);
-    const door = new THREE.Mesh(doorGeo, this.timberMat);
-    door.position.set(0, 1.7, -keepD / 2 - 0.1);
-    castleGroup.add(door);
-
-    this.group.add(castleGroup);
-
-    if (this.physicsWorld) {
-      const bCol = new BoxCollider(16, 16, keepW / 2 + 0.4, keepD / 2 + 0.4);
-      this.physicsWorld.addCollider(bCol);
-      this.colliders.push(bCol);
-    }
-  }
-
-  /**
-   * Traditional Ethiopian Bazaar (ገበያ) and Authentic Coffee Ceremony (የቡና ሥነ-ሥርዓት)
-   * Featuring Qetema fresh green carpet grass, clay Jebena coffee pots, Rekebot table,
-   * smoking frankincense burner (Itan), and colorful woven Mesob wicker tables.
+   * Sidewalk Coffee Ceremony (የቡና ሥነ-ሥርዓት) Terrace outside Bunna Bet:
+   * Authentic cultural arrangement: Aromatic green grass carpet (ቀጤማ),
+   * low Rekebot wooden tray with porcelain Cini cups, smoking clay Jebena,
+   * glowing incense burner (ዕጣን), and carved wooden stools for customers.
    */
   buildEthiopianBazaarAndCoffeeCeremony() {
-    const bazaarGroup = new THREE.Group();
-    bazaarGroup.position.set(6, 0, -8);
+    const ceremonyGroup = new THREE.Group();
+    ceremonyGroup.position.set(-8.8, 0.22, -4.0);
 
-    // --- A. THE TRADITIONAL COFFEE CEREMONY CORNER ---
-    // 1. Fresh green grass carpet strewn on the ground (ቀጤማ • Qetema)
-    const qetemaGeo = new THREE.CylinderGeometry(2.5, 2.7, 0.04, 16);
+    // 1. Fresh green grass carpet strewn on the sidewalk (ቀጤማ • Qetema)
+    const qetemaGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.03, 16);
     const qetema = new THREE.Mesh(qetemaGeo, this.qetemaMat);
     qetema.position.set(0, 0.02, 0);
     qetema.receiveShadow = true;
-    bazaarGroup.add(qetema);
+    ceremonyGroup.add(qetema);
 
     // 2. Low wooden coffee table (ረከቦት • Rekebot)
-    const rekebotGeo = new THREE.BoxGeometry(1.6, 0.32, 0.9);
+    const rekebotGeo = new THREE.BoxGeometry(1.5, 0.3, 0.85);
     const rekebot = new THREE.Mesh(rekebotGeo, this.timberMat);
     rekebot.position.set(0, 0.18, 0);
     rekebot.castShadow = true;
-    bazaarGroup.add(rekebot);
+    ceremonyGroup.add(rekebot);
 
-    // Six miniature white porcelain coffee cups (ሲኒ • Cini)
+    // Porcelain coffee cups (ሲኒ • Cini)
     const ciniMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < 3; col++) {
         const cini = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.025, 0.06, 8), ciniMat);
-        cini.position.set(-0.35 + col * 0.35, 0.37, -0.15 + row * 0.3);
-        bazaarGroup.add(cini);
+        cini.position.set(-0.35 + col * 0.35, 0.36, -0.15 + row * 0.3);
+        ceremonyGroup.add(cini);
       }
     }
 
     // 3. Authentic Black Clay Coffee Pot (ጀበና • Jebena)
     const jebenaGroup = new THREE.Group();
-    jebenaGroup.position.set(0.6, 0.06, 0.4);
+    jebenaGroup.position.set(0.55, 0.06, 0.35);
 
-    // Spherical clay pot body
-    const jebenaBody = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), this.clayMat);
-    jebenaBody.position.y = 0.24;
+    const jebenaBody = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), this.clayMat);
+    jebenaBody.position.y = 0.22;
     jebenaBody.castShadow = true;
     jebenaGroup.add(jebenaBody);
 
-    // Tall slender neck
-    const jebenaNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.38, 10), this.clayMat);
-    jebenaNeck.position.y = 0.55;
+    const jebenaNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.35, 10), this.clayMat);
+    jebenaNeck.position.y = 0.52;
     jebenaGroup.add(jebenaNeck);
 
-    // Pouring spout
-    const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.22, 8), this.clayMat);
-    spout.position.set(0.16, 0.34, 0);
+    const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.2, 8), this.clayMat);
+    spout.position.set(0.15, 0.32, 0);
     spout.rotation.z = -Math.PI / 4;
     jebenaGroup.add(spout);
 
-    // Curved handle
-    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.025, 6, 12, Math.PI), this.clayMat);
-    handle.position.set(-0.16, 0.38, 0);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 6, 12, Math.PI), this.clayMat);
+    handle.position.set(-0.15, 0.35, 0);
     handle.rotation.z = Math.PI / 2;
     jebenaGroup.add(handle);
 
-    // Straw ring stand (ማተርጎሻ • Matargosha)
-    const stand = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.04, 6, 12), this.thatchMat);
-    stand.rotation.x = Math.PI / 2;
-    stand.position.y = 0.04;
-    jebenaGroup.add(stand);
+    ceremonyGroup.add(jebenaGroup);
 
-    bazaarGroup.add(jebenaGroup);
+    // 4. Frankincense Incense Burner (ዕጣን ማቡኸር) with warm glowing embers
+    const burner = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.08, 0.22, 8), this.clayMat);
+    burner.position.set(-0.65, 0.12, 0.35);
+    ceremonyGroup.add(burner);
 
-    // 4. Traditional Frankincense Incense Burner (ዕጣን ማቡኸር • Mabukhar)
-    const burner = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.08, 0.24, 8), this.clayMat);
-    burner.position.set(-0.7, 0.12, 0.4);
-    bazaarGroup.add(burner);
+    const emberLight = new THREE.PointLight(0xf59e0b, 1.2, 3.5);
+    emberLight.position.set(-0.65, 0.28, 0.35);
+    ceremonyGroup.add(emberLight);
 
-    // Glowing incense embers with subtle flickering pointlight
-    const emberLight = new THREE.PointLight(0xf59e0b, 1.5, 4.0);
-    emberLight.position.set(-0.7, 0.3, 0.4);
-    bazaarGroup.add(emberLight);
-
-    // --- B. TRADITIONAL WOVEN MESOB TABLES (መሶብ) ---
-    const mesobColors = [0x15803d, 0xeab308, 0xb91c1c];
-    [-3.2, 3.2].forEach((xSide) => {
-      const mesobGroup = new THREE.Group();
-      mesobGroup.position.set(xSide, 0, -1.2);
-
-      // Conical base of Mesob
-      const baseGeo = new THREE.CylinderGeometry(0.65, 0.45, 0.75, 12);
-      const baseMesh = new THREE.Mesh(baseGeo, this.thatchMat);
-      baseMesh.position.y = 0.38;
-      baseMesh.castShadow = true;
-      mesobGroup.add(baseMesh);
-
-      // Colorful woven decorative rings (Tricolor diamond embroidery)
-      mesobColors.forEach((col, ringIdx) => {
-        const ringMat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.8 });
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.025, 4, 12), ringMat);
-        ring.rotation.x = Math.PI / 2;
-        ring.position.y = 0.2 + ringIdx * 0.16;
-        mesobGroup.add(ring);
-      });
-
-      // Pointed conical lid of Mesob
-      const lidGeo = new THREE.ConeGeometry(0.72, 0.85, 12);
-      const lidMesh = new THREE.Mesh(lidGeo, this.thatchMat);
-      lidMesh.position.y = 1.15;
-      lidMesh.castShadow = true;
-      mesobGroup.add(lidMesh);
-
-      // Top handle finial
-      const topKnob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), this.goldMat);
-      topKnob.position.y = 1.62;
-      mesobGroup.add(topKnob);
-
-      bazaarGroup.add(mesobGroup);
+    // 5. Traditional carved wooden stools (በርጩማ • Berchuma)
+    const stoolMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
+    [
+      { x: -1.2, z: -0.8 }, { x: -0.4, z: -1.2 }, { x: 0.8, z: -1.0 }
+    ].forEach(sp => {
+      const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.36, 10), stoolMat);
+      stool.position.set(sp.x, 0.2, sp.z);
+      ceremonyGroup.add(stool);
     });
 
-    // --- C. SPICE SACKS (የበርበሬና ቅመማቅመም ከረጢት) ---
-    const spiceBags = [
-      { x: -1.8, z: 1.2, col: 0xb91c1c, name: 'Berbere' },
-      { x: -1.2, z: 1.4, col: 0xf59e0b, name: 'Turmeric' },
-      { x: 1.4, z: 1.2, col: 0x3d271d, name: 'Coffee Beans' }
-    ];
-    spiceBags.forEach(sp => {
-      const sackGeo = new THREE.CylinderGeometry(0.24, 0.28, 0.45, 10);
-      const sackMesh = new THREE.Mesh(sackGeo, this.timberMat);
-      sackMesh.position.set(sp.x, 0.22, sp.z);
-      bazaarGroup.add(sackMesh);
-
-      const spiceTopGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.05, 8);
-      const spiceMat = new THREE.MeshStandardMaterial({ color: sp.col, roughness: 0.95 });
-      const spiceTop = new THREE.Mesh(spiceTopGeo, spiceMat);
-      spiceTop.position.set(sp.x, 0.45, sp.z);
-      bazaarGroup.add(spiceTop);
-    });
-
-    this.group.add(bazaarGroup);
+    this.group.add(ceremonyGroup);
 
     if (this.physicsWorld) {
-      const col = new CircleCollider(6, -8, 2.8);
+      const col = new CircleCollider(-8.8, -4.0, 2.2);
       this.physicsWorld.addCollider(col);
       this.colliders.push(col);
     }
   }
 
   /**
-   * The Azmari Minstrel Station (የአዝማሪ ቤት)
-   * Traditional Ethiopian musical instruments: 3D Masenqo, Krar, and Kebero drum.
+   * The Azmari Minstrel Station (የአዝማሪ ጣቢያ)
+   * Traditional Ethiopian musical instruments displayed on a carved wooden platform outside the Cultural Gallery:
+   * Masenqo (single-string lute), Krar (lyre), and Kebero ceremonial drum.
    */
   buildAzmariMusicStation() {
     const musicGroup = new THREE.Group();
-    musicGroup.position.set(-8, 0, -8);
+    musicGroup.position.set(8.8, 0.22, 16.0);
 
-    // Raised circular wooden carpet dais
-    const daisGeo = new THREE.CylinderGeometry(2.4, 2.6, 0.25, 12);
+    const daisGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.22, 14);
     const dais = new THREE.Mesh(daisGeo, this.timberMat);
-    dais.position.y = 0.12;
+    dais.position.y = 0.11;
     dais.receiveShadow = true;
     musicGroup.add(dais);
 
-    // 1. Traditional Ethiopian Single-String Lute (ማሲንቆ • Masenqo)
+    // 1. Single-String Lute (ማሲንቆ • Masenqo)
     const masenqoGroup = new THREE.Group();
-    masenqoGroup.position.set(-0.6, 0.25, 0.3);
+    masenqoGroup.position.set(-0.5, 0.22, 0.2);
     masenqoGroup.rotation.y = 0.4;
 
-    // Diamond-shaped resonator box (goatskin parchment)
-    const boxGeo = new THREE.BoxGeometry(0.35, 0.35, 0.18);
+    const boxGeo = new THREE.BoxGeometry(0.32, 0.32, 0.16);
     boxGeo.rotateZ(Math.PI / 4);
     const boxMesh = new THREE.Mesh(boxGeo, this.parchmentMat);
-    boxMesh.position.y = 0.4;
+    boxMesh.position.y = 0.38;
     boxMesh.castShadow = true;
     masenqoGroup.add(boxMesh);
 
-    // Long wooden neck rod
-    const neckGeo = new THREE.CylinderGeometry(0.025, 0.03, 0.9, 8);
-    const neck = new THREE.Mesh(neckGeo, this.timberMat);
-    neck.position.y = 0.85;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.85, 8), this.timberMat);
+    neck.position.y = 0.8;
     masenqoGroup.add(neck);
 
-    // Tuning peg at top
-    const peg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.03, 0.03), this.timberMat);
-    peg.position.y = 1.25;
+    const peg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.03), this.timberMat);
+    peg.position.y = 1.18;
     masenqoGroup.add(peg);
 
-    // Horsehair bow (መጎተቻ • Bow)
-    const bow = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.65, 6), this.timberMat);
+    const bow = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.6, 6), this.timberMat);
     bow.rotation.z = Math.PI / 3;
-    bow.position.set(0.2, 0.5, 0.08);
+    bow.position.set(0.2, 0.45, 0.1);
     masenqoGroup.add(bow);
 
     musicGroup.add(masenqoGroup);
 
-    // 2. Traditional Ethiopian Lyre (ክራር • Krar)
+    // 2. Ethiopian Lyre (ክራር • Krar)
     const krarGroup = new THREE.Group();
-    krarGroup.position.set(0.6, 0.25, 0.2);
+    krarGroup.position.set(0.5, 0.22, 0.1);
     krarGroup.rotation.y = -0.3;
 
-    // Oval wooden soundbox
-    const soundbox = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.25, 0.12, 10), this.parchmentMat);
-    soundbox.position.y = 0.25;
-    soundbox.castShadow = true;
-    krarGroup.add(soundbox);
+    const kBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.18, 0.14, 12), this.timberMat);
+    kBowl.position.y = 0.15;
+    krarGroup.add(kBowl);
 
-    // Two wooden arms reaching upward
-    [-0.2, 0.2].forEach((xSide, i) => {
-      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.7, 6), this.timberMat);
-      arm.position.set(xSide, 0.6, 0);
-      arm.rotation.z = (i === 0 ? 1 : -1) * 0.15;
+    [-0.2, 0.2].forEach(ax => {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.65, 6), this.timberMat);
+      arm.position.set(ax, 0.45, 0);
       krarGroup.add(arm);
     });
 
-    // Top horizontal crossbar
-    const crossbar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.52, 6), this.timberMat);
+    const crossbar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.46, 6), this.timberMat);
     crossbar.rotation.z = Math.PI / 2;
-    crossbar.position.set(0, 0.95, 0);
+    crossbar.position.set(0, 0.75, 0);
     krarGroup.add(crossbar);
 
     musicGroup.add(krarGroup);
 
-    // 3. Double-Headed Ceremonial Drum (ከበሮ • Kebero)
-    const keberoGeo = new THREE.CylinderGeometry(0.32, 0.42, 0.85, 12);
-    const kebero = new THREE.Mesh(keberoGeo, this.parchmentMat);
-    kebero.position.set(0, 0.65, -0.6);
+    // 3. Double-Headed Drum (ከበሮ • Kebero)
+    const keberoGeo = new THREE.CylinderGeometry(0.22, 0.16, 0.65, 12);
+    const kebero = new THREE.Mesh(keberoGeo, this.timberMat);
     kebero.rotation.z = Math.PI / 6;
-    kebero.castShadow = true;
+    kebero.position.set(0, 0.4, -0.6);
     musicGroup.add(kebero);
 
     this.group.add(musicGroup);
 
     if (this.physicsWorld) {
-      const col = new CircleCollider(-8, -8, 2.5);
+      const col = new CircleCollider(8.8, 16.0, 2.2);
       this.physicsWorld.addCollider(col);
       this.colliders.push(col);
     }
   }
 
   /**
-   * Historic Stone City Walls and Gondarine Arched Gates (የከተማው ቅጥር በር)
+   * Modern Municipal Highway Portal Gantry Signs:
+   * Spanning across the avenue at both street boundaries (z: -36.0 and z: 36.0),
+   * providing authentic real-world road wayfinding and level transition portals.
    */
-  buildCityWallsAndArchedGates() {
-    const gateGroup = new THREE.Group();
-    gateGroup.position.set(0, 0, -32);
-
-    [-4.5, 4.5].forEach(xSide => {
-      const gTower = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 8.5, 12), this.cobbleMat);
-      gTower.position.set(xSide, 4.25, 0);
-      gTower.castShadow = true;
-      gateGroup.add(gTower);
-
-      const gDome = new THREE.Mesh(new THREE.SphereGeometry(1.65, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), this.cobbleMat);
-      gDome.position.set(xSide, 8.5, 0);
-      gateGroup.add(gDome);
-
-      const gCross = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.6, 0.08), this.goldMat);
-      gCross.position.set(xSide, 10.4, 0);
-      gateGroup.add(gCross);
-    });
-
-    const lintel = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.4, 1.8), this.cobbleMat);
-    lintel.position.set(0, 7.8, 0);
-    gateGroup.add(lintel);
-
-    [-18, 18].forEach(xWall => {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 1.6), this.cobbleMat);
-      wall.position.set(xWall, 2.75, 0);
-      wall.castShadow = true;
-      gateGroup.add(wall);
-
-      if (this.physicsWorld) {
-        const col = new BoxCollider(xWall, -32, 8.2, 1.0);
-        this.physicsWorld.addCollider(col);
-        this.colliders.push(col);
-      }
-    });
-
-    this.group.add(gateGroup);
-  }
-
-  buildCottages() {
-    // Traditional Ethiopian circular stone Tukuls (ቱኩል) with conical thatched roofs
-    const tukulConfigs = [
-      { x: -16, z: -15, rotY: 0.2, r: 4.2, h: 4.8, name: 'Weaver’s Tukul (የሸማኔ ቤት)' },
-      { x: 16, z: -18, rotY: -0.3, r: 3.8, h: 4.5, name: 'Blacksmith’s Forge (የአንጥረኛ ቤት)' },
-      { x: -22, z: 16, rotY: 0.6, r: 4.6, h: 5.2, name: 'Hermitage Sanctuary (የባሕታዊ ማደሪያ)' },
-      { x: 18, z: 18, rotY: -0.5, r: 4.0, h: 4.8, name: 'Guest Dwelling (የእንግዳ ማረፊያ)' }
-    ];
-
-    const finialMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
-
-    tukulConfigs.forEach(c => {
-      const tukulGroup = new THREE.Group();
-      tukulGroup.position.set(c.x, 0, c.z);
-      tukulGroup.rotation.y = c.rotY;
-
-      // Circular stone wall base
-      const wallsGeo = new THREE.CylinderGeometry(c.r, c.r * 1.05, c.h, 16);
-      const walls = new THREE.Mesh(wallsGeo, this.cobbleMat);
-      walls.position.y = c.h / 2;
-      walls.castShadow = true;
-      walls.receiveShadow = true;
-      tukulGroup.add(walls);
-
-      // Traditional conical thatched roof (ሳር ክዳን)
-      const roofH = 3.4;
-      const roofGeo = new THREE.ConeGeometry(c.r * 1.25, roofH, 16);
-      const roof = new THREE.Mesh(roofGeo, this.thatchMat);
-      roof.position.y = c.h + roofH / 2;
-      roof.castShadow = true;
-      tukulGroup.add(roof);
-
-      // Clay / Brass finial at the roof apex (የጣሪያ ማሰሪያ / ጉልላት)
-      const finialGeo = new THREE.SphereGeometry(0.35, 8, 8);
-      const finial = new THREE.Mesh(finialGeo, finialMat);
-      finial.position.y = c.h + roofH + 0.25;
-      tukulGroup.add(finial);
-
-      // Carved wooden entrance door
-      const doorGeo = new THREE.BoxGeometry(1.4, 2.4, 0.35);
-      const door = new THREE.Mesh(doorGeo, this.timberMat);
-      door.position.set(0, 1.2, c.r);
-      tukulGroup.add(door);
-
-      this.group.add(tukulGroup);
-
-      if (this.physicsWorld) {
-        const col = new CircleCollider(c.x, c.z, c.r + 0.4);
-        this.physicsWorld.addCollider(col);
-        this.colliders.push(col);
-      }
-    });
-  }
-
-  /**
-   * Monolithic Rock-Hewn Greek Cross Church inspired by Bet Giyorgis (ቤተ ጊዮርጊስ) in Lalibela
-   */
-  buildBetGiyorgisShrine() {
-    const shrineGroup = new THREE.Group();
-    shrineGroup.position.set(-1.0, 0, -2.0);
-
-    // Carved rock trench platform
-    const trenchGeo = new THREE.BoxGeometry(16, 0.4, 16);
-    const trench = new THREE.Mesh(trenchGeo, this.cobbleMat);
-    trench.position.y = 0.2;
-    trench.receiveShadow = true;
-    shrineGroup.add(trench);
-
-    // Monolithic Greek Cross Footprint (two intersecting perpendicular stone blocks)
-    const armLen = 8.5;
-    const armWidth = 3.2;
-    const wallHeight = 6.2;
-
-    const arm1Geo = new THREE.BoxGeometry(armLen, wallHeight, armWidth);
-    const arm1 = new THREE.Mesh(arm1Geo, this.tuffMat);
-    arm1.position.y = wallHeight / 2 + 0.4;
-    arm1.castShadow = true;
-    arm1.receiveShadow = true;
-    shrineGroup.add(arm1);
-
-    const arm2Geo = new THREE.BoxGeometry(armWidth, wallHeight, armLen);
-    const arm2 = new THREE.Mesh(arm2Geo, this.tuffMat);
-    arm2.position.y = wallHeight / 2 + 0.4;
-    arm2.castShadow = true;
-    arm2.receiveShadow = true;
-    shrineGroup.add(arm2);
-
-    // Flat roof carved with authentic concentric Greek Crosses (symbol of Bet Giyorgis)
-    const roofMat = new THREE.MeshStandardMaterial({
-      color: 0x6e352b,
-      roughness: 0.95
-    });
-    const roofArm1 = new THREE.Mesh(new THREE.BoxGeometry(armLen + 0.1, 0.25, armWidth + 0.1), roofMat);
-    roofArm1.position.y = wallHeight + 0.52;
-    shrineGroup.add(roofArm1);
-
-    const roofArm2 = new THREE.Mesh(new THREE.BoxGeometry(armWidth + 0.1, 0.25, armLen + 0.1), roofMat);
-    roofArm2.position.y = wallHeight + 0.52;
-    shrineGroup.add(roofArm2);
-
-    // Carved Axumite style ogival arched windows with cross apertures
-    const winMat = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.9 });
-    [-2.6, 2.6].forEach(xOff => {
-      const win = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, armWidth + 0.08), winMat);
-      win.position.set(xOff, 3.8, 0);
-      shrineGroup.add(win);
-    });
-
-    this.group.add(shrineGroup);
-
-    if (this.physicsWorld) {
-      const col1 = new BoxCollider(-1.0, -2.0, armLen / 2 + 0.2, armWidth / 2 + 0.2);
-      const col2 = new BoxCollider(-1.0, -2.0, armWidth / 2 + 0.2, armLen / 2 + 0.2);
-      this.physicsWorld.addCollider(col1);
-      this.physicsWorld.addCollider(col2);
-      this.colliders.push(col1, col2);
-    }
-  }
-
-  buildCrowfallWindmill() {
-    // Crowfall Windmill at x: 26, z: -2
-    const windmillGroup = new THREE.Group();
-    windmillGroup.position.set(26, 0, -2);
-
-    // Stone base tower
-    const baseGeo = new THREE.CylinderGeometry(3.6, 4.4, 9.0, 10);
-    const base = new THREE.Mesh(baseGeo, this.cobbleMat);
-    base.position.y = 4.5;
-    base.castShadow = true;
-    base.receiveShadow = true;
-    windmillGroup.add(base);
-
-    // Conical cap roof
-    const capGeo = new THREE.ConeGeometry(3.8, 2.8, 10);
-    const cap = new THREE.Mesh(capGeo, this.thatchMat);
-    cap.position.y = 10.4;
-    cap.castShadow = true;
-    windmillGroup.add(cap);
-
-    // Rotating Sails Hub
-    const sailsGroup = new THREE.Group();
-    sailsGroup.position.set(0, 8.5, 3.8);
-
-    const hubGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.6, 8);
-    hubGeo.rotateX(Math.PI / 2);
-    const hub = new THREE.Mesh(hubGeo, this.timberMat);
-    sailsGroup.add(hub);
-
-    // 4 sails
-    const vaneGeo = new THREE.BoxGeometry(0.5, 7.0, 0.1);
-    for (let i = 0; i < 4; i++) {
-      const vane = new THREE.Mesh(vaneGeo, this.timberMat);
-      vane.rotation.z = (i * Math.PI) / 2;
-      vane.castShadow = true;
-      sailsGroup.add(vane);
-    }
-
-    windmillGroup.add(sailsGroup);
-    this.windmillSails = sailsGroup;
-
-    // Lantern hanging on the door
-    const lanternGeo = new THREE.DodecahedronGeometry(0.35);
-    const lantern = new THREE.Mesh(lanternGeo, this.lanternGlowMat);
-    lantern.position.set(0, 2.8, 4.1);
-    windmillGroup.add(lantern);
-
-    const lanternLight = new THREE.PointLight(0xf59e0b, 1.2, 12);
-    lanternLight.position.set(26, 2.8, 2.3);
-    this.group.add(lanternLight);
-
-    this.group.add(windmillGroup);
-
-    if (this.physicsWorld) {
-      const col = new CircleCollider(26, -2, 4.2);
-      this.physicsWorld.addCollider(col);
-      this.colliders.push(col);
-    }
-  }
-
-  buildVillageWellhouse() {
-    // Sunken Wellhouse at x: -5, z: 5
-    const wellGroup = new THREE.Group();
-    wellGroup.position.set(-5, 0, 5);
-
-    // Stone well ring
-    const wellGeo = new THREE.CylinderGeometry(1.8, 2.0, 1.2, 12, 1, true);
-    const well = new THREE.Mesh(wellGeo, this.cobbleMat);
-    well.position.y = 0.6;
-    well.castShadow = true;
-    wellGroup.add(well);
-
-    // Timber posts & roof canopy
-    [-1.6, 1.6].forEach(px => {
-      const postGeo = new THREE.CylinderGeometry(0.12, 0.14, 2.8, 6);
-      const post = new THREE.Mesh(postGeo, this.timberMat);
-      post.position.set(px, 1.4, 0);
-      post.castShadow = true;
-      wellGroup.add(post);
-    });
-
-    const roofGeo = new THREE.ConeGeometry(2.4, 1.2, 4);
-    roofGeo.rotateY(Math.PI / 4);
-    const roof = new THREE.Mesh(roofGeo, this.thatchMat);
-    roof.position.y = 3.0;
-    roof.castShadow = true;
-    wellGroup.add(roof);
-
-    // Well shaft dark interior / secret passage descent indicator
-    const discGeo = new THREE.CircleGeometry(1.6, 16);
-    discGeo.rotateX(-Math.PI / 2);
-    const discMat = new THREE.MeshStandardMaterial({
-      color: 0x064e3b,
-      emissive: 0x047857,
-      emissiveIntensity: 1.2
-    });
-    const disc = new THREE.Mesh(discGeo, discMat);
-    disc.position.y = 0.3;
-    wellGroup.add(disc);
-
-    this.group.add(wellGroup);
-
-    if (this.physicsWorld) {
-      const col = new CircleCollider(-5, 5, 2.2);
-      this.physicsWorld.addCollider(col);
-      this.colliders.push(col);
-    }
-  }
-
-  buildPalisadeBarricades() {
-    // Palisade logs along southern approach and borders
-    const logGeo = new THREE.CylinderGeometry(0.2, 0.25, 3.2, 6);
-    const fenceGroup = new THREE.Group();
-
-    for (let x = -20; x <= 20; x += 1.6) {
-      if (Math.abs(x) < 4.0) continue; // Gate opening
-      const log = new THREE.Mesh(logGeo, this.timberMat);
-      log.position.set(x, 1.6, -38);
-      log.rotation.z = (Math.random() - 0.5) * 0.1;
-      log.castShadow = true;
-      fenceGroup.add(log);
-    }
-
-    this.group.add(fenceGroup);
-
-    if (this.physicsWorld) {
-      const colLeft = new BoxCollider(-12, -38, 16, 1.5);
-      const colRight = new BoxCollider(12, -38, 16, 1.5);
-      this.physicsWorld.addCollider(colLeft);
-      this.physicsWorld.addCollider(colRight);
-      this.colliders.push(colLeft, colRight);
-    }
-  }
-
-  buildSecretElderLockbox() {
-    // Secret Elder's Lockbox behind the manor at x: -25, z: -15
-    const chestGroup = new THREE.Group();
-    chestGroup.position.set(-25, 0.5, -15);
-
-    const chestGeo = new THREE.BoxGeometry(1.3, 0.8, 0.9);
-    const chest = new THREE.Mesh(chestGeo, this.timberMat);
-    chest.position.y = 0.4;
-    chest.castShadow = true;
-    chestGroup.add(chest);
-
-    // Emerald jewel rune on lid
-    const runeGeo = new THREE.OctahedronGeometry(0.3);
-    const rune = new THREE.Mesh(runeGeo, this.runeGateMat);
-    rune.position.set(0, 0.85, 0);
-    chestGroup.add(rune);
-
-    this.group.add(chestGroup);
-
-    if (this.physicsWorld) {
-      const col = new BoxCollider(-25, -15, 1.6, 1.4);
-      this.physicsWorld.addCollider(col);
-      this.colliders.push(col);
-    }
-  }
-
   buildPassagePortals() {
-    const passages = [
-      { name: 'Dark Forest Palisade Gate', x: 0, y: 0, z: -40, rotY: 0 },
-      { name: 'Mountain Pass Footpath', x: -35, y: 1.0, z: 15, rotY: Math.PI / 2 },
-      { name: 'Whispering Cavern Cellar', x: -5, y: 0.2, z: 5, rotY: 0 }
+    const portals = [
+      {
+        z: -36.0,
+        amharic: 'የጎንደር ከተማ መውጫ ➔ ወደ አክሱም',
+        english: 'GONDAR CITY HIGHWAY EXIT ➔ TO AXUM MONUMENT'
+      },
+      {
+        z: 36.0,
+        amharic: 'ወደ ስሜን ተራሮች አውራ ጎዳና',
+        english: 'SIMIEN HIGHLANDS FREEWAY ➔ TO MOUNTAIN PASS'
+      }
     ];
 
-    passages.forEach(p => {
-      if (p.name.includes('Cellar')) return; // Covered by wellhouse
+    portals.forEach(p => {
+      const gantry = new THREE.Group();
+      gantry.position.set(0, 0, p.z);
 
-      const gate = new THREE.Group();
-      gate.position.set(p.x, p.y, p.z);
-      gate.rotation.y = p.rotY;
+      // Support steel columns on sidewalk edges
+      [-5.6, 5.6].forEach(cx => {
+        const colMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 6.4, 8), this.balconyMat);
+        colMesh.position.set(cx, 3.2, 0);
+        gantry.add(colMesh);
+      });
 
-      const postGeo = new THREE.CylinderGeometry(0.35, 0.45, 4.5, 6);
-      const lp = new THREE.Mesh(postGeo, this.timberMat);
-      lp.position.set(-2.2, 2.25, 0);
-      lp.castShadow = true;
-      gate.add(lp);
+      // Overhead cross truss beam
+      const truss = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.4, 0.4), this.balconyMat);
+      truss.position.set(0, 6.0, 0);
+      gantry.add(truss);
 
-      const rp = new THREE.Mesh(postGeo, this.timberMat);
-      rp.position.set(2.2, 2.25, 0);
-      rp.castShadow = true;
-      gate.add(rp);
+      // Large reflective green municipal highway overhead sign
+      const signMat = new THREE.MeshBasicMaterial({
+        map: this.createSignTexture(p.amharic, p.english, '#15803d', '#ffffff')
+      });
+      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1.4, 0.1), signMat);
+      signBoard.position.set(0, 5.2, 0);
+      gantry.add(signBoard);
 
-      const topGeo = new THREE.BoxGeometry(5.0, 0.6, 0.6);
-      const top = new THREE.Mesh(topGeo, this.timberMat);
-      top.position.set(0, 4.3, 0);
-      top.castShadow = true;
-      gate.add(top);
-
-      const runeGeo = new THREE.RingGeometry(0.4, 1.1, 16);
-      const rune = new THREE.Mesh(runeGeo, this.runeGateMat);
-      rune.position.set(0, 2.4, 0);
-      gate.add(rune);
-
-      this.group.add(gate);
+      this.group.add(gantry);
     });
   }
 
   update(deltaTime) {
-    if (this.windmillSails) {
-      this.windmillSails.rotation.z += deltaTime * 0.85;
-    }
+    // Stage update hook
   }
 
   dispose() {

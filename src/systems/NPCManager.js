@@ -79,10 +79,10 @@ export class NPCManager {
         {
           id: 'npc-valen',
           name: 'ተክሌ • Tekle',
-          title: 'የአክሱም ነጋዴ • Axumite Caravaneer',
+          title: 'የከተማ ነጋዴ • City Merchant & Shopkeeper',
           role: 'merchant',
           modelPath: './models/Xbot.glb',
-          avatar: '🐪',
+          avatar: '🏬',
           x: 8.0,
           y: 0,
           z: -18.0,

@@ -65,27 +65,32 @@ export class NPC {
           child.castShadow = true;
           child.receiveShadow = true;
 
+          // Hide robotic visor for humanoid soldier models
+          if (child.name && child.name.toLowerCase().includes('visor')) {
+            child.visible = false;
+          }
+
           if (child.material) {
-            // Apply customized color styling based on role
+            // Apply customized Ethiopian styling based on role
             if (this.role === 'merchant') {
-              // Traveler leather & gold trim
+              // Axumite Caravaneer amber leather & brass
               child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x0284c7 : 0xd97706,
-                roughness: 0.5,
+                color: child.name.toLowerCase().includes('head') ? 0x6b4423 : 0xd97706,
+                roughness: 0.6,
                 metalness: 0.25
               });
             } else if (this.role === 'quest_giver') {
-              // Forest Elder sage green & obsidian
+              // Elder pure white cotton Gabi with gold trim
               child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x065f46 : 0x1e3a8a,
-                roughness: 0.6,
-                metalness: 0.2
+                color: child.name.toLowerCase().includes('head') ? 0x5a3825 : 0xf4f0e6,
+                roughness: 0.75,
+                metalness: 0.1
               });
             } else if (this.role === 'forest_hermit') {
-              // Herbalist moss green & earth brown
+              // Highland Hermit olive and earth-tone Shamma
               child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x166534 : 0x78350f,
-                roughness: 0.7,
+                color: child.name.toLowerCase().includes('head') ? 0x5a3825 : 0x2e4a28,
+                roughness: 0.8,
                 metalness: 0.1
               });
             }

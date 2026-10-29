@@ -52,10 +52,10 @@ export class DialogueManager {
       const qGrimfang = qSys?.getSideQuest('side-bane-grimfang');
       const qGrotto = qSys?.getSideQuest('side-sunken-grotto');
 
-      let greeting = 'Greetings, brave traveler. The ancient woods are shadowed by corruption, but your presence brings new hope to our people.';
+      let greeting = 'ሰላም ጀግናው • Greetings, brave warrior. The sacred Simien peaks are shadowed by Arwe’s lingering blight, but your courage brings new hope to our highland people.';
 
       if (qSys?.isEntranceUnlocked) {
-        greeting = 'The sanctuary portal is blazing with celestial light! The glade barrier has dissolved. Step through the Altar Portal whenever you are prepared to confront the Ancient Ruins!';
+        greeting = 'The Axumite sanctuary portal is blazing with celestial light! The sacred highland barrier has dissolved. Step through the Obelisk Portal whenever you are prepared!';
       }
 
       // Check for ready turn-ins first!
@@ -69,8 +69,8 @@ export class DialogueManager {
               speaker: npc.name,
               title: npc.title,
               avatar: npc.avatar,
-              text: 'May this steel blade serve you well. You have the gratitude of every soul in the sanctuary.',
-              choices: [{ text: 'Farewell, Elder.', action: () => this.closeDialogue() }]
+              text: 'May this steel Shotel blade serve you well. You have the gratitude of every soul in the Simien highlands.',
+              choices: [{ text: 'በሰላም ይቆዩ፣ አባ ካሌብ • Go in peace, Abba Kaleb.', action: () => this.closeDialogue() }]
             });
           }
         });
@@ -86,8 +86,8 @@ export class DialogueManager {
               speaker: npc.name,
               title: npc.title,
               avatar: npc.avatar,
-              text: 'Take this Windrunner Tonic and gold. The path forward is clearing, noble warrior.',
-              choices: [{ text: 'Thank you, Elder. Farewell.', action: () => this.closeDialogue() }]
+              text: 'Take this Windrunner Tonic and Birr. The path forward is clearing, noble warrior.',
+              choices: [{ text: 'እግዚአብሔር ይስጥልኝ፣ አባ ካሌብ • Thank you, Abba Kaleb.', action: () => this.closeDialogue() }]
             });
           }
         });
@@ -310,17 +310,17 @@ export class DialogueManager {
             }
           },
           {
-            text: '👋 "Farewell, Valen."',
+            text: '👋 "ሰላም ሁን፣ ተክሌ • Farewell, Tekle."',
             action: () => this.closeDialogue()
           }
         ]
       };
     }
 
-    // --- 3. SYLAS (FOREST HERMIT) ---
+    // --- 3. YONATAN (HIGHLAND HERMIT) ---
     if (npc.role === 'forest_hermit' || npc.id.includes('sylas')) {
       const qSatchel = qSys?.getSideQuest('side-hermit-satchel');
-      let text = 'Hush... the ancient trees whisper when footsteps tread the loam. Peace to you, traveler.';
+      let text = 'ሰላም • Peace to you, traveler. The ancient highland trees whisper when footsteps tread the Simien soil.';
 
       // Gift on first meet
       if (!this.flags.has('met_sylas')) {
@@ -329,11 +329,11 @@ export class DialogueManager {
           const potion = this.player.inventorySystem.createItem('healing_potion');
           if (potion) this.player.inventorySystem.addItem(potion, 1);
         }
-        text = 'Welcome to my humble grove. The miasma is thick today—take this Healing Elixir as a gesture of goodwill.';
+        text = 'Welcome to my highland grove. Take this Healing Potion as a gesture of highland hospitality.';
       }
 
       if (qSatchel && qSatchel.status === 'READY_TO_TURN_IN') {
-        text = 'By the moss and roots, you found my Lost Satchel! The rare curative flora are completely unharmed. A thousand thanks!';
+        text = 'By the roots and sacred mountains, you found my Lost Satchel! A thousand thanks!';
         choices.push({
           text: '🏆 [Turn in Quest] Hand over the Alchemy Satchel',
           action: () => {
@@ -342,8 +342,8 @@ export class DialogueManager {
               speaker: npc.name,
               title: npc.title,
               avatar: npc.avatar,
-              text: 'You have a noble spirit. May the ancient groves shield you on your journey!',
-              choices: [{ text: 'Farewell, Sylas.', action: () => this.closeDialogue() }]
+              text: 'You have a noble spirit. May the ancient Simien mountains shield you on your journey!',
+              choices: [{ text: 'ሰላም ሁን፣ ዮናታን • Farewell, Yonatan.', action: () => this.closeDialogue() }]
             });
           }
         });
@@ -398,7 +398,7 @@ export class DialogueManager {
                       title: npc.title,
                       avatar: npc.avatar,
                       text: 'I understand... The horrors in those ruins are terrifying. Let me know if you muster the courage.',
-                      choices: [{ text: 'Farewell, Sylas.', action: () => this.closeDialogue() }]
+                      choices: [{ text: 'ሰላም ሁን፣ ዮናታን • Farewell, Yonatan.', action: () => this.closeDialogue() }]
                     });
                   }
                 }
@@ -414,8 +414,8 @@ export class DialogueManager {
               speaker: npc.name,
               title: npc.title,
               avatar: npc.avatar,
-              text: 'The sun-moss and star-orchids are drying splendidly. My gratitude remains eternal, traveler.',
-              choices: [{ text: 'May the forest protect you.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              text: 'The Simien highland herbs are drying splendidly. My gratitude remains eternal, warrior.',
+              choices: [{ text: 'May the highlands protect you.', action: () => this.startDialogue(this.activeNPC, this.player) }]
             });
           }
         });
@@ -428,14 +428,14 @@ export class DialogueManager {
             speaker: npc.name,
             title: npc.title,
             avatar: npc.avatar,
-            text: 'Sun-kissed moss restores vitality when boiled with spring water, while starry orchids brew into potent draughts of swiftness.',
+            text: 'Sun-kissed moss restores vitality when boiled with mountain water, while giant lobelia roots brew into potent draughts of swiftness.',
             choices: [{ text: 'Fascinating. Thank you.', action: () => this.startDialogue(this.activeNPC, this.player) }]
           });
         }
       });
 
       choices.push({
-        text: '👋 "Farewell, Sylas."',
+        text: '👋 "ሰላም ሁን፣ ዮናታን • Farewell, Yonatan."',
         action: () => this.closeDialogue()
       });
 
@@ -448,13 +448,13 @@ export class DialogueManager {
       };
     }
 
-    // --- 4. TORVALD (MOUNTAINEER) ---
+    // --- 4. ZEWDU (HIGHLAND MOUNTAINEER) ---
     if (npc.role === 'mountaineer' || npc.id === 'npc-torvald') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'The alpine winds bite fierce up here! Watch your step across the Highwind Bridge—the chasm below has claimed many careless wanderers.',
+        text: 'ሰላም ጀግናው • The alpine winds along the Simien heights of Ras Dashen bite deep! Watch your step across the Walia Bridge—the chasm below has claimed many careless wanderers.',
         choices: [
           {
             text: '🏔️ "What lies at Eagle\'s Peak?"',
@@ -463,7 +463,7 @@ export class DialogueManager {
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'An ancient cairn shrine erected by the first mountain wardens. A sacred prayer stone rests at its crest. Touching it brings clarity and strength.',
+                text: 'An ancient cairn shrine erected by the first Axumite wardens. A sacred prayer stone rests at its crest. Touching it brings clarity and strength.',
                 choices: [{ text: 'I will seek it out.', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
@@ -480,55 +480,55 @@ export class DialogueManager {
               });
             }
           },
-          { text: '👋 "Stay safe on the heights, Torvald."', action: () => this.closeDialogue() }
+          { text: '👋 "በሰላም ሁን፣ ዘውዱ • Stay safe on the heights, Zewdu."', action: () => this.closeDialogue() }
         ]
       };
     }
 
-    // --- 5. MARA (VILLAGE SURVIVOR) ---
+    // --- 5. WEYZERO MARTA (LALIBELA GUARDIAN) ---
     if (npc.role === 'village_survivor' || npc.id === 'npc-mara') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'Crowfall was once a peaceful hamlet until shadow blight crept in. The mill still turns by itself on windless nights...',
+        text: 'ሰላም • Lalibela was once a flourishing sanctuary until shadowy spirits crept into the courtyards. The ancient monastery mill still whispers of ancient days...',
         choices: [
           {
-            text: '🏚️ "What happened to the villagers?"',
+            text: '⛪ "Tell me of the rock-hewn chapels."',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'Most fled south to the forest, but some linger as restless spirits. Beware the cursed mill warden who prowls the square.',
+                text: 'Bet Giyorgis and the monoliths were carved straight from living red tuff. Cleanse the restless spirits from the central plaza so the monks may pray in peace.',
                 choices: [{ text: 'I will put their spirits to rest.', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
           },
           {
-            text: '🕳️ "Where does the village well lead?"',
+            text: '🕳️ "Where does the holy well lead?"',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'The well connects to an ancient subterranean cellar—the Whispering Cavern. Smugglers and hermits used it in secret centuries ago.',
+                text: 'The sacred Tsebel spring descends into the subterranean limestone galleries of Sof Omar. Smugglers and holy hermits once traversed it in secret.',
                 choices: [{ text: 'Good to know. Farewell.', action: () => this.closeDialogue() }]
               });
             }
           },
-          { text: '👋 "Be strong, Mara."', action: () => this.closeDialogue() }
+          { text: '👋 "በረከት ይድረሶት • Blessings, Weyzero Marta."', action: () => this.closeDialogue() }
         ]
       };
     }
 
-    // --- 6. GIDEON (SUBTERRANEAN CARTOGRAPHER) ---
+    // --- 6. MERED (SOF OMAR CAVERN GUIDE) ---
     if (npc.role === 'cartographer' || npc.id === 'npc-gideon') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'Ah, another explorer brave enough to traverse the deep caverns! Mind the bioluminescent mushrooms—their glow guides the way through the subterranean darkness.',
+        text: 'ሰላም • Welcome to the great subterranean limestone galleries of Sof Omar! Mind the glowing cavern opals—their light guides the way across the Weyb River.',
         choices: [
           {
             text: '🗺️ "Tell me about the Sunken Crypt Gate."',
@@ -537,8 +537,8 @@ export class DialogueManager {
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'Beyond the subterranean river bridge lies the ancient Sunken Crypt Dungeon. Its runic portcullis hums with forgotten sorcery and connects upward to the Ancient Ruins.',
-                choices: [{ text: 'Incredible. Thank you, Gideon.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+                text: 'Beyond the subterranean river bridge lies the ancient Crypt Gate. Its monolithic stone portcullis hums with Axumite blessings and connects upward to the sanctuary.',
+                choices: [{ text: 'Incredible. Thank you, Mered.', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
           },
@@ -549,12 +549,12 @@ export class DialogueManager {
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'Precious Starfall ore and hidden smuggler caches are stashed in the alcoves. Keep your eyes sharp and your blade ready.',
+                text: 'Precious Ethiopian Wollo opals and hidden trader caches are stashed in the limestone alcoves. Keep your eyes sharp and your Shotel ready.',
                 choices: [{ text: 'I will keep an eye out.', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
           },
-          { text: '👋 "Farewell, Gideon."', action: () => this.closeDialogue() }
+          { text: '👋 "ሰላም ሁን፣ መርዕድ • Farewell, Mered."', action: () => this.closeDialogue() }
         ]
       };
     }

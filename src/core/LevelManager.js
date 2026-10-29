@@ -130,178 +130,178 @@ export const STAGE_CONFIGS = [
   {
     index: 2,
     id: 'mountain-pass',
-    name: 'The Mountain Pass',
-    badgeText: 'STAGE 3: THE MOUNTAIN PASS',
+    name: 'Ras Dashen Pass',
+    badgeText: 'ደረጃ ፫: ደጀን ገደል • STAGE 3: RAS DASHEN PASS',
     playerSpawn: { x: 30, z: 25, rotY: -Math.PI / 4 },
     passages: [
       {
         id: 'mountain-to-forest',
-        name: 'The Dark Forest',
+        name: 'The Simien Highlands',
         targetLevelIndex: 0,
         targetSpawn: { x: -50, z: -18, rotY: 0 },
         x: 35,
         z: 28,
         radius: 4.5,
-        prompt: '[E] Descend to Dark Forest'
+        prompt: '[E] Descend to Simien Highlands'
       },
       {
         id: 'mountain-to-village',
-        name: 'The Abandoned Village',
+        name: 'Lalibela Rock Enclave',
         targetLevelIndex: 3,
         targetSpawn: { x: -30, z: 12, rotY: 0 },
         x: -30,
         z: -30,
         radius: 4.5,
-        prompt: '[E] Follow Path to Village'
+        prompt: '[E] Follow Path to Lalibela'
       },
       {
         id: 'mountain-to-ruins',
-        name: 'The Ancient Ruins',
+        name: 'Axumite Sanctuary',
         targetLevelIndex: 1,
         targetSpawn: { x: -30, z: 0, rotY: Math.PI / 2 },
         x: 32,
         z: -20,
         radius: 4.5,
-        prompt: '[E] Ascend to Ancient Ruins'
+        prompt: '[E] Ascend to Axumite Sanctuary'
       }
     ],
     landmarks: [
-      { id: 'mp-canyon', name: 'Highwind Canyon Trail', x: 30, z: 25, radius: 9.0, xpReward: 30 },
-      { id: 'mp-bridge', name: 'Highwind Chasm Bridge', x: 0, z: 5, radius: 7.0, xpReward: 40 },
-      { id: 'mp-cairn', name: "Eagle's Peak Cairn", x: -25, z: -20, radius: 9.0, xpReward: 50 },
-      { id: 'mp-cache', name: "Scout's Hidden Cache", x: -15, z: 30, radius: 6.0, xpReward: 30 }
+      { id: 'mp-canyon', name: 'ደጀን ገደል • Highwind Simien Escarpment', x: 30, z: 25, radius: 9.0, xpReward: 30 },
+      { id: 'mp-bridge', name: 'የዋላ ድልድይ • Sanctuary Bridge of the Walia', x: 0, z: 5, radius: 7.0, xpReward: 40 },
+      { id: 'mp-cairn', name: "የንስር ጫፍ • Eagle's Peak Monolith", x: -25, z: -20, radius: 9.0, xpReward: 50 },
+      { id: 'mp-cache', name: "የአዳኝ መሸሸጊያ • Simien Hunter's Cache", x: -15, z: 30, radius: 6.0, xpReward: 30 }
     ],
     quest: {
       id: 'mission-mountain-pass',
-      title: 'HIGHWIND PEAKS',
-      subtitle: 'The mountain winds quiet. The high trail is secured.',
-      description: 'Explore the crags, defeat alpine sentinels, and secure the Highwind Bridge.',
+      title: 'የራስ ዳሸን ገደል • RAS DASHEN CRAGS',
+      subtitle: 'High Simien winds quiet as the ancient trails are made safe.',
+      description: 'Traverse the Afro-alpine crags, defeat highland sentinels, and secure the Simien Bridge.',
       enemiesRequired: 3,
       crystalsRequired: 2,
-      enemiesLabel: 'Alpine Sentinels defeated',
-      crystalsLabel: 'Frost Relics gathered',
+      enemiesLabel: 'Highland Sentinels defeated',
+      crystalsLabel: 'Simien Fire Opals gathered',
       entranceLabel: 'Highwind Ridge',
-      exitLabel: 'Village Pass Waypoint',
+      exitLabel: 'Lalibela Pass Waypoint',
       exitLocation: { x: -30, z: -30, radius: 3.5 },
-      unlockMessage: 'HIGHWIND PASS SECURED - The route to Crowfall Village is open!'
+      unlockMessage: 'RAS DASHEN PASS SECURED - The route to Lalibela is open!'
     }
   },
   {
     index: 3,
     id: 'abandoned-village',
-    name: 'The Abandoned Village',
-    badgeText: 'STAGE 4: THE ABANDONED VILLAGE',
+    name: 'Lalibela Rock Enclave',
+    badgeText: 'ደረጃ ፬: ላሊበላ ቅዱስ መንደር • STAGE 4: LALIBELA ENCLAVE',
     playerSpawn: { x: 0, z: -35, rotY: 0 },
     passages: [
       {
         id: 'village-to-forest',
-        name: 'The Dark Forest',
+        name: 'The Simien Highlands',
         targetLevelIndex: 0,
         targetSpawn: { x: 10, z: 24, rotY: Math.PI },
         x: 0,
         z: -40,
         radius: 4.5,
-        prompt: '[E] Return to Dark Forest'
+        prompt: '[E] Return to Simien Highlands'
       },
       {
         id: 'village-to-mountain',
-        name: 'The Mountain Pass',
+        name: 'Ras Dashen Pass',
         targetLevelIndex: 2,
         targetSpawn: { x: -26, z: -26, rotY: Math.PI / 4 },
         x: -35,
         z: 15,
         radius: 4.5,
-        prompt: '[E] Climb Mountain Trail'
+        prompt: '[E] Climb Ras Dashen Trail'
       },
       {
         id: 'village-to-cavern',
-        name: 'The Whispering Cavern',
+        name: 'Sof Omar Sacred Caverns',
         targetLevelIndex: 4,
         targetSpawn: { x: -5, z: -25, rotY: Math.PI },
         x: -5,
         z: 5,
         radius: 4.0,
-        prompt: '[E] Descend into Well Cellar'
+        prompt: '[E] Descend into Holy Crypt'
       }
     ],
     landmarks: [
-      { id: 'av-square', name: 'Crowfall Village Square', x: 0, z: 0, radius: 9.0, xpReward: 30 },
-      { id: 'av-windmill', name: 'Crowfall Windmill', x: 26, z: -2, radius: 9.0, xpReward: 40 },
-      { id: 'av-well', name: 'The Sunken Wellhouse', x: -5, z: 5, radius: 7.0, xpReward: 30 },
-      { id: 'av-manor', name: "Elder's Ruined Manor", x: -22, z: 16, radius: 9.0, xpReward: 40 }
+      { id: 'av-square', name: 'የቤተ ጊዮርጊስ አደባባይ • Bet Giyorgis Monolithic Courtyard', x: 0, z: 0, radius: 9.0, xpReward: 30 },
+      { id: 'av-windmill', name: 'የገዳሙ ወፍጮ • Ancient Monastery Granary', x: 26, z: -2, radius: 9.0, xpReward: 40 },
+      { id: 'av-well', name: 'የቅዱስ ጸበል ምንጭ • Sacred Tsebel Holy Spring', x: -5, z: 5, radius: 7.0, xpReward: 30 },
+      { id: 'av-manor', name: "የሊቃውንቱ አዳራሽ • Monastic Hermitage Hall", x: -22, z: 16, radius: 9.0, xpReward: 40 }
     ],
     quest: {
       id: 'mission-abandoned-village',
-      title: 'SHADOWS OVER CROWFALL',
-      subtitle: 'The phantom spirits find peace. Crowfall Village is reclaimed.',
-      description: 'Cleanse the restless phantoms, collect lost heirlooms, and search the village square.',
+      title: 'የላሊበላ ቅዱሳን ፍለጋ • SANCTUARY OF LALIBELA',
+      subtitle: 'The ancient rock-hewn chapels find peace. Lalibela is reclaimed.',
+      description: 'Cleanse the restless phantom spirits, recover sacred Ge\'ez relics, and explore the monolithic rock-hewn courtyard.',
       enemiesRequired: 3,
       crystalsRequired: 3,
-      enemiesLabel: 'Phantoms cleansed',
-      crystalsLabel: 'Heirlooms recovered',
-      entranceLabel: 'Crowfall Palisade',
-      exitLabel: 'Well Cellar Descent',
+      enemiesLabel: 'Restless spirits cleansed',
+      crystalsLabel: 'Sacred Ge\'ez Relics recovered',
+      entranceLabel: 'Lalibela Palisade',
+      exitLabel: 'Holy Crypt Descent',
       exitLocation: { x: -5, z: 5, radius: 3.5 },
-      unlockMessage: 'VILLAGE SPIRITS CLEANSED - The Well Cellar seal has vanished!'
+      unlockMessage: 'LALIBELA SANCTUARY CLEANSED - The Holy Crypt seal has vanished!'
     }
   },
   {
     index: 4,
     id: 'hidden-cavern',
-    name: 'The Whispering Cavern',
-    badgeText: 'STAGE 5: THE WHISPERING CAVERN',
+    name: 'Sof Omar Sacred Caverns',
+    badgeText: 'ደረጃ ፭: የሶፍ ዑመር ዋሻ • STAGE 5: SOF OMAR SACRED CAVERNS',
     playerSpawn: { x: -28, z: 28, rotY: Math.PI / 4 },
     passages: [
       {
         id: 'cavern-to-forest',
-        name: 'The Dark Forest',
+        name: 'The Simien Highlands',
         targetLevelIndex: 0,
         targetSpawn: { x: -30, z: -30, rotY: 0 },
         x: -30,
         z: 30,
         radius: 4.5,
-        prompt: '[E] Climb to Dark Forest'
+        prompt: '[E] Climb to Simien Highlands'
       },
       {
         id: 'cavern-to-village',
-        name: 'The Abandoned Village',
+        name: 'Lalibela Rock Enclave',
         targetLevelIndex: 3,
         targetSpawn: { x: -5, z: 8, rotY: 0 },
         x: -5,
         z: -30,
         radius: 4.5,
-        prompt: '[E] Ascend to Village Well'
+        prompt: '[E] Ascend to Lalibela Holy Spring'
       },
       {
         id: 'cavern-to-ruins',
-        name: 'The Ancient Ruins',
+        name: 'Axumite Sanctuary',
         targetLevelIndex: 1,
         targetSpawn: { x: 30, z: 0, rotY: -Math.PI / 2 },
         x: 28,
         z: -28,
         radius: 4.5,
-        prompt: '[E] Enter Crypt Portal to Ruins'
+        prompt: '[E] Enter Crypt Portal to Axum'
       }
     ],
     landmarks: [
-      { id: 'hc-grotto', name: 'Luminescent Grotto', x: -30, z: 30, radius: 9.0, xpReward: 30 },
-      { id: 'hc-bridge', name: 'Subterranean River Bridge', x: 0, z: 0, radius: 8.0, xpReward: 40 },
-      { id: 'hc-dungeon-gate', name: 'Sunken Crypt Dungeon Gate', x: 25, z: -25, radius: 9.0, xpReward: 60 },
-      { id: 'hc-smuggler', name: "Smuggler's Alcove", x: 30, z: 20, radius: 7.0, xpReward: 30 }
+      { id: 'hc-grotto', name: 'የሶፍ ዑመር አዳራሽ • Chamber of Limestone Pillars', x: -30, z: 30, radius: 9.0, xpReward: 30 },
+      { id: 'hc-bridge', name: 'የወይብ ወንዝ ድልድይ • Subterranean Weyb River Bridge', x: 0, z: 0, radius: 8.0, xpReward: 40 },
+      { id: 'hc-dungeon-gate', name: 'የጥንቱ መቅደስ በር • Ancient Monolithic Crypt Gate', x: 25, z: -25, radius: 9.0, xpReward: 60 },
+      { id: 'hc-smuggler', name: "የነጋዴው ዋሻ • Caravaneer's Subterranean Alcove", x: 30, z: 20, radius: 7.0, xpReward: 30 }
     ],
     quest: {
       id: 'mission-whispering-cavern',
-      title: 'THE SUNKEN CRYPT',
-      subtitle: 'The cavern depths are silent. The ancient crypt portal beckons.',
-      description: 'Survive the cavern depths, harvest luminescent crystals, and locate the crypt seal.',
+      title: 'የሶፍ ዑመር ጥልቅ ዋሻ • CAVERNS OF SOF OMAR',
+      subtitle: 'The subterranean limestone chambers echo in reverent silence. The ancient crypt portal beckons.',
+      description: 'Explore the vast subterranean limestone galleries of the Weyb River, harvest glowing cavern opals, and unseal the sacred crypt.',
       enemiesRequired: 3,
       crystalsRequired: 3,
       enemiesLabel: 'Cavern beasts defeated',
-      crystalsLabel: 'Luminescent crystals harvested',
+      crystalsLabel: 'Weyb River Cavern Opals harvested',
       entranceLabel: 'Grotto Fissure',
       exitLabel: 'Crypt Dungeon Gate',
       exitLocation: { x: 25, z: -25, radius: 3.5 },
-      unlockMessage: 'SUNKEN CRYPT REVEALED - The runic portcullis rises!'
+      unlockMessage: 'SOF OMAR CRYPT REVEALED - The sacred stone portcullis rises!'
     }
   }
 ];

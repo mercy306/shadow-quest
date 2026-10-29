@@ -4111,6 +4111,26 @@ kbd {
   gap: 14px;
 }
 
+.map-region-art-banner {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #090d16;
+}
+
+.map-region-art-banner svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .map-region-title {
   font-family: 'Cinzel', serif;
   font-size: 1.25rem;

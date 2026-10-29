@@ -14,6 +14,7 @@ export class Vegetation {
 
     this.initMaterials();
     this.initTrees();
+    this.initGiantLobelias();
     this.initRocks();
     this.initFallenLogs();
     this.initBushes();
@@ -76,7 +77,8 @@ export class Vegetation {
     const trunkGeo = new THREE.CylinderGeometry(0.35, 0.7, 7.5, 8);
     trunkGeo.translate(0, 3.75, 0);
 
-    const c1 = new THREE.ConeGeometry(3.6, 4.0, 7);
+    // Wide flat-topped umbrella acacia (ግራር) canopy geometry
+    const c1 = new THREE.CylinderGeometry(4.2, 1.6, 1.4, 9);
     c1.translate(0, 5.2, 0);
 
     const dummyTrunk = new THREE.InstancedMesh(trunkGeo, this.barkMat, treeCount);
@@ -93,7 +95,7 @@ export class Vegetation {
     let canopyIndex = 0;
 
     const dummyColor = new THREE.Color();
-    const foliageColors = [0x224a1f, 0x2b5726, 0x34632f, 0x1d3d19];
+    const foliageColors = [0x2d5a27, 0x3d6e32, 0x224a1f, 0x4a7c36];
 
     for (let i = 0; i < treeCount * 4 && placedTrees < treeCount; i++) {
       const radius = 12 + Math.sqrt(this.random()) * 95;
@@ -133,10 +135,11 @@ export class Vegetation {
         ));
       }
 
+      // Flat-spreading tiered umbrella acacia canopies
       const tiers = [
-        { yOffset: 4.8 * scale, scaleR: 3.5 * scale, scaleH: 3.8 * scale },
-        { yOffset: 6.8 * scale, scaleR: 2.8 * scale, scaleH: 3.4 * scale },
-        { yOffset: 8.5 * scale, scaleR: 1.9 * scale, scaleH: 2.9 * scale }
+        { yOffset: 5.2 * scale, scaleR: 4.4 * scale, scaleH: 1.3 * scale },
+        { yOffset: 6.4 * scale, scaleR: 5.2 * scale, scaleH: 1.2 * scale },
+        { yOffset: 7.3 * scale, scaleR: 3.6 * scale, scaleH: 1.1 * scale }
       ];
 
       const cBase = foliageColors[placedTrees % foliageColors.length];
@@ -146,7 +149,7 @@ export class Vegetation {
         const tier = tiers[t];
         canopyDummy.position.set(x, y + tier.yOffset, z);
         canopyDummy.rotation.set(tiltX, rotY + t * 0.5, tiltZ);
-        canopyDummy.scale.set(tier.scaleR / 3.6, tier.scaleH / 4.0, tier.scaleR / 3.6);
+        canopyDummy.scale.set(tier.scaleR / 4.2, tier.scaleH / 1.4, tier.scaleR / 4.2);
         canopyDummy.updateMatrix();
         dummyCanopy.setMatrixAt(canopyIndex, canopyDummy.matrix);
         dummyCanopy.setColorAt(canopyIndex, dummyColor);
@@ -158,6 +161,100 @@ export class Vegetation {
 
     dummyTrunk.instanceMatrix.needsUpdate = true;
     dummyCanopy.instanceMatrix.needsUpdate = true;
+    if (dummyCanopy.instanceColor) dummyCanopy.instanceColor.needsUpdate = true;
+
+    this.scene.add(dummyTrunk);
+    this.scene.add(dummyCanopy);
+  }
+
+  /**
+   * Instanced Giant Lobelias (ጂብራ • Lobelia rhynchopetalum)
+   * The iconic Afro-alpine giant plant endemic to the Simien Mountains of Ethiopia.
+   */
+  initGiantLobelias() {
+    const lobeliaCount = 65;
+
+    // Stem stalk
+    const stalkGeo = new THREE.CylinderGeometry(0.24, 0.38, 3.8, 7);
+    stalkGeo.translate(0, 1.9, 0);
+
+    // Giant rosette leaves & central flowering tower
+    const rosetteGeo = new THREE.ConeGeometry(1.8, 1.2, 7);
+    rosetteGeo.rotateX(Math.PI);
+    rosetteGeo.translate(0, 1.8, 0);
+
+    // Spire top
+    const spireGeo = new THREE.ConeGeometry(0.45, 2.6, 7);
+    spireGeo.translate(0, 4.4, 0);
+
+    const lobeliaMat = new THREE.MeshStandardMaterial({
+      color: 0x4d7c3f,
+      roughness: 0.75,
+      metalness: 0.05,
+      flatShading: true
+    });
+
+    const spireMat = new THREE.MeshStandardMaterial({
+      color: 0x9ca3af, // Silver woolly alpine flowering spire
+      roughness: 0.9,
+      metalness: 0.05
+    });
+
+    const stalkMesh = new THREE.InstancedMesh(stalkGeo, this.barkMat, lobeliaCount);
+    const rosetteMesh = new THREE.InstancedMesh(rosetteGeo, lobeliaMat, lobeliaCount);
+    const spireMesh = new THREE.InstancedMesh(spireGeo, spireMat, lobeliaCount);
+
+    stalkMesh.castShadow = true;
+    rosetteMesh.castShadow = true;
+    spireMesh.castShadow = true;
+
+    const dummy = new THREE.Object3D();
+    let placed = 0;
+
+    for (let i = 0; i < lobeliaCount * 4 && placed < lobeliaCount; i++) {
+      const radius = 10 + Math.sqrt(this.random()) * 85;
+      const angle = this.random() * Math.PI * 2;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+
+      const pathDist = this.terrain.getPathDistance(x, z);
+      const ruinsDist = Math.hypot(x - 40, z - (-75));
+      if (pathDist < 3.5 || ruinsDist < 16) continue;
+
+      const y = this.terrain.getTerrainHeight(x, z);
+      const scale = 0.8 + this.random() * 0.45;
+      const rotY = this.random() * Math.PI * 2;
+
+      dummy.position.set(x, y - 0.1, z);
+      dummy.rotation.set(0, rotY, 0);
+      dummy.scale.set(scale, scale, scale);
+      dummy.updateMatrix();
+
+      stalkMesh.setMatrixAt(placed, dummy.matrix);
+      rosetteMesh.setMatrixAt(placed, dummy.matrix);
+      spireMesh.setMatrixAt(placed, dummy.matrix);
+
+      if (this.physicsWorld) {
+        this.physicsWorld.addCollider(new CircleCollider(
+          x,
+          z,
+          0.45 * scale,
+          y - 0.5,
+          y + 4.5,
+          'lobelia'
+        ));
+      }
+
+      placed++;
+    }
+
+    stalkMesh.instanceMatrix.needsUpdate = true;
+    rosetteMesh.instanceMatrix.needsUpdate = true;
+    spireMesh.instanceMatrix.needsUpdate = true;
+
+    this.scene.add(stalkMesh);
+    this.scene.add(rosetteMesh);
+    this.scene.add(spireMesh);
     if (dummyCanopy.instanceColor) dummyCanopy.instanceColor.needsUpdate = true;
 
     this.scene.add(dummyTrunk);

@@ -22,15 +22,15 @@ export class NPCManager {
 
     let npcConfigs = [];
     if (levelIndex === 0) {
-      // STAGE 1: THE DARK FOREST
+      // STAGE 1: THE SIMIEN HIGHLANDS
       npcConfigs = [
         {
           id: 'npc-kaelen',
-          name: 'Elder Kaelen',
-          title: 'Village Elder & Quest Giver',
+          name: 'አባ ካሌብ • Abba Kaleb',
+          title: 'የስሜን ሽማግሌ • Simien Elder & Sage',
           role: 'quest_giver',
           modelPath: './models/Soldier.glb',
-          avatar: '🧙‍♂️',
+          avatar: '👴🏾',
           x: -5.0,
           y: 0,
           z: -4.0,
@@ -39,11 +39,11 @@ export class NPCManager {
         },
         {
           id: 'npc-valen',
-          name: 'Valen',
-          title: 'Wandering Trader & Merchant',
+          name: 'ተክሌ • Tekle',
+          title: 'የአክሱም ነጋዴ • Axumite Caravaneer',
           role: 'merchant',
           modelPath: './models/Xbot.glb',
-          avatar: '🎒',
+          avatar: '🐪',
           x: 6.0,
           y: 0,
           z: -4.0,
@@ -52,8 +52,8 @@ export class NPCManager {
         },
         {
           id: 'npc-sylas',
-          name: 'Sylas',
-          title: 'Forest Hermit & Herbalist',
+          name: 'ዮናታን • Yonatan',
+          title: 'የተራራው ባሕታዊ • Highland Hermit & Healer',
           role: 'forest_hermit',
           modelPath: './models/Soldier.glb',
           avatar: '🌿',
@@ -65,15 +65,15 @@ export class NPCManager {
         }
       ];
     } else if (levelIndex === 1) {
-      // STAGE 2: THE ANCIENT RUINS
+      // STAGE 2: AXUMITE SANCTUARY
       npcConfigs = [
         {
           id: 'npc-valen-ruins',
-          name: 'Valen',
-          title: 'Sanctum Outpost Trader',
+          name: 'ተክሌ • Tekle',
+          title: 'የአክሱም ነጋዴ • Axum Sanctuary Caravaneer',
           role: 'merchant',
           modelPath: './models/Xbot.glb',
-          avatar: '🎒',
+          avatar: '🐪',
           x: 8.0,
           y: 0,
           z: 24.0,
@@ -82,15 +82,15 @@ export class NPCManager {
         }
       ];
     } else if (levelIndex === 2) {
-      // STAGE 3: THE MOUNTAIN PASS
+      // STAGE 3: RAS DASHEN PASS
       npcConfigs = [
         {
           id: 'npc-torvald',
-          name: 'Torvald',
-          title: 'Highland Mountaineer',
+          name: 'ዘውዱ • Zewdu',
+          title: 'የራስ ዳሸን አዳኝ • Ras Dashen Scout',
           role: 'mountaineer',
           modelPath: './models/Soldier.glb',
-          avatar: '🧗',
+          avatar: '🏹',
           x: 20.0,
           y: 0,
           z: 20.0,
@@ -99,12 +99,12 @@ export class NPCManager {
         }
       ];
     } else if (levelIndex === 3) {
-      // STAGE 4: THE ABANDONED VILLAGE
+      // STAGE 4: LALIBELA ENCLAVE
       npcConfigs = [
         {
           id: 'npc-mara',
-          name: 'Mara',
-          title: 'Crowfall Village Survivor',
+          name: 'ወይዘሮ ማርታ • Weyzero Marta',
+          title: 'የላሊበላ ጠባቂ • Guardian of Lalibela',
           role: 'village_survivor',
           modelPath: './models/Xbot.glb',
           avatar: '🕯️',
@@ -116,12 +116,12 @@ export class NPCManager {
         }
       ];
     } else if (levelIndex === 4) {
-      // STAGE 5: THE WHISPERING CAVERN
+      // STAGE 5: SOF OMAR CAVERNS
       npcConfigs = [
         {
           id: 'npc-gideon',
-          name: 'Gideon',
-          title: 'Subterranean Cartographer',
+          name: 'መርዕድ • Mered',
+          title: 'የሶፍ ዑመር መሪ • Sof Omar Cave Guide',
           role: 'cartographer',
           modelPath: './models/Soldier.glb',
           avatar: '🗺️',

@@ -20,6 +20,7 @@ export class AbandonedVillageStage {
     this.initMaterials();
     this.buildTerrain();
     this.buildCottages();
+    this.buildBetGiyorgisShrine();
     this.buildCrowfallWindmill();
     this.buildVillageWellhouse();
     this.buildPalisadeBarricades();
@@ -37,6 +38,12 @@ export class AbandonedVillageStage {
       map: this.stoneTex,
       roughness: 0.85,
       metalness: 0.15
+    });
+
+    this.tuffMat = new THREE.MeshStandardMaterial({
+      color: 0x8b4538, // Warm reddish-brown volcanic tuff stone of Lalibela
+      roughness: 0.92,
+      metalness: 0.08
     });
 
     this.timberMat = new THREE.MeshStandardMaterial({
@@ -108,49 +115,122 @@ export class AbandonedVillageStage {
   }
 
   buildCottages() {
-    // 4 timber-framed houses
-    const cottageConfigs = [
-      { x: -16, z: -15, rotY: 0.2, w: 9, h: 5, d: 7, name: 'Weaver’s Cottage' },
-      { x: 16, z: -18, rotY: -0.3, w: 8, h: 4.8, d: 6.5, name: 'Blacksmith’s Forge' },
-      { x: -22, z: 16, rotY: 0.6, w: 10, h: 5.5, d: 8, name: 'Elder’s Manor' },
-      { x: 18, z: 18, rotY: -0.5, w: 8.5, h: 5, d: 7, name: 'Tavern Ruins' }
+    // Traditional Ethiopian circular stone Tukuls (ቱኩል) with conical thatched roofs
+    const tukulConfigs = [
+      { x: -16, z: -15, rotY: 0.2, r: 4.2, h: 4.8, name: 'Weaver’s Tukul (የሸማኔ ቤት)' },
+      { x: 16, z: -18, rotY: -0.3, r: 3.8, h: 4.5, name: 'Blacksmith’s Forge (የአንጥረኛ ቤት)' },
+      { x: -22, z: 16, rotY: 0.6, r: 4.6, h: 5.2, name: 'Hermitage Sanctuary (የባሕታዊ ማደሪያ)' },
+      { x: 18, z: 18, rotY: -0.5, r: 4.0, h: 4.8, name: 'Guest Dwelling (የእንግዳ ማረፊያ)' }
     ];
 
-    cottageConfigs.forEach(c => {
-      const cottageGroup = new THREE.Group();
-      cottageGroup.position.set(c.x, 0, c.z);
-      cottageGroup.rotation.y = c.rotY;
+    const finialMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
 
-      // Base stone foundation & timber walls
-      const wallsGeo = new THREE.BoxGeometry(c.w, c.h, c.d);
-      const walls = new THREE.Mesh(wallsGeo, this.timberMat);
+    tukulConfigs.forEach(c => {
+      const tukulGroup = new THREE.Group();
+      tukulGroup.position.set(c.x, 0, c.z);
+      tukulGroup.rotation.y = c.rotY;
+
+      // Circular stone wall base
+      const wallsGeo = new THREE.CylinderGeometry(c.r, c.r * 1.05, c.h, 16);
+      const walls = new THREE.Mesh(wallsGeo, this.cobbleMat);
       walls.position.y = c.h / 2;
       walls.castShadow = true;
       walls.receiveShadow = true;
-      cottageGroup.add(walls);
+      tukulGroup.add(walls);
 
-      // Pitched thatch roof
-      const roofGeo = new THREE.ConeGeometry(Math.max(c.w, c.d) * 0.75, 3.2, 4);
+      // Traditional conical thatched roof (ሳር ክዳን)
+      const roofH = 3.4;
+      const roofGeo = new THREE.ConeGeometry(c.r * 1.25, roofH, 16);
       const roof = new THREE.Mesh(roofGeo, this.thatchMat);
-      roof.position.y = c.h + 1.6;
-      roof.rotation.y = Math.PI / 4;
+      roof.position.y = c.h + roofH / 2;
       roof.castShadow = true;
-      cottageGroup.add(roof);
+      tukulGroup.add(roof);
 
-      // Wooden doorway arch
-      const doorGeo = new THREE.BoxGeometry(1.6, 2.6, 0.4);
-      const door = new THREE.Mesh(doorGeo, this.thatchMat);
-      door.position.set(0, 1.3, c.d / 2 + 0.1);
-      cottageGroup.add(door);
+      // Clay / Brass finial at the roof apex (የጣሪያ ማሰሪያ / ጉልላት)
+      const finialGeo = new THREE.SphereGeometry(0.35, 8, 8);
+      const finial = new THREE.Mesh(finialGeo, finialMat);
+      finial.position.y = c.h + roofH + 0.25;
+      tukulGroup.add(finial);
 
-      this.group.add(cottageGroup);
+      // Carved wooden entrance door
+      const doorGeo = new THREE.BoxGeometry(1.4, 2.4, 0.35);
+      const door = new THREE.Mesh(doorGeo, this.timberMat);
+      door.position.set(0, 1.2, c.r);
+      tukulGroup.add(door);
+
+      this.group.add(tukulGroup);
 
       if (this.physicsWorld) {
-        const col = new BoxCollider(c.x, c.z, c.w + 0.5, c.d + 0.5);
+        const col = new CircleCollider(c.x, c.z, c.r + 0.4);
         this.physicsWorld.addCollider(col);
         this.colliders.push(col);
       }
     });
+  }
+
+  /**
+   * Monolithic Rock-Hewn Greek Cross Church inspired by Bet Giyorgis (ቤተ ጊዮርጊስ) in Lalibela
+   */
+  buildBetGiyorgisShrine() {
+    const shrineGroup = new THREE.Group();
+    shrineGroup.position.set(-1.0, 0, -2.0);
+
+    // Carved rock trench platform
+    const trenchGeo = new THREE.BoxGeometry(16, 0.4, 16);
+    const trench = new THREE.Mesh(trenchGeo, this.cobbleMat);
+    trench.position.y = 0.2;
+    trench.receiveShadow = true;
+    shrineGroup.add(trench);
+
+    // Monolithic Greek Cross Footprint (two intersecting perpendicular stone blocks)
+    const armLen = 8.5;
+    const armWidth = 3.2;
+    const wallHeight = 6.2;
+
+    const arm1Geo = new THREE.BoxGeometry(armLen, wallHeight, armWidth);
+    const arm1 = new THREE.Mesh(arm1Geo, this.tuffMat);
+    arm1.position.y = wallHeight / 2 + 0.4;
+    arm1.castShadow = true;
+    arm1.receiveShadow = true;
+    shrineGroup.add(arm1);
+
+    const arm2Geo = new THREE.BoxGeometry(armWidth, wallHeight, armLen);
+    const arm2 = new THREE.Mesh(arm2Geo, this.tuffMat);
+    arm2.position.y = wallHeight / 2 + 0.4;
+    arm2.castShadow = true;
+    arm2.receiveShadow = true;
+    shrineGroup.add(arm2);
+
+    // Flat roof carved with authentic concentric Greek Crosses (symbol of Bet Giyorgis)
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: 0x6e352b,
+      roughness: 0.95
+    });
+    const roofArm1 = new THREE.Mesh(new THREE.BoxGeometry(armLen + 0.1, 0.25, armWidth + 0.1), roofMat);
+    roofArm1.position.y = wallHeight + 0.52;
+    shrineGroup.add(roofArm1);
+
+    const roofArm2 = new THREE.Mesh(new THREE.BoxGeometry(armWidth + 0.1, 0.25, armLen + 0.1), roofMat);
+    roofArm2.position.y = wallHeight + 0.52;
+    shrineGroup.add(roofArm2);
+
+    // Carved Axumite style ogival arched windows with cross apertures
+    const winMat = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.9 });
+    [-2.6, 2.6].forEach(xOff => {
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, armWidth + 0.08), winMat);
+      win.position.set(xOff, 3.8, 0);
+      shrineGroup.add(win);
+    });
+
+    this.group.add(shrineGroup);
+
+    if (this.physicsWorld) {
+      const col1 = new BoxCollider(-1.0, -2.0, armLen / 2 + 0.2, armWidth / 2 + 0.2);
+      const col2 = new BoxCollider(-1.0, -2.0, armWidth / 2 + 0.2, armLen / 2 + 0.2);
+      this.physicsWorld.addCollider(col1);
+      this.physicsWorld.addCollider(col2);
+      this.colliders.push(col1, col2);
+    }
   }
 
   buildCrowfallWindmill() {

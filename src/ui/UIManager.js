@@ -62,6 +62,7 @@ export class UIManager {
     this.mapLandmarksBadge = document.getElementById('map-landmarks-badge');
     this.mapSelectedRegionName = document.getElementById('map-selected-region-name');
     this.mapSelectedRegionDesc = document.getElementById('map-selected-region-desc');
+    this.mapRegionArtBanner = document.getElementById('map-region-art-banner');
     this.mapLandmarksList = document.getElementById('map-landmarks-list');
     this.mapPassagesList = document.getElementById('map-passages-list');
     this.discoveryBanner = document.getElementById('discovery-banner');
@@ -871,6 +872,14 @@ export class UIManager {
     const selectedStage = stages[this.selectedMapRegionIndex] || stages[0];
     const isSelectedDiscovered = discoveredLocations.includes(selectedStage.id);
 
+    if (this.mapRegionArtBanner) {
+      this.mapRegionArtBanner.innerHTML = isSelectedDiscovered ? this.getRegionArtworkSVG(selectedStage.id) : `
+        <div style="color: #64748b; font-size: 0.82rem; font-family: 'Cinzel', serif; letter-spacing: 0.08em; text-align: center;">
+          🔒 UNEXPLORED REALM TERRITORY
+        </div>
+      `;
+    }
+
     if (this.mapSelectedRegionName) {
       this.mapSelectedRegionName.textContent = isSelectedDiscovered ? selectedStage.name : 'Unknown Realm (Unexplored)';
     }
@@ -922,6 +931,133 @@ export class UIManager {
         this.mapPassagesList.appendChild(div);
       }
     }
+  }
+
+  getRegionArtworkSVG(stageId) {
+    if (stageId === 'simien-highlands' || stageId === 'dark-forest') {
+      return `
+        <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="simienSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ea580c"/>
+              <stop offset="45%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#fef08a"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="120" fill="url(#simienSky)"/>
+          <circle cx="280" cy="45" r="24" fill="#fffbeb" opacity="0.85"/>
+          <polygon points="0,95 60,40 120,85 180,30 250,75 320,25 400,90 400,120 0,120" fill="#78350f" opacity="0.75"/>
+          <polygon points="0,105 80,65 160,95 240,55 330,85 400,70 400,120 0,120" fill="#451a03" opacity="0.9"/>
+          <polygon points="0,110 90,85 190,100 290,90 400,105 400,120 0,120" fill="#14532d"/>
+          <path d="M70,95 Q75,70 65,58 M65,58 Q50,55 45,48 M65,58 Q80,54 88,48" stroke="#1c1917" stroke-width="3" fill="none"/>
+          <ellipse cx="65" cy="46" rx="28" ry="7" fill="#166534"/>
+          <ellipse cx="66" cy="42" rx="20" ry="5" fill="#15803d"/>
+          <line x1="335" y1="92" x2="335" y2="60" stroke="#1c1917" stroke-width="3"/>
+          <polygon points="330,88 335,80 340,88" fill="#15803d"/>
+          <ellipse cx="335" cy="62" rx="4" ry="12" fill="#9ca3af"/>
+          <path d="M190,32 Q198,28 206,32 Q214,28 222,32 Q206,35 190,32 Z" fill="#1c1917"/>
+        </svg>
+      `;
+    } else if (stageId === 'axum-sanctuary' || stageId === 'ancient-ruins') {
+      return `
+        <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="axumSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#090d16"/>
+              <stop offset="60%" stop-color="#1e1b4b"/>
+              <stop offset="100%" stop-color="#312e81"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="120" fill="url(#axumSky)"/>
+          <circle cx="45" cy="22" r="1.5" fill="#e0e7ff"/>
+          <circle cx="110" cy="15" r="1.2" fill="#e0e7ff"/>
+          <circle cx="280" cy="28" r="1.5" fill="#e0e7ff"/>
+          <circle cx="350" cy="18" r="1.2" fill="#e0e7ff"/>
+          <circle cx="310" cy="35" r="18" fill="#e0e7ff" opacity="0.9"/>
+          <polygon points="190,120 193,25 207,25 210,120" fill="#334155"/>
+          <polygon points="195,120 197,26 203,26 205,120" fill="#475569"/>
+          <path d="M193,25 A7,7 0 0,1 207,25 Z" fill="#334155"/>
+          <circle cx="200" cy="16" r="4" fill="#fbbf24"/>
+          <line x1="192" y1="42" x2="208" y2="42" stroke="#0f172a" stroke-width="2"/>
+          <line x1="191" y1="62" x2="209" y2="62" stroke="#0f172a" stroke-width="2"/>
+          <line x1="190" y1="84" x2="210" y2="84" stroke="#0f172a" stroke-width="2"/>
+          <rect x="120" y="55" width="16" height="65" fill="#1e293b"/>
+          <rect x="264" y="48" width="16" height="72" fill="#1e293b"/>
+          <rect x="0" y="112" width="400" height="8" fill="#0f172a"/>
+        </svg>
+      `;
+    } else if (stageId === 'mountain-pass') {
+      return `
+        <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="passSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#0284c7"/>
+              <stop offset="50%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#bae6fd"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="120" fill="url(#passSky)"/>
+          <polygon points="0,30 70,80 130,20 180,95 240,15 310,75 400,25 400,120 0,120" fill="#334155"/>
+          <polygon points="0,55 90,110 160,65 250,115 340,50 400,85 400,120 0,120" fill="#1e293b"/>
+          <path d="M120,82 Q200,95 280,82" stroke="#d97706" stroke-width="3" fill="none"/>
+          <line x1="120" y1="68" x2="120" y2="92" stroke="#78350f" stroke-width="3"/>
+          <line x1="280" y1="68" x2="280" y2="92" stroke="#78350f" stroke-width="3"/>
+          <ellipse cx="65" cy="74" rx="10" ry="7" fill="#0f172a"/>
+          <circle cx="74" cy="68" r="4" fill="#0f172a"/>
+          <path d="M74,66 Q70,55 62,58" stroke="#0f172a" stroke-width="2.5" fill="none"/>
+        </svg>
+      `;
+    } else if (stageId === 'abandoned-village') {
+      return `
+        <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lalibelaSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#b45309"/>
+              <stop offset="60%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#fde68a"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="120" fill="url(#lalibelaSky)"/>
+          <circle cx="340" cy="35" r="20" fill="#fffbeb" opacity="0.9"/>
+          <polygon points="0,85 80,60 180,80 270,55 360,75 400,65 400,120 0,120" fill="#78350f" opacity="0.6"/>
+          <rect x="180" y="65" width="40" height="40" fill="#881337"/>
+          <rect x="168" y="77" width="64" height="16" fill="#881337"/>
+          <line x1="200" y1="68" x2="200" y2="102" stroke="#fbbf24" stroke-width="2"/>
+          <line x1="172" y1="85" x2="228" y2="85" stroke="#fbbf24" stroke-width="2"/>
+          <rect x="50" y="85" width="28" height="25" fill="#451a03"/>
+          <polygon points="44,85 64,55 84,85" fill="#78350f"/>
+          <circle cx="64" cy="54" r="2.5" fill="#fbbf24"/>
+          <rect x="290" y="80" width="32" height="28" fill="#451a03"/>
+          <polygon points="282,80 306,48 330,80" fill="#78350f"/>
+          <circle cx="306" cy="47" r="3" fill="#fbbf24"/>
+          <rect x="0" y="108" width="400" height="12" fill="#7f1d1d"/>
+        </svg>
+      `;
+    } else if (stageId === 'hidden-cavern') {
+      return `
+        <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sofOmarSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#020617"/>
+              <stop offset="60%" stop-color="#082f49"/>
+              <stop offset="100%" stop-color="#0e7490"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="120" fill="url(#sofOmarSky)"/>
+          <path d="M0,0 Q200,65 400,0 L400,20 Q200,80 0,20 Z" fill="#0f172a"/>
+          <polygon points="40,10 46,45 52,10" fill="#1e293b"/>
+          <polygon points="120,15 125,52 130,15" fill="#1e293b"/>
+          <polygon points="260,12 265,58 270,12" fill="#1e293b"/>
+          <polygon points="340,15 345,48 350,15" fill="#1e293b"/>
+          <polygon points="90,120 95,25 110,25 115,120" fill="#1e293b"/>
+          <polygon points="280,120 286,22 300,22 306,120" fill="#1e293b"/>
+          <rect x="0" y="94" width="400" height="26" fill="#06b6d4" opacity="0.85"/>
+          <ellipse cx="200" cy="104" rx="160" ry="8" fill="#67e8f9" opacity="0.5"/>
+          <path d="M140,88 Q200,75 260,88 L260,98 Q200,85 140,98 Z" fill="#334155"/>
+        </svg>
+      `;
+    }
+    return '';
   }
 
   showDiscoveryBanner(title, type = 'LANDMARK DISCOVERED', reward = '+30 EXPLORATION XP') {

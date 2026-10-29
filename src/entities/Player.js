@@ -4,6 +4,7 @@ import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { Sword } from './Sword.js';
 import { Shield } from './Shield.js';
+import { EthiopianWarriorGear } from './EthiopianWarriorGear.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
 import { SkillTreeSystem } from '../systems/SkillTreeSystem.js';
 
@@ -187,14 +188,29 @@ export class Player {
 
       let rightHandBone = null;
       let leftHandBone = null;
+      let headBone = null;
+      let neckBone = null;
+      let spineBone = null;
 
       this.model.traverse(child => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
 
+          // Hide robotic sci-fi visor so warrior's face and eyes are visible
+          if (child.name && child.name.toLowerCase().includes('visor')) {
+            child.visible = false;
+          }
+
           if (child.material) {
             child.material.roughness = Math.max(0.3, child.material.roughness || 0.5);
+
+            // Apply authentic Ethiopian warrior skin tone and white cotton Tibeb tunic
+            if (child.material.map && (child.name.includes('Mesh') || child.name.includes('Soldier') || child.name.includes('vanguard'))) {
+              const warriorTex = EthiopianWarriorGear.createWarriorTexture(child.material.map);
+              child.material.map = warriorTex;
+              child.material.needsUpdate = true;
+            }
           }
         }
 
@@ -205,6 +221,15 @@ export class Player {
           }
           if (boneName.includes('lefthand') || boneName.includes('handl') || boneName.includes('leftforearm') || boneName.includes('forearml')) {
             if (!leftHandBone) leftHandBone = child;
+          }
+          if (boneName.includes('head')) {
+            headBone = child;
+          }
+          if (boneName.includes('neck')) {
+            neckBone = child;
+          }
+          if (boneName.includes('spine2') || boneName.includes('spine1')) {
+            if (!spineBone) spineBone = child;
           }
         }
       });
@@ -227,6 +252,20 @@ export class Player {
       } else {
         this.shield.mesh.position.set(-0.35, 1.1, 0.1);
         this.model.add(this.shield.mesh);
+      }
+
+      // Attach authentic Ethiopian Warrior Gear (Tibeb Kaba cape, Headband, Kitab amulet)
+      if (headBone) {
+        const headband = EthiopianWarriorGear.buildWarriorHeadband();
+        headBone.add(headband);
+      }
+      if (spineBone || neckBone) {
+        const targetBone = spineBone || neckBone;
+        const kaba = EthiopianWarriorGear.buildTibebKaba();
+        targetBone.add(kaba);
+
+        const kitab = EthiopianWarriorGear.buildKitabAmulet();
+        (neckBone || targetBone).add(kitab);
       }
 
       // Initialize Animation Controller

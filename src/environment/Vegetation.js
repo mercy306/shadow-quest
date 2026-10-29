@@ -255,10 +255,6 @@ export class Vegetation {
     this.scene.add(stalkMesh);
     this.scene.add(rosetteMesh);
     this.scene.add(spireMesh);
-    if (dummyCanopy.instanceColor) dummyCanopy.instanceColor.needsUpdate = true;
-
-    this.scene.add(dummyTrunk);
-    this.scene.add(dummyCanopy);
   }
 
   /**

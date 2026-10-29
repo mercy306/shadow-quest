@@ -330,4 +330,136 @@ export class TextureGenerator {
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
   }
+
+  /**
+   * Generates realistic modern asphalt street texture with gravel grain,
+   * yellow dashed centerline, white edge lines, zebra crossings, and manholes.
+   */
+  static createAsphaltRoadTexture(w = 1024, h = 2048) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // 1. Dark asphalt tarmac background with aggregate grit
+    const imgData = ctx.createImageData(w, h);
+    const data = imgData.data;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        const noise = (Math.random() - 0.5) * 18;
+        const tireTrack = Math.sin(x / w * Math.PI * 4) * 5;
+        const base = Math.min(255, Math.max(0, 48 + noise - tireTrack));
+        data[idx] = base;
+        data[idx + 1] = base + 1;
+        data[idx + 2] = base + 3;
+        data[idx + 3] = 255;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // 2. Solid White Edge Lines along gutters
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 14;
+    ctx.beginPath();
+    ctx.moveTo(38, 0);
+    ctx.lineTo(38, h);
+    ctx.moveTo(w - 38, 0);
+    ctx.lineTo(w - 38, h);
+    ctx.stroke();
+
+    // 3. Dashed Yellow Center Line
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 16;
+    ctx.setLineDash([90, 60]);
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 0);
+    ctx.lineTo(w / 2, h);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 4. Realistic Zebra Crossing (የእግረኛ ዜብራ)
+    const zebraStripes = [
+      { yStart: 380, hZebra: 220 },
+      { yStart: 1550, hZebra: 220 }
+    ];
+
+    ctx.fillStyle = '#f8fafc';
+    zebraStripes.forEach(z => {
+      const stripeW = 42;
+      const gap = 38;
+      for (let x = 70; x < w - 70; x += stripeW + gap) {
+        ctx.fillRect(x, z.yStart, stripeW, z.hZebra);
+      }
+    });
+
+    // 5. Cast-Iron Manhole Covers & Drainage Grates
+    const manholes = [
+      { x: w * 0.32, y: 850, r: 42 },
+      { x: w * 0.68, y: 1250, r: 42 }
+    ];
+    manholes.forEach(m => {
+      ctx.fillStyle = '#1c1917';
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#52525b';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r * 0.65, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates realistic concrete sidewalk paving slabs texture with chamfered joints.
+   */
+  static createSidewalkTileTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(0, 0, size, size);
+
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const n = (Math.random() - 0.5) * 16;
+      data[i] = Math.min(255, Math.max(0, data[i] + n));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 3;
+    const tileSize = size / 4;
+    for (let x = 0; x <= size; x += tileSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, size);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= size; y += tileSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(size, y);
+      ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 12);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
 }

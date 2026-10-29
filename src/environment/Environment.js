@@ -70,117 +70,124 @@ export class Environment {
   }
 
   initSky() {
-    this.sky = new Sky();
-    this.sky.scale.setScalar(1800);
-    this.scene.add(this.sky);
+    // Photorealistic Panoramic Sky Shader Dome with atmospheric scattering, celestial sun glare, and soft drifting clouds
+    const skyGeo = new THREE.SphereGeometry(1500, 64, 32);
 
-    // Initial clear Ethiopian highland sky parameters
-    const skyUniforms = this.sky.material.uniforms;
-    skyUniforms['turbidity'].value = 2.2;
-    skyUniforms['rayleigh'].value = 1.6; // Deep vivid sky blue
-    skyUniforms['mieCoefficient'].value = 0.003;
-    skyUniforms['mieDirectionalG'].value = 0.85;
+    const skyShader = {
+      uniforms: {
+        sunPosition: { value: new THREE.Vector3(50, 75, 40).normalize() },
+        time: { value: 0.0 }
+      },
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorldPosition;
+        uniform vec3 sunPosition;
+        uniform float time;
 
-    this.initClouds();
-    this.initSunGlow();
-    this.initDistantMountains();
-  }
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
 
-  initClouds() {
-    this.cloudGroup = new THREE.Group();
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(
+            mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
+            mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+            u.y
+          );
+        }
 
-    // Soft illuminated cumulus cloud material
-    const cloudMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.92,
-      metalness: 0.0,
-      flatShading: true,
-      transparent: true,
-      opacity: 0.92
-    });
+        float fbm(vec2 p) {
+          float v = 0.0;
+          float a = 0.5;
+          mat2 rot = mat2(0.8, 0.6, -0.6, 0.8);
+          for (int i = 0; i < 5; i++) {
+            v += a * noise(p);
+            p = rot * p * 2.02;
+            a *= 0.5;
+          }
+          return v;
+        }
 
-    const cloudCount = 28;
-    for (let c = 0; c < cloudCount; c++) {
-      const cluster = new THREE.Group();
+        void main() {
+          vec3 dir = normalize(vWorldPosition);
+          float y = dir.y;
 
-      // Distribute broadly across the sky
-      const cx = (Math.random() - 0.5) * 600;
-      const cy = 85 + Math.random() * 45; // Altitude 85m to 130m
-      const cz = (Math.random() - 0.5) * 600;
-      cluster.position.set(cx, cy, cz);
+          // Atmospheric Rayleigh & Mie sky gradient: Rich Ethiopian morning blue zenith to soft warm horizon
+          vec3 zenith = vec3(0.10, 0.42, 0.82);      // Rich Ethiopian highland blue
+          vec3 midSky = vec3(0.30, 0.60, 0.90);      // Azure mid-altitude
+          vec3 horizon = vec3(0.84, 0.90, 0.97);     // Soft golden atmospheric horizon
+          vec3 groundHaze = vec3(0.70, 0.76, 0.80);  // Low horizon tone
 
-      // Overlapping puffs to form a billowing cumulus cloud
-      const puffCount = 5 + Math.floor(Math.random() * 5);
-      const clusterScale = 1.2 + Math.random() * 1.5;
+          vec3 col;
+          if (y >= 0.0) {
+            float t = pow(y, 0.55);
+            col = mix(horizon, midSky, t);
+            col = mix(col, zenith, pow(y, 1.7));
+          } else {
+            col = mix(horizon, groundHaze, clamp(-y * 4.0, 0.0, 1.0));
+          }
 
-      for (let p = 0; p < puffCount; p++) {
-        const radius = (8 + Math.random() * 8) * clusterScale;
-        const puffGeo = new THREE.DodecahedronGeometry(radius, 1);
-        const puff = new THREE.Mesh(puffGeo, cloudMat);
-        puff.position.set(
-          (Math.random() - 0.5) * 22 * clusterScale,
-          (Math.random() - 0.2) * 8 * clusterScale,
-          (Math.random() - 0.5) * 18 * clusterScale
-        );
-        puff.scale.set(1.4, 0.75, 1.1); // Slightly flat on underside like real cumulus
-        cluster.add(puff);
-      }
+          // Brilliant Celestial Sun Disc & Radiant Golden Corona
+          vec3 sDir = normalize(sunPosition);
+          float cosTheta = dot(dir, sDir);
+          float sunDisc = smoothstep(0.9993, 0.9998, cosTheta);
+          float sunGlow = pow(max(0.0, cosTheta), 12.0) * 0.4 + pow(max(0.0, cosTheta), 64.0) * 0.65;
+          vec3 sunColor = vec3(1.0, 0.97, 0.88);
+          col += sunColor * (sunDisc * 2.8 + sunGlow * 0.85);
 
-      this.cloudGroup.add(cluster);
-    }
+          // Soft realistic drifting cumulus and cirrus clouds
+          if (y > 0.02) {
+            vec2 cloudUV = dir.xz / (y + 0.15) * 0.55;
+            cloudUV += vec2(time * 0.006, time * 0.003); // Natural smooth wind drift
 
-    this.scene.add(this.cloudGroup);
-  }
+            float cNoise = fbm(cloudUV * 1.5);
+            float cDensity = smoothstep(0.48, 0.75, cNoise);
 
-  initSunGlow() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(128, 128, 12, 128, 128, 128);
-    grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-    grad.addColorStop(0.15, 'rgba(254, 240, 138, 0.9)');
-    grad.addColorStop(0.4, 'rgba(251, 191, 36, 0.4)');
-    grad.addColorStop(0.7, 'rgba(245, 158, 11, 0.12)');
-    grad.addColorStop(1.0, 'rgba(245, 158, 11, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
+            // Cloud lighting: Warm sunlit crests, soft shaded undersides
+            float sunFacing = dot(dir, sDir) * 0.5 + 0.5;
+            vec3 cloudLit = mix(vec3(0.96, 0.97, 0.99), vec3(1.0, 0.98, 0.92), sunFacing);
+            vec3 cloudShadow = mix(vec3(0.75, 0.80, 0.88), vec3(0.88, 0.90, 0.94), y);
+            vec3 cloudCol = mix(cloudShadow, cloudLit, 0.7 + 0.3 * sunFacing);
 
-    const tex = new THREE.CanvasTexture(canvas);
-    const sunSpriteMat = new THREE.SpriteMaterial({
-      map: tex,
-      color: 0xffffff,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
+            // Gentle horizon dissipation (clouds fade out smoothly towards the horizon)
+            float horizonFade = smoothstep(0.03, 0.20, y);
+            col = mix(col, cloudCol, cDensity * 0.88 * horizonFade);
+          }
+
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `,
+      side: THREE.BackSide,
       depthWrite: false
-    });
-    this.sunSprite = new THREE.Sprite(sunSpriteMat);
-    this.sunSprite.scale.set(110, 110, 1);
-    this.scene.add(this.sunSprite);
-  }
+    };
 
-  initDistantMountains() {
-    this.mountainGroup = new THREE.Group();
-    const mtnMat = new THREE.MeshStandardMaterial({
-      color: 0x475569, // Atmospheric hazy mountain blue-slate
-      roughness: 0.95,
-      metalness: 0.05
-    });
+    this.skyMat = new THREE.ShaderMaterial(skyShader);
+    this.skyMesh = new THREE.Mesh(skyGeo, this.skyMat);
+    this.scene.add(this.skyMesh);
 
-    const count = 24;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      const r = 260 + (i % 4) * 35;
-      const mtnH = 65 + (i * 19) % 55;
-      const mtnW = 110 + (i * 29) % 50;
-
-      const coneGeo = new THREE.ConeGeometry(mtnW, mtnH, 7);
-      const mtn = new THREE.Mesh(coneGeo, mtnMat);
-      mtn.position.set(Math.cos(angle) * r, mtnH * 0.42, Math.sin(angle) * r);
-      mtn.rotation.y = angle + 0.4;
-      this.mountainGroup.add(mtn);
-    }
-    this.scene.add(this.mountainGroup);
+    // Backward-compatible this.sky reference for WeatherManager
+    this.sky = {
+      material: {
+        uniforms: {
+          sunPosition: this.skyMat.uniforms.sunPosition,
+          turbidity: { value: 2.2 },
+          rayleigh: { value: 1.6 },
+          mieCoefficient: { value: 0.003 },
+          mieDirectionalG: { value: 0.85 }
+        }
+      },
+      position: this.skyMesh.position
+    };
   }
 
   loadLevel(levelIndex, physicsWorld = this.physicsWorld) {
@@ -457,27 +464,15 @@ export class Environment {
       this.weatherManager.update(deltaTime, playerPosition, this.currentLevelIndex);
     }
 
-    // Keep sky dome & mountain horizon centered around player
-    if (playerPosition) {
-      if (this.sky) {
-        this.sky.position.set(playerPosition.x, 0, playerPosition.z);
-      }
-      if (this.mountainGroup) {
-        this.mountainGroup.position.set(playerPosition.x, 0, playerPosition.z);
-      }
+    // Animate photorealistic sky shader and keep dome centered around player
+    if (this.skyMat && this.skyMat.uniforms.time) {
+      this.skyMat.uniforms.time.value += deltaTime;
     }
-
-    // Realistic wind drifting of cumulus clouds
-    if (this.cloudGroup) {
-      this.cloudGroup.position.x += deltaTime * 2.5;
-      if (this.cloudGroup.position.x > 300) {
-        this.cloudGroup.position.x -= 600;
-      }
+    if (this.skyMesh && playerPosition) {
+      this.skyMesh.position.set(playerPosition.x, 0, playerPosition.z);
     }
-
-    // Celestial Sun sprite tracking
-    if (this.sunSprite && this.dirLight) {
-      this.sunSprite.position.copy(this.dirLight.position);
+    if (this.skyMat && this.skyMat.uniforms.sunPosition && this.sun) {
+      this.skyMat.uniforms.sunPosition.value.copy(this.sun);
     }
 
     if (this.abandonedVillageStage) {

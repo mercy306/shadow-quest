@@ -189,8 +189,8 @@ export const STAGE_CONFIGS = [
   {
     index: 3,
     id: 'abandoned-village',
-    name: 'Lalibela Rock Enclave',
-    badgeText: 'ደረጃ ፬: ላሊበላ ቅዱስ መንደር • STAGE 4: LALIBELA ENCLAVE',
+    name: 'Gondar Imperial City',
+    badgeText: 'ደረጃ ፬: ጎንደር ፋሲል ግቢ • STAGE 4: GONDAR IMPERIAL CITY',
     playerSpawn: { x: 0, z: -35, rotY: 0 },
     passages: [
       {
@@ -225,24 +225,26 @@ export const STAGE_CONFIGS = [
       }
     ],
     landmarks: [
-      { id: 'av-square', name: 'የቤተ ጊዮርጊስ አደባባይ • Bet Giyorgis Monolithic Courtyard', x: 0, z: 0, radius: 9.0, xpReward: 30 },
-      { id: 'av-windmill', name: 'የገዳሙ ወፍጮ • Ancient Monastery Granary', x: 26, z: -2, radius: 9.0, xpReward: 40 },
+      { id: 'av-square', name: 'የፋሲል ግቢ አደባባይ • Fasilides Royal Plaza', x: 0, z: 0, radius: 9.0, xpReward: 30 },
+      { id: 'av-castle', name: 'የፋሲል ግንብ • Fasilides Castle Keep', x: 16, z: 16, radius: 10.0, xpReward: 50 },
+      { id: 'av-bazaar', name: 'የጎንደር ገበያና ቡና ቤት • Royal Bazaar & Coffee Ceremony', x: 6, z: -8, radius: 8.0, xpReward: 40 },
+      { id: 'av-music', name: 'የአዝማሪ ቤት • Azmari Minstrel Station', x: -8, z: -8, radius: 7.0, xpReward: 30 },
       { id: 'av-well', name: 'የቅዱስ ጸበል ምንጭ • Sacred Tsebel Holy Spring', x: -5, z: 5, radius: 7.0, xpReward: 30 },
-      { id: 'av-manor', name: "የሊቃውንቱ አዳራሽ • Monastic Hermitage Hall", x: -22, z: 16, radius: 9.0, xpReward: 40 }
+      { id: 'av-manor', name: "የቤተ ጊዮርጊስ ቅዱስ መቅደስ • Bet Giyorgis Rock-Hewn Sanctuary", x: -1, z: -2, radius: 9.0, xpReward: 40 }
     ],
     quest: {
       id: 'mission-abandoned-village',
-      title: 'የላሊበላ ቅዱሳን ፍለጋ • SANCTUARY OF LALIBELA',
-      subtitle: 'The ancient rock-hewn chapels find peace. Lalibela is reclaimed.',
-      description: 'Cleanse the restless phantom spirits, recover sacred Ge\'ez relics, and explore the monolithic rock-hewn courtyard.',
+      title: 'የጎንደር ግርማ ሞገስ • GLORY OF GONDAR',
+      subtitle: 'The imperial city of Gondar rejoices as peace returns to the royal court.',
+      description: 'Protect the royal imperial city of Gondar, partake in the sacred coffee ceremony, gather traditional relics, and unseal the Holy Crypt.',
       enemiesRequired: 3,
       crystalsRequired: 3,
-      enemiesLabel: 'Restless spirits cleansed',
-      crystalsLabel: 'Sacred Ge\'ez Relics recovered',
-      entranceLabel: 'Lalibela Palisade',
+      enemiesLabel: 'Blight sentinels banished',
+      crystalsLabel: 'Imperial Relics recovered',
+      entranceLabel: 'Gondar Ras Ber Gate',
       exitLabel: 'Holy Crypt Descent',
       exitLocation: { x: -5, z: 5, radius: 3.5 },
-      unlockMessage: 'LALIBELA SANCTUARY CLEANSED - The Holy Crypt seal has vanished!'
+      unlockMessage: 'GONDAR IMPERIAL SANCTUARY RESTORED - The Holy Crypt seal has opened!'
     }
   },
   {

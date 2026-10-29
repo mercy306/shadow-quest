@@ -522,6 +522,117 @@ export class DialogueManager {
       };
     }
 
+    // --- 5B. AZMARI BERHANU (GONDAR MINSTREL) ---
+    if (npc.id === 'npc-azmari') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'እንኳን ደህና መጣህ ጀግናው! (Welcome, champion!) My Masenqo sings the praises of Axum and the courage of our highland warriors. What song do you wish to hear?',
+        choices: [
+          {
+            text: '🎵 "Sing of the Shotel and the Simien warriors."',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: '♪ ሾተሉን አንስቶ ጋሻውን ያነሳ... የስሜኑ ጀግና ጠላቱን ደመሰሰ! (Lifting the Shotel, bracing the Gasha... the warrior of Simien crushes the darkness!) May your courage never waver, champion!',
+                choices: [{ text: 'እግዚአብሔር ይስጥልኝ • Beautiful song, Azmari!', action: () => this.startDialogue(this.activeNPC, this.player) }]
+              });
+            }
+          },
+          {
+            text: '🎻 "Tell me of your Masenqo and Krar."',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'The Masenqo has one string of horsehair, yet it speaks every sorrow and triumph of our people. Combined with the five strings of the Krar, our ancestors channeled the very spirit of the highlands.',
+                choices: [{ text: 'Fascinating. Farewell, Azmari.', action: () => this.closeDialogue() }]
+              });
+            }
+          },
+          { text: '👋 "ሰላም ሁን፣ አዝማሪ • Farewell, Azmari."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
+    // --- 5C. TAYTU (COFFEE CEREMONY MAIDEN) ---
+    if (npc.id === 'npc-taytu') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'እንኳን ደህና መጣህ! (Welcome to our coffee ceremony!) The frankincense is burning and the Jebena is steaming. Sit on the fresh Qetema grass and taste the first cup—Abol.',
+        choices: [
+          {
+            text: '☕ "Tell me of the three rounds of Bunna."',
+            action: () => {
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'Our tradition honors three sacred rounds: Abol (አቦል) the first cup of friendship and strength, Tona (ቶና) the second cup of contemplation, and Baraka (በረካ) the third cup of peace and divine blessing.',
+                choices: [
+                  {
+                    text: '☕ "May I partake in the Bunna and Kolo?"',
+                    action: () => {
+                      if (this.player?.inventorySystem) {
+                        this.player.inventorySystem.addItem('ethiopian_bunna', 2);
+                        this.player.inventorySystem.addItem('kolo_snack', 1);
+                      }
+                      this.renderNode({
+                        speaker: npc.name,
+                        title: npc.title,
+                        avatar: npc.avatar,
+                        text: 'Here is fresh highland Bunna and roasted Kolo for your road. May warmth and endurance go with you!',
+                        choices: [{ text: 'እግዚአብሔር ይስጥልኝ • Thank you, Taytu.', action: () => this.closeDialogue() }]
+                      });
+                    }
+                  },
+                  { text: 'A beautiful tradition. Farewell.', action: () => this.closeDialogue() }
+                ]
+              });
+            }
+          },
+          { text: '👋 "ሰላም ሁኚ፣ ታዬች • Stay blessed, Taytu."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
+    // --- 5D. QESIS GEBRE MARYAM (PRIEST OF DEBRE BERHAN) ---
+    if (npc.id === 'npc-qesis') {
+      return {
+        speaker: npc.name,
+        title: npc.title,
+        avatar: npc.avatar,
+        text: 'ሰላመ እግዚአብሔር ከእናንተ ጋር ይሁን (The peace of God be with you, child). I hold the holy silver blessing cross of Gondar before the royal castle.',
+        choices: [
+          {
+            text: '✝️ "Father, bestow your blessing upon my blade."',
+            action: () => {
+              if (this.player) {
+                this.player.health = this.player.maxHealth;
+                if (this.player.inventorySystem) {
+                  this.player.inventorySystem.addItem('meskel_cross_relic', 1);
+                }
+              }
+              this.renderNode({
+                speaker: npc.name,
+                title: npc.title,
+                avatar: npc.avatar,
+                text: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ። May the celestial angels of Debre Berhan watch over your path. Take this blessed Axumite Silver Cross to shield your soul.',
+                choices: [{ text: 'አሜን • Amen, Father. Thank you.', action: () => this.closeDialogue() }]
+              });
+            }
+          },
+          { text: '👋 "በሰላም ይቆዩ፣ አባቴ • Farewell, Father."', action: () => this.closeDialogue() }
+        ]
+      };
+    }
+
     // --- 6. MERED (SOF OMAR CAVERN GUIDE) ---
     if (npc.role === 'cartographer' || npc.id === 'npc-gideon') {
       return {

@@ -99,19 +99,58 @@ export class NPCManager {
         }
       ];
     } else if (levelIndex === 3) {
-      // STAGE 4: LALIBELA ENCLAVE
+      // STAGE 4: GONDAR IMPERIAL CITY & BAZAAR
       npcConfigs = [
         {
           id: 'npc-mara',
           name: 'ወይዘሮ ማርታ • Weyzero Marta',
-          title: 'የላሊበላ ጠባቂ • Guardian of Lalibela',
+          title: 'የጎንደር ከተማ ጠባቂ • Guardian of Gondar',
           role: 'village_survivor',
           modelPath: './models/Xbot.glb',
           avatar: '🕯️',
-          x: 5.0,
+          x: -2.0,
           y: 0,
-          z: -12.0,
-          rotY: 0.5,
+          z: -10.0,
+          rotY: 0.2,
+          interactionRadius: 3.5
+        },
+        {
+          id: 'npc-azmari',
+          name: 'አዝማሪው ብርሃኑ • Azmari Berhanu',
+          title: 'የከተማው ዘማሪ • Gondar Imperial Minstrel',
+          role: 'forest_hermit',
+          modelPath: './models/Soldier.glb',
+          avatar: '🎻',
+          x: -8.0,
+          y: 0,
+          z: -7.0,
+          rotY: 0.6,
+          interactionRadius: 3.5
+        },
+        {
+          id: 'npc-taytu',
+          name: 'ወይዘሮ ታዬች • Taytu',
+          title: 'የቡና እናት • Coffee Ceremony Maiden',
+          role: 'merchant',
+          modelPath: './models/Xbot.glb',
+          avatar: '☕',
+          x: 6.0,
+          y: 0,
+          z: -7.0,
+          rotY: -0.6,
+          interactionRadius: 3.5
+        },
+        {
+          id: 'npc-qesis',
+          name: 'ቀሲስ ገብረ ማርያም • Qesis Gebre Maryam',
+          title: 'የደብረ ብርሃን ካህን • Priest of Debre Berhan',
+          role: 'quest_giver',
+          modelPath: './models/Soldier.glb',
+          avatar: '✝️',
+          x: 16.0,
+          y: 0,
+          z: 10.0,
+          rotY: 0.0,
           interactionRadius: 3.5
         }
       ];

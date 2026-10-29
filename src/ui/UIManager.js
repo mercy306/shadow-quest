@@ -1011,26 +1011,44 @@ export class UIManager {
       return `
         <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="lalibelaSky" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="gondarSky" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#b45309"/>
-              <stop offset="60%" stop-color="#f59e0b"/>
+              <stop offset="50%" stop-color="#f59e0b"/>
               <stop offset="100%" stop-color="#fde68a"/>
             </linearGradient>
           </defs>
-          <rect width="400" height="120" fill="url(#lalibelaSky)"/>
+          <rect width="400" height="120" fill="url(#gondarSky)"/>
           <circle cx="340" cy="35" r="20" fill="#fffbeb" opacity="0.9"/>
+          <!-- Distant Gondar Mountain Ridges -->
           <polygon points="0,85 80,60 180,80 270,55 360,75 400,65 400,120 0,120" fill="#78350f" opacity="0.6"/>
-          <rect x="180" y="65" width="40" height="40" fill="#881337"/>
-          <rect x="168" y="77" width="64" height="16" fill="#881337"/>
-          <line x1="200" y1="68" x2="200" y2="102" stroke="#fbbf24" stroke-width="2"/>
-          <line x1="172" y1="85" x2="228" y2="85" stroke="#fbbf24" stroke-width="2"/>
-          <rect x="50" y="85" width="28" height="25" fill="#451a03"/>
-          <polygon points="44,85 64,55 84,85" fill="#78350f"/>
-          <circle cx="64" cy="54" r="2.5" fill="#fbbf24"/>
-          <rect x="290" y="80" width="32" height="28" fill="#451a03"/>
-          <polygon points="282,80 306,48 330,80" fill="#78350f"/>
-          <circle cx="306" cy="47" r="3" fill="#fbbf24"/>
-          <rect x="0" y="108" width="400" height="12" fill="#7f1d1d"/>
+          <!-- Fasilides Castle Central Keep -->
+          <rect x="160" y="45" width="80" height="65" fill="#334155"/>
+          <rect x="156" y="40" width="88" height="6" fill="#1e293b"/>
+          <!-- 4 Corner Towers with Domed Caps -->
+          <rect x="150" y="32" width="22" height="78" fill="#1e293b"/>
+          <ellipse cx="161" cy="32" rx="12" ry="8" fill="#475569"/>
+          <line x1="161" y1="24" x2="161" y2="18" stroke="#fbbf24" stroke-width="2"/>
+          
+          <rect x="228" y="32" width="22" height="78" fill="#1e293b"/>
+          <ellipse cx="239" cy="32" rx="12" ry="8" fill="#475569"/>
+          <line x1="239" y1="24" x2="239" y2="18" stroke="#fbbf24" stroke-width="2"/>
+
+          <!-- Arched Balcony and Doorway -->
+          <rect x="190" y="58" width="20" height="14" fill="#0f172a"/>
+          <rect x="194" y="86" width="12" height="24" fill="#0f172a"/>
+
+          <!-- Traditional Coffee Ceremony Jebena & Qetema Grass -->
+          <ellipse cx="65" cy="108" rx="28" ry="8" fill="#16a34a"/>
+          <ellipse cx="65" cy="98" rx="7" ry="7" fill="#1c1917"/>
+          <line x1="65" y1="98" x2="65" y2="84" stroke="#1c1917" stroke-width="3"/>
+          <path d="M68,96 L76,90" stroke="#1c1917" stroke-width="2"/>
+
+          <!-- Woven Mesob Table -->
+          <polygon points="305,108 315,95 325,108" fill="#b91c1c"/>
+          <polygon points="310,95 315,85 320,95" fill="#fbbf24"/>
+
+          <!-- Foreground Cobblestone Street -->
+          <rect x="0" y="110" width="400" height="10" fill="#1e293b"/>
         </svg>
       `;
     } else if (stageId === 'hidden-cavern') {

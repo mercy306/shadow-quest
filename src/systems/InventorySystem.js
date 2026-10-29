@@ -112,15 +112,37 @@ export const ITEM_DATABASE = {
     value: 300,
     stackable: false
   },
+  lion_gofere_headdress: {
+    id: 'lion_gofere_headdress',
+    name: 'የአንበሳ ጎፈሬ (Imperial Lion Mane Gofere)',
+    type: ItemType.ARMOR,
+    rarity: ItemRarity.LEGENDARY,
+    icon: '🦁',
+    description: 'Regal Ethiopian warrior headdress crafted from the mane of a black-maned Abyssinian lion, worn exclusively by victorious champions. Grants +30 Defense, +20 Damage, and +60 Max HP.',
+    stats: { defense: 30, damage: 20, maxHealth: 60 },
+    value: 550,
+    stackable: false
+  },
 
-  // --- TRINKETS / RELICS ---
+  // --- TRINKETS / RELICS (የኢትዮጵያ ቅርሶችና ክታቦች) ---
+  meskel_cross_relic: {
+    id: 'meskel_cross_relic',
+    name: 'የብር መስቀል (Axumite Silver Hand Cross)',
+    type: ItemType.TRINKET,
+    rarity: ItemRarity.EPIC,
+    icon: '✝️',
+    description: 'Intricately filigreed Axumite silver blessing cross with sacred Ge’ez inscriptions. Grants +25 Defense and +40 Max HP.',
+    stats: { defense: 25, maxHealth: 40 },
+    value: 320,
+    stackable: false
+  },
   void_talisman: {
     id: 'void_talisman',
-    name: 'Shadow Veil Talisman',
+    name: 'የክታብ ሐብል (Axumite Kitab Talisman)',
     type: ItemType.TRINKET,
     rarity: ItemRarity.RARE,
     icon: '🧿',
-    description: 'Wards the wearer against malice, boosting physical defense by +15.',
+    description: 'Traditional protective leather talisman scroll inscribed with ancestral warding blessings. Grants +15 Defense.',
     stats: { defense: 15 },
     value: 150,
     stackable: false
@@ -137,14 +159,62 @@ export const ITEM_DATABASE = {
     stackable: false
   },
 
-  // --- CONSUMABLES ---
+  // --- CONSUMABLES & TRADITIONAL ETHIOPIAN CUISINE (የኢትዮጵያ ባህላዊ ምግቦችና መጠጦች) ---
+  injera_doro_wat: {
+    id: 'injera_doro_wat',
+    name: 'እንጀራ በዶሮ ወጥ (Injera with Doro Wat)',
+    type: ItemType.CONSUMABLE,
+    rarity: ItemRarity.EPIC,
+    icon: '🍲',
+    description: 'Iconic Ethiopian feast: sourdough teff flatbread with slow-simmered chicken and spicy berbere sauce. Restores 90 HP and grants +15 Attack Damage for 60s.',
+    stats: { heal: 90, damageBoost: 15, duration: 60 },
+    value: 75,
+    stackable: true,
+    maxStack: 5
+  },
+  tej_honey_mead: {
+    id: 'tej_honey_mead',
+    name: 'ንጉሣዊ ጠጅ (Imperial Tej Honey Mead)',
+    type: ItemType.CONSUMABLE,
+    rarity: ItemRarity.RARE,
+    icon: '🍯',
+    description: 'Ancient royal honey mead brewed with gesho leaves, served in a glass Berle flask. Restores 65 HP and grants +30% Sprint Speed for 35s.',
+    stats: { heal: 65, speedBoost: 1.30, duration: 35 },
+    value: 45,
+    stackable: true,
+    maxStack: 10
+  },
+  ethiopian_bunna: {
+    id: 'ethiopian_bunna',
+    name: 'የሐበሻ ቡና (Traditional Highland Bunna)',
+    type: ItemType.CONSUMABLE,
+    rarity: ItemRarity.UNCOMMON,
+    icon: '☕',
+    description: 'Freshly roasted highland coffee poured from a clay Jebena with fragrant Tena Adam rue. Grants +40% Swift Sprint speed for 25s.',
+    stats: { speedBoost: 1.40, duration: 25 },
+    value: 30,
+    stackable: true,
+    maxStack: 15
+  },
+  kolo_snack: {
+    id: 'kolo_snack',
+    name: 'ቆሎ (Roasted Highland Kolo)',
+    type: ItemType.CONSUMABLE,
+    rarity: ItemRarity.COMMON,
+    icon: '🌾',
+    description: 'Nutritious roasted barley, chickpeas, and peanuts. Restores 35 HP instantly.',
+    stats: { heal: 35 },
+    value: 15,
+    stackable: true,
+    maxStack: 20
+  },
   healing_potion: {
     id: 'healing_potion',
-    name: 'Ancient Healing Elixir',
+    name: 'የስሜን መድኃኒት (Simien Healing Elixir)',
     type: ItemType.CONSUMABLE,
     rarity: ItemRarity.COMMON,
     icon: '🧪',
-    description: 'Restores 45 Health Points immediately upon consumption.',
+    description: 'Brewed from wild mountain sage and aloe. Restores 45 Health Points immediately.',
     stats: { heal: 45 },
     value: 25,
     stackable: true,
@@ -152,11 +222,11 @@ export const ITEM_DATABASE = {
   },
   greater_healing_potion: {
     id: 'greater_healing_potion',
-    name: 'Sacred Sanctuary Nectar',
+    name: 'የቅዱስ ጸበል ጠል (Consecrated Tsebel Nectar)',
     type: ItemType.CONSUMABLE,
     rarity: ItemRarity.RARE,
     icon: '🏺',
-    description: 'Consecrated nectar that fully restores 100 Health Points.',
+    description: 'Sacred holy spring water from Lalibela. Fully restores 100 Health Points.',
     stats: { heal: 100 },
     value: 60,
     stackable: true,
@@ -164,12 +234,12 @@ export const ITEM_DATABASE = {
   },
   stamina_potion: {
     id: 'stamina_potion',
-    name: 'Windrunner Tonic',
+    name: 'የዋላ ብርታት (Highland Walia Tonic)',
     type: ItemType.CONSUMABLE,
     rarity: ItemRarity.UNCOMMON,
     icon: '🍶',
-    description: 'Increases sprint and run speed by 25% for 15 seconds.',
-    stats: { speedBoost: 1.25, duration: 15 },
+    description: 'Increases sprint speed by 25% for 20 seconds.',
+    stats: { speedBoost: 1.25, duration: 20 },
     value: 35,
     stackable: true,
     maxStack: 10
@@ -346,6 +416,8 @@ export class InventorySystem {
     this.equipment.armor = this.createItem('adventurer_tunic');
     this.equipment.trinket = null;
 
+    this.addItem('injera_doro_wat', 1);
+    this.addItem('ethiopian_bunna', 2);
     this.addItem('healing_potion', 2);
     this.addItem('stamina_potion', 1);
   }

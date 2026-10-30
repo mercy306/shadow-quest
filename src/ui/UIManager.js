@@ -10,6 +10,7 @@ export class UIManager {
 
     // Main Menu
     this.mainMenu = document.getElementById('main-menu');
+    this.menuBtnHararReset = document.getElementById('menu-btn-harar-reset');
     this.menuBtnContinue = document.getElementById('menu-btn-continue');
     this.menuBtnPlay = document.getElementById('menu-btn-play');
     this.menuBtnSettings = document.getElementById('menu-btn-settings');
@@ -305,6 +306,20 @@ export class UIManager {
         if (!this.menuBtnContinue.disabled && typeof onContinue === 'function') {
           onContinue();
         }
+      };
+    }
+
+    if (this.menuBtnHararReset) {
+      this.menuBtnHararReset.onclick = () => {
+        try {
+          localStorage.clear();
+          if (window.indexedDB) {
+            indexedDB.deleteDatabase('ShadowQuestDB');
+          }
+        } catch (e) {
+          console.warn('Cache clear error:', e);
+        }
+        if (typeof onPlay === 'function') onPlay();
       };
     }
 

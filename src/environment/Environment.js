@@ -196,39 +196,40 @@ export class Environment {
     this.physicsWorld = physicsWorld;
 
     if (levelIndex === 0) {
-      // ===== STAGE 1: GONDAR IMPERIAL CITY & BAZAAR (ደረጃ ፩: ጎንደር ከተማ) =====
-      // Crisp Ethiopian Highland morning sunshine with golden warmth and crystal clear blue sky
+      // ===== STAGE 1: HARAR JUGOL WALLED CITY & BAZAAR (ደረጃ ፩: ሐረር ጁጎል) =====
+      // Radiant Eastern Ethiopian plateau sunshine (1,885m altitude) with golden warmth,
+      // rich azure sky, and warm bounce light off the indigo blue & terracotta stucco walls
       this.ambientLight.color.setHex(0xfef3c7);
-      this.ambientLight.intensity = 0.55;
-      this.hemiLight.color.setHex(0x38bdf8);
-      this.hemiLight.groundColor.setHex(0xb45309);
-      this.hemiLight.intensity = 0.65;
+      this.ambientLight.intensity = 0.65;
+      this.hemiLight.color.setHex(0x38bdf8); // Vivid azure sky
+      this.hemiLight.groundColor.setHex(0xc2410c); // Terracotta ground bounce
+      this.hemiLight.intensity = 0.72;
 
-      this.dirLight.color.setHex(0xfffbeb);
-      this.dirLight.intensity = 1.5;
+      this.dirLight.color.setHex(0xfff8db); // Warm golden sun
+      this.dirLight.intensity = 1.65;
 
       if (this.rimLight) {
-        this.rimLight.color.setHex(0xfacc15);
-        this.rimLight.intensity = 0.5;
+        this.rimLight.color.setHex(0xfbbf24);
+        this.rimLight.intensity = 0.55;
       }
 
       const skyUniforms = this.sky.material.uniforms;
-      skyUniforms['turbidity'].value = 2.2;
-      skyUniforms['rayleigh'].value = 1.6; // Deep vivid sky blue
-      skyUniforms['mieCoefficient'].value = 0.003;
+      skyUniforms['turbidity'].value = 2.0;
+      skyUniforms['rayleigh'].value = 1.5; // Deep clear highland blue
+      skyUniforms['mieCoefficient'].value = 0.0028;
       skyUniforms['mieDirectionalG'].value = 0.85;
 
-      const elevation = 42;
-      const azimuth = 135;
+      const elevation = 48;
+      const azimuth = 140;
       const phi = THREE.MathUtils.degToRad(90 - elevation);
       const theta = THREE.MathUtils.degToRad(azimuth);
       this.sun.setFromSphericalCoords(1, phi, theta);
       skyUniforms['sunPosition'].value.copy(this.sun);
       this.dirLight.position.copy(this.sun).multiplyScalar(120);
 
-      this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.0012); // Clear crisp highland atmosphere
+      this.scene.fog = new THREE.FogExp2(0xf0f9ff, 0.0007); // Crystal-clear open horizon
 
-      // Build vibrant Ethiopian Imperial City
+      // Build vibrant historic Harar Jugol walled city
       this.abandonedVillageStage = new AbandonedVillageStage(this.scene, this.physicsWorld);
       this.terrain = this.abandonedVillageStage.terrain;
 

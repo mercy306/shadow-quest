@@ -36,6 +36,7 @@ export class AbandonedVillageStage {
     this.buildRasMekonnenPalace();
     this.buildGidirMagalaCentralMarket();
     this.buildHarariStreetBuildings();
+    this.buildOverheadTricolorBuntings();
     this.buildHararVehicleFleet();
     this.buildHararCoffeeAndTeaTerrace();
     this.buildAzmariAndHarariMusicStation();
@@ -51,6 +52,17 @@ export class AbandonedVillageStage {
     this.roadTex = TextureGenerator.createAsphaltRoadTexture(1024, 2048);
     this.sidewalkTex = TextureGenerator.createSidewalkTileTexture(512);
 
+    // Dedicated Harari Procedural Textures
+    this.hararPlasterBlueTex = TextureGenerator.createHararPlasterTexture('#1d4ed8', '#1e40af', 512);
+    this.hararPlasterLightBlueTex = TextureGenerator.createHararPlasterTexture('#38bdf8', '#0284c7', 512);
+    this.hararPlasterTerracottaTex = TextureGenerator.createHararPlasterTexture('#c2410c', '#9a3412', 512);
+    this.hararPlasterWhiteTex = TextureGenerator.createHararPlasterTexture('#f8fafc', '#e2e8f0', 512);
+    this.hararCobbleTex = TextureGenerator.createHararCobblestoneTexture(512);
+    this.hararDoorTex = TextureGenerator.createHararCarvedDoorTexture(512);
+    this.hararBasketTex = TextureGenerator.createHararWovenBasketTexture(256);
+    this.hararAwningTexRed = TextureGenerator.createHararStripedAwningTexture('#dc2626', '#fef08a', 256);
+    this.hararAwningTexGreen = TextureGenerator.createHararStripedAwningTexture('#15803d', '#fef08a', 256);
+
     this.asphaltMat = new THREE.MeshStandardMaterial({
       map: this.roadTex,
       roughness: 0.82,
@@ -64,7 +76,7 @@ export class AbandonedVillageStage {
     });
 
     this.cobbleMat = new THREE.MeshStandardMaterial({
-      map: this.stoneTex,
+      map: this.hararCobbleTex,
       roughness: 0.88,
       metalness: 0.12
     });
@@ -75,35 +87,98 @@ export class AbandonedVillageStage {
       metalness: 0.1
     });
 
-    // Harar Jugol Architectural Stucco Colors
+    // Harar Jugol Architectural Stucco Colors with Realistic Lime Plaster Texturing
     this.hararBlueMat = new THREE.MeshStandardMaterial({
-      color: 0x1d4ed8, // Vibrant Harari Indigo Blue (ሰማያዊ የሐረር ቀለም)
+      map: this.hararPlasterBlueTex,
       roughness: 0.88,
       metalness: 0.05
     });
 
     this.hararLightBlueMat = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8, // Sky cerulean blue trim
+      map: this.hararPlasterLightBlueTex,
       roughness: 0.85,
       metalness: 0.05
     });
 
     this.hararTerracottaMat = new THREE.MeshStandardMaterial({
-      color: 0xc2410c, // Rich desert terracotta ochre
+      map: this.hararPlasterTerracottaTex,
       roughness: 0.9,
       metalness: 0.05
     });
 
     this.hararWhiteMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc, // Crisp lime whitewash of Jamia Mosque & Jugol houses
+      map: this.hararPlasterWhiteTex,
       roughness: 0.82,
       metalness: 0.04
     });
 
     this.jugolStoneMat = new THREE.MeshStandardMaterial({
-      color: 0x78716c, // Historic volcanic basalt & lime mortar of the 16th-century Jugol Wall
+      map: this.stoneTex,
+      color: 0x8b857c, // Historic volcanic basalt & lime mortar of the 16th-century Jugol Wall
       roughness: 0.94,
       metalness: 0.08
+    });
+
+    this.hararDoorMat = new THREE.MeshStandardMaterial({
+      map: this.hararDoorTex,
+      roughness: 0.75,
+      metalness: 0.15
+    });
+
+    this.hararBasketMat = new THREE.MeshStandardMaterial({
+      map: this.hararBasketTex,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+
+    this.hararAwningMatRed = new THREE.MeshStandardMaterial({
+      map: this.hararAwningTexRed,
+      roughness: 0.75,
+      metalness: 0.02
+    });
+
+    this.hararAwningMatGreen = new THREE.MeshStandardMaterial({
+      map: this.hararAwningTexGreen,
+      roughness: 0.75,
+      metalness: 0.02
+    });
+
+    this.bougainvilleaFlowerMat = new THREE.MeshStandardMaterial({
+      color: 0xdb2777, // Vibrant magenta/pink Harari Bougainvillea
+      roughness: 0.55,
+      metalness: 0.02
+    });
+
+    this.bougainvilleaLeafMat = new THREE.MeshStandardMaterial({
+      color: 0x15803d,
+      roughness: 0.7,
+      metalness: 0.02
+    });
+
+    this.khatLeafMat = new THREE.MeshStandardMaterial({
+      color: 0x16a34a, // Fresh Harar Khat / Chat leaves
+      roughness: 0.55,
+      metalness: 0.04
+    });
+
+    this.spiceBerbereMat = new THREE.MeshStandardMaterial({
+      color: 0xb91c1c, // Rich red Ethiopian Berbere
+      roughness: 0.95
+    });
+
+    this.spiceTurmericMat = new THREE.MeshStandardMaterial({
+      color: 0xeab308, // Golden Turmeric (እርድ)
+      roughness: 0.95
+    });
+
+    this.spiceCardamomMat = new THREE.MeshStandardMaterial({
+      color: 0x4d7c0f, // Green Cardamom (ኮረሪማ)
+      roughness: 0.95
+    });
+
+    this.coffeeBeansMat = new THREE.MeshStandardMaterial({
+      color: 0x271406, // Roasted dark Harar Longberry Mocha beans
+      roughness: 0.85
     });
 
     this.islamicGreenMat = new THREE.MeshStandardMaterial({
@@ -397,10 +472,49 @@ export class AbandonedVillageStage {
   }
 
   /**
+   * Helper: Cascading Harari Bougainvillea floral cluster.
+   * Drapes vibrant magenta/pink petals and emerald leaves over walls, gates, and balconies.
+   */
+  createBougainvilleaCluster(scale = 1.0) {
+    const vineGroup = new THREE.Group();
+
+    // Weathered vine stems
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04 * scale, 0.08 * scale, 1.8 * scale, 6), this.timberMat);
+    stem.position.y = -0.9 * scale;
+    vineGroup.add(stem);
+
+    const leafGeo = new THREE.DodecahedronGeometry(0.32 * scale, 0);
+    const flowerGeo = new THREE.DodecahedronGeometry(0.24 * scale, 0);
+
+    const nodes = [
+      { x: 0, y: -0.2 * scale, z: 0.1 * scale, s: 1.0 },
+      { x: 0.22 * scale, y: -0.55 * scale, z: 0.14 * scale, s: 0.9 },
+      { x: -0.18 * scale, y: -0.85 * scale, z: 0.12 * scale, s: 0.85 },
+      { x: 0.12 * scale, y: -1.25 * scale, z: 0.1 * scale, s: 0.75 },
+      { x: -0.08 * scale, y: -1.55 * scale, z: 0.06 * scale, s: 0.65 }
+    ];
+
+    nodes.forEach(n => {
+      const leaf = new THREE.Mesh(leafGeo, this.bougainvilleaLeafMat);
+      leaf.position.set(n.x, n.y, n.z);
+      leaf.scale.set(n.s, n.s * 0.85, n.s);
+      vineGroup.add(leaf);
+
+      const flower = new THREE.Mesh(flowerGeo, this.bougainvilleaFlowerMat);
+      flower.position.set(n.x + 0.05 * scale, n.y + 0.03 * scale, n.z + 0.14 * scale);
+      flower.scale.set(n.s * 0.9, n.s * 0.9, n.s * 0.9);
+      vineGroup.add(flower);
+    });
+
+    return vineGroup;
+  }
+
+  /**
    * Shoa Gate (ሸዋ በር / Asmadin Bari):
    * The iconic main western ceremonial gate of Harar Jugol.
    * Features grand horseshoe archway, twin flanking semicircular watchtowers,
-   * decorative Islamic battlements, and ceremonial welcoming banner.
+   * decorative Islamic battlements, ceremonial welcoming banner,
+   * open carved wooden fortress gates, and cascading Bougainvillea.
    */
   buildShoaGateAsmadinBari() {
     const gateGroup = new THREE.Group();
@@ -433,6 +547,21 @@ export class AbandonedVillageStage {
       crescent.position.set(tx, 11.6, 0);
       gateGroup.add(crescent);
 
+      // Cascading Bougainvillea flowers draping down the tower
+      const vine = this.createBougainvilleaCluster(1.4);
+      vine.position.set(tx > 0 ? tx - 1.8 : tx + 1.8, 7.5, 1.5);
+      gateGroup.add(vine);
+
+      // Warm Guard Lanterns
+      const lanternGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.45, 8);
+      const lantern = new THREE.Mesh(lanternGeo, this.headlightBulbMat);
+      lantern.position.set(tx > 0 ? tx - 2.2 : tx + 2.2, 3.8, 2.2);
+      gateGroup.add(lantern);
+
+      const lanternLight = new THREE.PointLight(0xf59e0b, 0.9, 8);
+      lanternLight.position.copy(lantern.position);
+      gateGroup.add(lanternLight);
+
       if (this.physicsWorld) {
         const col = new CircleCollider(tx, -42.0, 2.7);
         this.physicsWorld.addCollider(col);
@@ -446,6 +575,19 @@ export class AbandonedVillageStage {
     bridge.position.set(0, 6.8, 0);
     bridge.castShadow = true;
     gateGroup.add(bridge);
+
+    // Open Historic Carved Wooden Fortress Gates (የተከፈቱ የሸዋ በር የእንጨት በሮች)
+    // Left leaf swung inward
+    const leftGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
+    leftGate.position.set(-3.8, 2.4, 1.4);
+    leftGate.rotation.y = Math.PI * 0.35;
+    gateGroup.add(leftGate);
+
+    // Right leaf swung inward
+    const rightGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
+    rightGate.position.set(3.8, 2.4, 1.4);
+    rightGate.rotation.y = -Math.PI * 0.35;
+    gateGroup.add(rightGate);
 
     // Decorative Terracotta Horseshoe Arch Moldings
     const archBorder = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.45, 3.4), this.hararTerracottaMat);
@@ -848,6 +990,80 @@ export class AbandonedVillageStage {
     mesobFinial.position.y = 3.9;
     marketGroup.add(mesobFinial);
 
+    // Traditional Harari Market Stalls surrounding the central monument
+    const stallConfigs = [
+      { x: -5.5, z: -2.5, rotY: 0.35, isRedAwning: true, amharic: 'የሐረር ቅመማቅመም • SPICES' },
+      { x: 5.5, z: -2.5, rotY: -0.35, isRedAwning: false, amharic: 'የሐረር ቡናና ጫት • COFFEE & KHAT' },
+      { x: -5.5, z: 3.5, rotY: 0.75, isRedAwning: false, amharic: 'የሐረሪ ቅርጫቶች • WOVEN BASKETS' },
+      { x: 5.5, z: 3.5, rotY: -0.75, isRedAwning: true, amharic: 'የሐረሪ ጨርቆች • TEXTILES' }
+    ];
+
+    stallConfigs.forEach(st => {
+      const stall = new THREE.Group();
+      stall.position.set(st.x, 0, st.z);
+      stall.rotation.y = st.rotY;
+
+      // Wooden market display table
+      const table = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.75, 1.4), this.timberMat);
+      table.position.y = 0.38;
+      stall.add(table);
+
+      // Striped fabric canopy awning overhead
+      const awningMesh = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 1.8), st.isRedAwning ? this.hararAwningMatRed : this.hararAwningMatGreen);
+      awningMesh.position.set(0, 2.3, 0);
+      awningMesh.rotation.x = 0.15;
+      stall.add(awningMesh);
+
+      // Four wooden canopy corner poles
+      [[-1.6, -0.7], [1.6, -0.7], [-1.6, 0.7], [1.6, 0.7]].forEach(([px, pz]) => {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6), this.timberMat);
+        pole.position.set(px, 1.1, pz);
+        stall.add(pole);
+      });
+
+      // Hanging Woven Harari Baskets on the stall
+      [-1.1, 0, 1.1].forEach((bx, bIdx) => {
+        const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.08, 12), this.hararBasketMat);
+        basket.rotation.x = Math.PI / 2;
+        basket.position.set(bx, 1.9, 0.85);
+        stall.add(basket);
+      });
+
+      // Tabletop Goods: Spices, Coffee, Khat
+      if (st.amharic.includes('SPICES')) {
+        // Conical spice pyramids: Red Berbere, Golden Turmeric, Green Cardamom
+        const berbere = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.5, 10), this.spiceBerbereMat);
+        berbere.position.set(-0.85, 0.75 + 0.25, 0);
+        stall.add(berbere);
+
+        const turmeric = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.45, 10), this.spiceTurmericMat);
+        turmeric.position.set(0, 0.75 + 0.22, 0);
+        stall.add(turmeric);
+
+        const cardamom = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.38, 10), this.spiceCardamomMat);
+        cardamom.position.set(0.85, 0.75 + 0.19, 0);
+        stall.add(cardamom);
+      } else if (st.amharic.includes('COFFEE')) {
+        // Open burlap sacks filled with roasted Harar Longberry Mocha coffee beans
+        [-0.8, 0.8].forEach(sx => {
+          const sack = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.35, 0.55, 10), this.burlapMat);
+          sack.position.set(sx, 0.75 + 0.28, 0);
+          stall.add(sack);
+
+          const beans = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.05, 10), this.coffeeBeansMat);
+          beans.position.set(sx, 0.75 + 0.55, 0);
+          stall.add(beans);
+        });
+
+        // Fresh green Khat / Chat bundles
+        const khat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.25, 0.6), this.khatLeafMat);
+        khat.position.set(0, 0.75 + 0.12, 0);
+        stall.add(khat);
+      }
+
+      marketGroup.add(stall);
+    });
+
     const mSignMat = new THREE.MeshBasicMaterial({
       map: this.createSignTexture('ግድር መጋላ • ማዕከላዊ ገበያ', 'GIDIR MAGALA • HARAR CENTRAL MARKET', '#15803d', '#fef08a')
     });
@@ -892,9 +1108,14 @@ export class AbandonedVillageStage {
       bldg.add(shell);
 
       // Roll-up corrugated shop shutter
-      const shutter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, 2.7, 0.12), this.shutterMat);
-      shutter.position.set(0, 1.35, d / 2 + 0.08);
+      const shutter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.45, 2.7, 0.12), this.shutterMat);
+      shutter.position.set(w * 0.18, 1.35, d / 2 + 0.08);
       bldg.add(shutter);
+
+      // Traditional Carved Harari Wooden Double Door (የሐረሪ ባህል የተቀረጸ የእንጨት በር)
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.7, 0.14), this.hararDoorMat);
+      door.position.set(-w * 0.24, 1.35, d / 2 + 0.1);
+      bldg.add(door);
 
       // Storefront Signboard
       const signMat = new THREE.MeshBasicMaterial({
@@ -904,14 +1125,40 @@ export class AbandonedVillageStage {
       sign.position.set(0, 3.3, d / 2 + 0.15);
       bldg.add(sign);
 
-      // Fabric / Metal Awning
+      // Fabric / Metal Awning with striped or solid textures
       if (config.hasAwning) {
-        const awningMat = config.awningMat || this.curbRedMat;
+        const awningMat = config.awningMat || (config.hasStripedAwning ? this.hararAwningMatRed : this.hararAwningMatGreen);
         const awning = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, 0.15, 2.2), awningMat);
         awning.position.set(0, 2.85, d / 2 + 1.1);
         awning.rotation.x = 0.14;
         awning.castShadow = true;
         bldg.add(awning);
+      }
+
+      // Traditional Harari Woven Wall Baskets on the Upper Facade (የሐረሪ ቅርጫቶች)
+      [-w * 0.3, w * 0.3].forEach((bx, bIdx) => {
+        const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.08, 14), this.hararBasketMat);
+        basket.rotation.x = Math.PI / 2;
+        basket.position.set(bx, h - 1.4, d / 2 + 0.08);
+        bldg.add(basket);
+      });
+
+      // Historic wooden ceiling rafter beams protruding beneath parapet (የእንጨት ማገሮች)
+      const rafterCount = 6;
+      const rafterStep = (w - 1.2) / (rafterCount - 1);
+      for (let r = 0; r < rafterCount; r++) {
+        const rx = -w / 2 + 0.6 + r * rafterStep;
+        const rafter = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.7, 8), this.timberMat);
+        rafter.rotation.x = Math.PI / 2;
+        rafter.position.set(rx, h - 0.25, d / 2 + 0.25);
+        bldg.add(rafter);
+      }
+
+      // Cascading Bougainvillea flowers on alternating houses
+      if (config.hasBougainvillea) {
+        const vine = this.createBougainvilleaCluster(1.3);
+        vine.position.set(w / 2 - 0.3, h - 1.5, d / 2 + 0.15);
+        bldg.add(vine);
       }
 
       // Traditional Harari Mashrabiya (Carved Wooden Lattice Balconies)
@@ -980,11 +1227,13 @@ export class AbandonedVillageStage {
       { z: 64.0, amh: 'ራስ መኮንን ሆቴል', eng: 'RAS MEKONNEN HOTEL', bg: '#b45309', fg: '#fef3c7', h: 10.5, mat: this.hararWhiteMat }
     ];
 
-    westBuildings.forEach(b => {
+    westBuildings.forEach((b, idx) => {
       buildingsGroup.add(buildGegarHouse({
         x: -14.0, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: westRot,
         amharicSign: b.amh, englishSign: b.eng, signBg: b.bg, signFg: b.fg,
-        wallMat: b.mat, hasAwning: true
+        wallMat: b.mat, hasAwning: true,
+        hasBougainvillea: idx % 2 === 0,
+        hasStripedAwning: idx % 3 === 0
       }));
     });
 
@@ -1003,15 +1252,55 @@ export class AbandonedVillageStage {
       { z: 64.0, amh: 'ጁጎል የእንግዳ ማረፊያ', eng: 'JUGOL HERITAGE LODGE', bg: '#78350f', fg: '#fef08a', h: 9.8, mat: this.hararBlueMat }
     ];
 
-    eastBuildings.forEach(b => {
+    eastBuildings.forEach((b, idx) => {
       buildingsGroup.add(buildGegarHouse({
         x: 14.0, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: eastRot,
         amharicSign: b.amh, englishSign: b.eng, signBg: b.bg, signFg: b.fg,
-        wallMat: b.mat, hasAwning: true
+        wallMat: b.mat, hasAwning: true,
+        hasBougainvillea: idx % 2 === 1,
+        hasStripedAwning: idx % 2 === 0
       }));
     });
 
     this.group.add(buildingsGroup);
+  }
+
+  /**
+   * Overhead Festive Ethiopian Tricolor Flag Buntings (የኢትዮጵያ ሰንደቅ-ዓላማ ጌጦች):
+   * Fluttering green, yellow, and red pennant garlands strung between buildings across the street.
+   */
+  buildOverheadTricolorBuntings() {
+    const buntingGroup = new THREE.Group();
+    const garlandZs = [-60.0, -35.0, -10.0, 15.0, 40.0, 65.0];
+
+    garlandZs.forEach(gz => {
+      // Suspension cable across the street (x: -10 to +10 at y: 6.8)
+      const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 20.4, 4), this.balconyMat);
+      cable.rotation.z = Math.PI / 2;
+      cable.position.set(0, 6.8, gz);
+      buntingGroup.add(cable);
+
+      // Pennant flags hanging along cable
+      const pennantCount = 14;
+      const pennantStep = 18.0 / (pennantCount - 1);
+      const flagColors = [this.flagGreenMat, this.flagYellowMat, this.flagRedMat];
+
+      for (let p = 0; p < pennantCount; p++) {
+        const px = -9.0 + p * pennantStep;
+        // Natural catenary sag
+        const sag = Math.sin((p / (pennantCount - 1)) * Math.PI) * 0.45;
+        const py = 6.8 - sag;
+
+        // Inverted triangular pennant
+        const flagGeo = new THREE.ConeGeometry(0.28, 0.52, 3);
+        flagGeo.rotateX(Math.PI);
+        const flagMesh = new THREE.Mesh(flagGeo, flagColors[p % flagColors.length]);
+        flagMesh.position.set(px, py - 0.26, gz);
+        buntingGroup.add(flagMesh);
+      }
+    });
+
+    this.group.add(buntingGroup);
   }
 
   /**
@@ -1099,7 +1388,15 @@ export class AbandonedVillageStage {
     const bajaj3 = buildHararBajaj(7.2, -6.0, -Math.PI / 4, this.bajajYellowMat, 'ጀጎል ዙሪያ', 'ሓረሪ 2 - 82910');
     fleetGroup.add(bajaj3);
 
-    // 4. Classic Blue & White Lada 2101 City Taxi
+    // 4. Sky Blue Harari Bajaj at West Bajaj Stop
+    const bajaj4 = buildHararBajaj(-3.8, -32.0, Math.PI * 0.1, this.bajajBlueMat, 'ኤረር በር - ሸዋ በር', 'ሓረሪ 2 - 59281');
+    fleetGroup.add(bajaj4);
+
+    // 5. Emerald Green Harari Bajaj near Rimbaud Cultural Center
+    const bajaj5 = buildHararBajaj(3.8, 32.0, -Math.PI * 0.15, this.bajajGreenMat, 'አርተር ራምቦ - ራስ መኮንን', 'ሓረሪ 2 - 47102');
+    fleetGroup.add(bajaj5);
+
+    // 6. Classic Blue & White Lada 2101 City Taxi
     const lada = new THREE.Group();
     lada.position.set(3.6, 0, -26.0);
 

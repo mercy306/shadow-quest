@@ -462,4 +462,281 @@ export class TextureGenerator {
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
   }
+
+  /**
+   * Generates authentic Harari lime-plaster wall texture (weathered stucco, lime pits, organic color wash).
+   */
+  static createHararPlasterTexture(baseHex = '#1d4ed8', accentHex = '#1e40af', size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = baseHex;
+    ctx.fillRect(0, 0, size, size);
+
+    // Organic color gradient wash
+    const grad = ctx.createLinearGradient(0, 0, size, size);
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.05)');
+    grad.addColorStop(1, accentHex);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    // Weathered plaster grain and lime efflorescence
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 22;
+      const speckle = Math.random() < 0.04 ? (Math.random() - 0.5) * 45 : 0;
+      data[i] = Math.min(255, Math.max(0, data[i] + noise + speckle));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise + speckle));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise + speckle));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // Subtle fine hairline plaster fractures
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.14)';
+    ctx.lineWidth = 1.2;
+    for (let f = 0; f < 6; f++) {
+      let cx = Math.random() * size;
+      let cy = Math.random() * size;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      for (let s = 0; s < 4; s++) {
+        cx += (Math.random() - 0.5) * 45;
+        cy += Math.random() * 30;
+        ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 2);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates historic Harar Jugol cobblestone street paving texture.
+   * Irregular rounded limestone & basalt stones embedded in dark sand mortar.
+   */
+  static createHararCobblestoneTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Dark mortar base
+    ctx.fillStyle = '#292524';
+    ctx.fillRect(0, 0, size, size);
+
+    const stoneCols = 16;
+    const stoneRows = 16;
+    const cellW = size / stoneCols;
+    const cellH = size / stoneRows;
+
+    const stonePalette = ['#78716c', '#a8a29e', '#57534e', '#d6d3d1', '#737373', '#8b8478'];
+
+    for (let r = 0; r < stoneRows; r++) {
+      const rowOffset = (r % 2) * (cellW * 0.5);
+      for (let c = -1; c <= stoneCols; c++) {
+        const x = c * cellW + rowOffset + (Math.random() - 0.5) * 3;
+        const y = r * cellH + (Math.random() - 0.5) * 3;
+        const radX = (cellW * 0.42) + (Math.random() - 0.5) * 4;
+        const radY = (cellH * 0.38) + (Math.random() - 0.5) * 4;
+
+        ctx.fillStyle = stonePalette[Math.floor(Math.random() * stonePalette.length)];
+        ctx.beginPath();
+        ctx.ellipse(x + cellW * 0.5, y + cellH * 0.5, Math.max(4, radX), Math.max(4, radY), (Math.random() - 0.5) * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Highlight curve on cobblestone crown
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x + cellW * 0.45, y + cellH * 0.45, Math.max(3, radX * 0.6), -Math.PI * 0.7, 0);
+        ctx.stroke();
+      }
+    }
+
+    // Grit noise
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const n = (Math.random() - 0.5) * 20;
+      data[i] = Math.min(255, Math.max(0, data[i] + n));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(6, 6);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates traditional carved Harari wooden door texture with geometric panels & iron studs.
+   */
+  static createHararCarvedDoorTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Dark aged timber base
+    ctx.fillStyle = '#3e2723';
+    ctx.fillRect(0, 0, size, size);
+
+    // Vertical plank lines
+    ctx.strokeStyle = '#1b0000';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(size * 0.5, 0);
+    ctx.lineTo(size * 0.5, size);
+    ctx.stroke();
+
+    // Outer door border
+    ctx.strokeRect(16, 16, size - 32, size - 32);
+
+    // 4 Carved geometric panels (2 on each leaf)
+    const panels = [
+      { x: 30, y: 35, w: size * 0.5 - 45, h: size * 0.4 - 15 },
+      { x: size * 0.5 + 15, y: 35, w: size * 0.5 - 45, h: size * 0.4 - 15 },
+      { x: 30, y: size * 0.5 + 10, w: size * 0.5 - 45, h: size * 0.42 },
+      { x: size * 0.5 + 15, y: size * 0.5 + 10, w: size * 0.5 - 45, h: size * 0.42 }
+    ];
+
+    panels.forEach(p => {
+      ctx.fillStyle = '#4e342e';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.strokeStyle = '#271007';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(p.x, p.y, p.w, p.h);
+
+      // Carved diamond in panel
+      ctx.strokeStyle = '#8d6e63';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(p.x + p.w * 0.5, p.y + 12);
+      ctx.lineTo(p.x + p.w - 12, p.y + p.h * 0.5);
+      ctx.lineTo(p.x + p.w * 0.5, p.y + p.h - 12);
+      ctx.lineTo(p.x + 12, p.y + p.h * 0.5);
+      ctx.closePath();
+      ctx.stroke();
+    });
+
+    // Iron studs & bronze ring knockers
+    ctx.fillStyle = '#d4af37'; // Brass knockers
+    ctx.beginPath();
+    ctx.arc(size * 0.5 - 32, size * 0.52, 14, 0, Math.PI * 2);
+    ctx.arc(size * 0.5 + 32, size * 0.52, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#212121';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates vibrant Harari woven basket texture (Mesob / Sahandari motifs).
+   */
+  static createHararWovenBasketTexture(size = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const cx = size * 0.5;
+    const cy = size * 0.5;
+
+    // Outer woven straw background
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(0, 0, size, size);
+
+    // Concentric vibrant rings
+    const rings = [
+      { r: 110, color: '#dc2626', w: 14 },
+      { r: 85, color: '#16a34a', w: 12 },
+      { r: 62, color: '#eab308', w: 12 },
+      { r: 42, color: '#1e3a8a', w: 10 },
+      { r: 24, color: '#dc2626', w: 8 }
+    ];
+
+    rings.forEach(ring => {
+      ctx.strokeStyle = ring.color;
+      ctx.lineWidth = ring.w;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // Star radial geometric teeth
+    ctx.fillStyle = '#991b1b';
+    const teeth = 12;
+    for (let i = 0; i < teeth; i++) {
+      const a = (i / teeth) * Math.PI * 2;
+      const x1 = cx + Math.cos(a) * 70;
+      const y1 = cy + Math.sin(a) * 70;
+      const x2 = cx + Math.cos(a + 0.15) * 98;
+      const y2 = cy + Math.sin(a + 0.15) * 98;
+      const x3 = cx + Math.cos(a - 0.15) * 98;
+      const y3 = cy + Math.sin(a - 0.15) * 98;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x3, y3);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
+   * Generates striped fabric awning texture for market stalls.
+   */
+  static createHararStripedAwningTexture(c1 = '#dc2626', c2 = '#fef08a', size = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const stripes = 8;
+    const stripeW = size / stripes;
+
+    for (let i = 0; i < stripes; i++) {
+      ctx.fillStyle = i % 2 === 0 ? c1 : c2;
+      ctx.fillRect(i * stripeW, 0, stripeW, size);
+    }
+
+    // Fabric texture weave
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const n = (Math.random() - 0.5) * 16;
+      data[i] = Math.min(255, Math.max(0, data[i] + n));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(1, 2);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
 }

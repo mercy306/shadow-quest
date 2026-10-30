@@ -305,14 +305,14 @@ export class AbandonedVillageStage {
   }
 
   buildTerrain() {
-    // Vast, completely FLAT urban city ground plane (500m x 500m)
+    // Vast, realistic urban city ground plane with warm Ethiopian highland earth (500m x 500m)
     const geo = new THREE.PlaneGeometry(500, 500, 1, 1);
     geo.rotateX(-Math.PI / 2);
 
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x334155,
-      roughness: 0.9,
-      metalness: 0.05
+      color: 0x854d0e, // Warm Ethiopian highland terracotta & red-brown earth
+      roughness: 0.95,
+      metalness: 0.02
     });
 
     this.groundMesh = new THREE.Mesh(geo, groundMat);
@@ -332,7 +332,7 @@ export class AbandonedVillageStage {
   /**
    * Main Avenue of Harar City:
    * 220-meter long dual-lane asphalt street with yellow dashed centerline, zebra crossings,
-   * elevated concrete sidewalks, red-white curbs, and street tree planters.
+   * elevated concrete sidewalks, red-white curbs, and realistic leafy shade trees.
    */
   buildRealisticHararAvenue() {
     const streetGroup = new THREE.Group();
@@ -359,7 +359,7 @@ export class AbandonedVillageStage {
       streetGroup.add(walk);
     });
 
-    // Alternating Red & White Curbs
+    // Alternating Red & White Curbs with drainage grates
     [-5.6, 5.6].forEach(xCur => {
       const curbCount = 96;
       const curbLen = roadLength / curbCount;
@@ -375,6 +375,13 @@ export class AbandonedVillageStage {
         curb.position.set(xCur, curbH / 2 + 0.01, curbZ);
         curb.receiveShadow = true;
         streetGroup.add(curb);
+
+        // Stormwater Drainage Grates along gutter every 8 sections
+        if (c % 8 === 0) {
+          const grate = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.02, 0.72), this.tireMat);
+          grate.position.set(xCur > 0 ? xCur - 0.38 : xCur + 0.38, 0.03, curbZ);
+          streetGroup.add(grate);
+        }
       }
     });
 
@@ -399,24 +406,42 @@ export class AbandonedVillageStage {
       streetGroup.add(stPlate);
     });
 
-    // Ornamental Sidewalk Tree Planters
+    // Realistic Sidewalk Shade Trees (Branched Trunks & Tiered Dense Foliage)
     [-8.0, 8.0].forEach(px => {
       [-80.0, -60.0, -40.0, -20.0, 20.0, 40.0, 60.0, 80.0].forEach(pz => {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, 1.2), this.curbWhiteMat);
-        box.position.set(px, 0.44, pz);
+        const box = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.35, 1.4), this.curbWhiteMat);
+        box.position.set(px, 0.28, pz);
         streetGroup.add(box);
 
-        const soil = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.05, 1.0), this.clayMat);
-        soil.position.set(px, 0.68, pz);
+        const soil = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.05, 1.15), this.clayMat);
+        soil.position.set(px, 0.46, pz);
         streetGroup.add(soil);
 
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.8, 6), this.timberMat);
-        trunk.position.set(px, 1.5, pz);
-        streetGroup.add(trunk);
+        // Organic multi-segment tree trunk
+        const trunkGroup = new THREE.Group();
+        trunkGroup.position.set(px, 0.48, pz);
 
-        const canopy = new THREE.Mesh(new THREE.DodecahedronGeometry(0.75), this.flagGreenMat);
-        canopy.position.set(px, 2.5, pz);
-        streetGroup.add(canopy);
+        const trunkMain = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 2.2, 8), this.timberMat);
+        trunkMain.position.y = 1.1;
+        trunkGroup.add(trunkMain);
+
+        // Tiered organic leaf canopy clusters
+        const leafClumps = [
+          { y: 2.2, r: 1.25, h: 0.9, ox: 0, oz: 0 },
+          { y: 2.7, r: 1.45, h: 0.85, ox: 0.2, oz: -0.15 },
+          { y: 3.2, r: 1.35, h: 0.8, ox: -0.15, oz: 0.2 },
+          { y: 3.7, r: 0.95, h: 0.75, ox: 0.05, oz: 0.05 }
+        ];
+
+        leafClumps.forEach(lc => {
+          const cMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(lc.r, 1), this.flagGreenMat);
+          cMesh.position.set(lc.ox, lc.y, lc.oz);
+          cMesh.scale.set(1.0, lc.h / lc.r, 1.0);
+          cMesh.castShadow = true;
+          trunkGroup.add(cMesh);
+        });
+
+        streetGroup.add(trunkGroup);
       });
     });
 
@@ -1305,98 +1330,165 @@ export class AbandonedVillageStage {
 
   /**
    * Authentic Harar Vehicle Fleet - The Bajaj Capital of Ethiopia:
-   * Harar is universally famous for its fleet of buzzing Bajajs in City Blue and Green/Yellow!
-   * Includes 3 detailed Bajaj auto-rickshaws, classic blue & white Lada 2101 taxi,
-   * Toyota HiAce minibus taxi with Harari route tags, and Isuzu coffee truck.
+   * Real-world detailed Bajaj auto-rickshaws, classic blue & white Lada 2101 taxi,
+   * iconic Toyota HiAce minibus with roof luggage, and Isuzu coffee truck.
    */
   buildHararVehicleFleet() {
     const fleetGroup = new THREE.Group();
 
-    // Helper: Build High-Detail Harar Bajaj
+    // Helper: Build High-Detail Realistic Harar Bajaj Auto-Rickshaw
     const buildHararBajaj = (x, z, rotY, bodyMat, routeTag, plateNum) => {
       const bajaj = new THREE.Group();
       bajaj.position.set(x, 0, z);
       bajaj.rotation.y = rotY;
 
-      // Lower body with characteristic sloped front apron
-      const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.75, 2.3), bodyMat);
-      body.position.y = 0.6;
+      // 1. Lower chassis frame & aerodynamic sloped front cowling
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.65, 2.3), bodyMat);
+      body.position.y = 0.55;
       body.castShadow = true;
       bajaj.add(body);
 
-      // Black weather canopy
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.75, 2.1), this.tireMat);
-      roof.position.y = 1.35;
+      // Sloped front apron / nose
+      const noseGeo = new THREE.CylinderGeometry(0.35, 0.68, 0.72, 12, 1, false, 0, Math.PI);
+      noseGeo.rotateY(Math.PI / 2);
+      const nose = new THREE.Mesh(noseGeo, bodyMat);
+      nose.position.set(0, 0.58, 1.15);
+      bajaj.add(nose);
+
+      // Front wheel mudguard fender
+      const fender = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.22, 10, 1, false, 0, Math.PI), this.tireMat);
+      fender.rotation.z = Math.PI / 2;
+      fender.position.set(0, 0.32, 1.0);
+      bajaj.add(fender);
+
+      // 2. Tubular chrome roll cage & roof support pillars
+      [[-0.62, 0.85], [0.62, 0.85], [-0.62, -0.95], [0.62, -0.95]].forEach(([cx, cz]) => {
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.88, 8), this.chromeMat);
+        pillar.position.set(cx, 1.25, cz);
+        bajaj.add(pillar);
+      });
+
+      // 3. Black weatherproof vinyl canopy
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.14, 2.15), this.tireMat);
+      roof.position.set(0, 1.72, -0.05);
       roof.castShadow = true;
       bajaj.add(roof);
 
-      // Sloped front windshield
-      const win = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.55, 0.08), this.carGlassMat);
-      win.position.set(0, 1.28, 1.05);
-      win.rotation.x = -0.18;
+      // Rear vinyl window curtain
+      const rearCurtain = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.65, 0.04), this.tireMat);
+      rearCurtain.position.set(0, 1.32, -1.02);
+      bajaj.add(rearCurtain);
+
+      // 4. Sloped front laminated glass windshield
+      const win = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.58, 0.05), this.carGlassMat);
+      win.position.set(0, 1.32, 0.88);
+      win.rotation.x = -0.22;
       bajaj.add(win);
 
-      // Single bright round headlamp
-      const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 14), this.headlightBulbMat);
+      // Windshield wiper blade
+      const wiper = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.38, 0.02), this.tireMat);
+      wiper.position.set(0, 1.3, 0.94);
+      wiper.rotation.z = 0.3;
+      bajaj.add(wiper);
+
+      // 5. Chrome side view mirrors on windshield pillars
+      [-0.7, 0.7].forEach((mx, mIdx) => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.22, 6), this.chromeMat);
+        arm.position.set(mx, 1.28, 0.85);
+        arm.rotation.z = mIdx === 0 ? -Math.PI / 4 : Math.PI / 4;
+        bajaj.add(arm);
+
+        const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.02), this.chromeMat);
+        mirror.position.set(mx > 0 ? mx + 0.08 : mx - 0.08, 1.35, 0.85);
+        bajaj.add(mirror);
+      });
+
+      // 6. Handlebars & Dashboard inside cabin
+      const hBar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.55, 8), this.chromeMat);
+      hBar.rotation.z = Math.PI / 2;
+      hBar.position.set(0, 0.92, 0.55);
+      bajaj.add(hBar);
+
+      // Driver seat & rear passenger bench
+      const dSeat = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.18, 0.42), this.clayMat);
+      dSeat.position.set(0, 0.75, 0.15);
+      bajaj.add(dSeat);
+
+      const pBench = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.2, 0.45), this.clayMat);
+      pBench.position.set(0, 0.78, -0.65);
+      bajaj.add(pBench);
+
+      // 7. Bright round headlamp with active PointLight on street
+      const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.12, 16), this.headlightBulbMat);
       headlight.rotateX(Math.PI / 2);
-      headlight.position.set(0, 0.68, 1.18);
+      headlight.position.set(0, 0.72, 1.25);
       bajaj.add(headlight);
 
+      const headLightSource = new THREE.PointLight(0xfffbeb, 1.2, 12);
+      headLightSource.position.set(0, 0.75, 2.0);
+      bajaj.add(headLightSource);
+
       // Front single wheel with chrome fork
-      const bWheelGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.18, 14);
+      const bWheelGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.18, 16);
       bWheelGeo.rotateZ(Math.PI / 2);
 
       const fWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
-      fWheel.position.set(0, 0.26, 0.95);
+      fWheel.position.set(0, 0.26, 0.98);
       bajaj.add(fWheel);
 
-      // Rear dual wheels
+      // Rear dual wheels with chrome hubcaps
       [-0.65, 0.65].forEach(wx => {
         const rWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
         rWheel.position.set(wx, 0.26, -0.72);
         bajaj.add(rWheel);
+
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.2, 12), this.chromeMat);
+        hub.rotateZ(Math.PI / 2);
+        hub.position.set(wx > 0 ? wx + 0.02 : wx - 0.02, 0.26, -0.72);
+        bajaj.add(hub);
       });
 
-      // Harar Route Sign Card (e.g., "ሸዋ በር - ግድር መጋላ")
+      // 8. Harar Route Sign Card (e.g., "ሸዋ በር - ግድር መጋላ")
       const rSignMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(routeTag, 'HARAR BAJAJ', '#15803d', '#ffffff')
       });
-      const rCard = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.2, 0.04), rSignMat);
-      rCard.position.set(0, 1.15, 1.1);
+      const rCard = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.22, 0.04), rSignMat);
+      rCard.position.set(0, 1.22, 0.96);
       bajaj.add(rCard);
 
-      // Yellow Taxi License Plate
+      // 9. Official Yellow Ethiopian Taxi License Plate
       const plateMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(plateNum, 'BAJAJ', '#facc15', '#1e1b4b')
       });
       const plate = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.2, 0.04), plateMat);
-      plate.position.set(0, 0.42, 1.18);
+      plate.position.set(0, 0.38, 1.22);
       bajaj.add(plate);
+
+      // Spare wheel mounted on the rear
+      const spareWheel = new THREE.Mesh(bWheelGeo, this.tireMat);
+      spareWheel.rotation.y = Math.PI / 2;
+      spareWheel.position.set(0, 0.72, -1.14);
+      bajaj.add(spareWheel);
 
       return bajaj;
     };
 
     // 1. Blue & White Harari Bajaj at Shoa Gate entrance
-    const bajaj1 = buildHararBajaj(3.8, -14.0, 0, this.bajajBlueMat, 'ሸዋ በር - ግድር መጋላ', 'ሓረሪ 2 - 38291');
-    fleetGroup.add(bajaj1);
+    fleetGroup.add(buildHararBajaj(3.8, -14.0, 0, this.bajajBlueMat, 'ሸዋ በር - ግድር መጋላ', 'ሓረሪ 2 - 38291'));
 
     // 2. Green & Yellow Harari Bajaj outside Gidir Magala
-    const bajaj2 = buildHararBajaj(-3.8, 16.0, Math.PI, this.bajajGreenMat, 'አስማዲን - ቡዳ በር', 'ሓረሪ 2 - 14920');
-    fleetGroup.add(bajaj2);
+    fleetGroup.add(buildHararBajaj(-3.8, 16.0, Math.PI, this.bajajGreenMat, 'አስማዲን - ቡዳ በር', 'ሓረሪ 2 - 14920'));
 
-    // 3. Yellow Harari Bajaj parked near Buda Gate
-    const bajaj3 = buildHararBajaj(7.2, -6.0, -Math.PI / 4, this.bajajYellowMat, 'ጀጎል ዙሪያ', 'ሓረሪ 2 - 82910');
-    fleetGroup.add(bajaj3);
+    // 3. Golden Yellow Harari Bajaj parked near Buda Gate
+    fleetGroup.add(buildHararBajaj(7.2, -6.0, -Math.PI / 4, this.bajajYellowMat, 'ጀጎል ዙሪያ', 'ሓረሪ 2 - 82910'));
 
     // 4. Sky Blue Harari Bajaj at West Bajaj Stop
-    const bajaj4 = buildHararBajaj(-3.8, -32.0, Math.PI * 0.1, this.bajajBlueMat, 'ኤረር በር - ሸዋ በር', 'ሓረሪ 2 - 59281');
-    fleetGroup.add(bajaj4);
+    fleetGroup.add(buildHararBajaj(-3.8, -32.0, Math.PI * 0.1, this.bajajBlueMat, 'ኤረር በር - ሸዋ በር', 'ሓረሪ 2 - 59281'));
 
     // 5. Emerald Green Harari Bajaj near Rimbaud Cultural Center
-    const bajaj5 = buildHararBajaj(3.8, 32.0, -Math.PI * 0.15, this.bajajGreenMat, 'አርተር ራምቦ - ራስ መኮንን', 'ሓረሪ 2 - 47102');
-    fleetGroup.add(bajaj5);
+    fleetGroup.add(buildHararBajaj(3.8, 32.0, -Math.PI * 0.15, this.bajajGreenMat, 'አርተር ራምቦ - ራስ መኮንን', 'ሓረሪ 2 - 47102'));
 
-    // 6. Classic Blue & White Lada 2101 City Taxi
+    // 6. Classic Blue & White Lada 2101 City Taxi with Roof TAXI Light
     const lada = new THREE.Group();
     lada.position.set(3.6, 0, -26.0);
 
@@ -1415,6 +1507,14 @@ export class AbandonedVillageStage {
     ladaWind.rotation.x = -0.26;
     lada.add(ladaWind);
 
+    // Illuminated Yellow Roof TAXI Sign Pod (ታክሲ)
+    const taxiSignMat = new THREE.MeshBasicMaterial({
+      map: this.createSignTexture('ታክሲ', 'TAXI', '#facc15', '#1e1b4b')
+    });
+    const taxiPod = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.22, 0.22), taxiSignMat);
+    taxiPod.position.set(0, 1.68, 0.1);
+    lada.add(taxiPod);
+
     // Chrome Bumper with Overriders
     const fBump = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.14, 0.16), this.chromeMat);
     fBump.position.set(0, 0.42, 2.14);
@@ -1425,7 +1525,7 @@ export class AbandonedVillageStage {
     grille.position.set(0, 0.68, 2.12);
     lada.add(grille);
 
-    // Iconic Round Headlamps
+    // Dual Round Headlamps with Chrome Bezels
     [-0.68, 0.68].forEach(hx => {
       const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 8, 20), this.chromeMat);
       bezel.position.set(hx, 0.68, 2.12);
@@ -1445,11 +1545,58 @@ export class AbandonedVillageStage {
       const w = new THREE.Mesh(wGeo, this.tireMat);
       w.position.set(pos.x, 0.32, pos.z);
       lada.add(w);
+
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.24, 12), this.chromeMat);
+      hub.rotateZ(Math.PI / 2);
+      hub.position.set(pos.x > 0 ? pos.x + 0.02 : pos.x - 0.02, 0.32, pos.z);
+      lada.add(hub);
     });
 
     fleetGroup.add(lada);
 
-    // 5. Isuzu Cargo Truck carrying Harar Coffee Sacks (የሐረር ቡና)
+    // 7. Iconic Ethiopian Toyota HiAce Minibus Taxi ("ሰላም ሚኒባስ")
+    const minibus = new THREE.Group();
+    minibus.position.set(3.8, 0, 2.0);
+
+    const miniLower = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.85, 4.6), this.taxiBlueMat);
+    miniLower.position.y = 0.68;
+    miniLower.castShadow = true;
+    minibus.add(miniLower);
+
+    const miniUpper = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.95, 4.4), this.taxiWhiteMat);
+    miniUpper.position.set(0, 1.55, 0);
+    miniUpper.castShadow = true;
+    minibus.add(miniUpper);
+
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.02, 0.12, 4.5), this.bajajYellowMat);
+    stripe.position.set(0, 1.08, 0);
+    minibus.add(stripe);
+
+    // Roof-mounted Yellow Luggage Rack with Tarpaulin Baggage
+    const rack = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.35, 3.4), this.bajajYellowMat);
+    rack.position.set(0, 2.15, -0.2);
+    minibus.add(rack);
+
+    const baggage1 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 1.6), this.burlapMat);
+    baggage1.position.set(0, 2.45, -0.8);
+    minibus.add(baggage1);
+
+    const baggage2 = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.38, 1.2), this.bajajBlueMat);
+    baggage2.position.set(0, 2.42, 0.6);
+    minibus.add(baggage2);
+
+    [
+      { x: -1.02, z: 1.4 }, { x: 1.02, z: 1.4 },
+      { x: -1.02, z: -1.4 }, { x: 1.02, z: -1.4 }
+    ].forEach(mpos => {
+      const mw = new THREE.Mesh(wGeo, this.tireMat);
+      mw.position.set(mpos.x, 0.34, mpos.z);
+      minibus.add(mw);
+    });
+
+    fleetGroup.add(minibus);
+
+    // 8. Isuzu Cargo Truck carrying Harar Coffee Sacks (የሐረር ቡና)
     const truck = new THREE.Group();
     truck.position.set(-3.8, 0, 32.0);
     truck.rotation.y = Math.PI;
@@ -1480,10 +1627,12 @@ export class AbandonedVillageStage {
 
     if (this.physicsWorld) {
       const colLada = new BoxCollider(3.6, -26.0, 1.2, 2.3);
+      const colMini = new BoxCollider(3.8, 2.0, 1.3, 2.4);
       const colTruck = new BoxCollider(-3.8, 32.0, 1.4, 3.2);
       this.physicsWorld.addCollider(colLada);
+      this.physicsWorld.addCollider(colMini);
       this.physicsWorld.addCollider(colTruck);
-      this.colliders.push(colLada, colTruck);
+      this.colliders.push(colLada, colMini, colTruck);
     }
   }
 
@@ -1590,12 +1739,50 @@ export class AbandonedVillageStage {
   }
 
   /**
-   * Street Furniture, Power Poles, and Warm Amber Street Lights:
+   * Real-World Street Infrastructure:
+   * Concrete Utility Power Poles with Step-Down Transformers, Suspended Overhead Electrical Lines,
+   * Modern Cobra-Head Street Luminaires with Warm Glow, and Ethiopian Tricolor Flagpoles.
    */
   buildCityStreetFurnitureAndLights() {
     const furnGroup = new THREE.Group();
 
-    // Ethiopian Tricolor & Harari Regional Flagpoles
+    // 1. Concrete Utility Power Poles (Height: 8.2m) with Transformers & Suspended Power Cables
+    const polePositions = [-7.8, 7.8];
+    const poleZs = [-75.0, -25.0, 25.0, 75.0];
+
+    polePositions.forEach((px, pIdx) => {
+      poleZs.forEach(pz => {
+        // Tapered concrete power pole
+        const pMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 8.4, 8), this.curbWhiteMat);
+        pMesh.position.set(px, 4.2, pz);
+        pMesh.castShadow = true;
+        furnGroup.add(pMesh);
+
+        // Timber crossarm
+        const crossarm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.12), this.timberMat);
+        crossarm.position.set(px, 7.8, pz);
+        furnGroup.add(crossarm);
+
+        // Cylindrical transformer on selected poles
+        if (pz === -25.0 || pz === 25.0) {
+          const transformer = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.75, 10), this.shutterMat);
+          transformer.position.set(px > 0 ? px - 0.35 : px + 0.35, 6.2, pz);
+          furnGroup.add(transformer);
+        }
+      });
+
+      // 3 Black Electrical Power Lines running along the length of the street between poles
+      for (let w = 0; w < 3; w++) {
+        const wireOffset = -0.55 + w * 0.55;
+        const cableGeo = new THREE.CylinderGeometry(0.012, 0.012, 160.0, 4);
+        cableGeo.rotateX(Math.PI / 2);
+        const cableMesh = new THREE.Mesh(cableGeo, this.tireMat);
+        cableMesh.position.set(px + wireOffset, 7.85, 0);
+        furnGroup.add(cableMesh);
+      }
+    });
+
+    // 2. Ethiopian Tricolor & Harari Regional Flagpoles
     [-5.7, 5.7].forEach(fx => {
       [-30.0, 2.0].forEach(fz => {
         const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 8.5, 8), this.goldMat);
@@ -1609,7 +1796,7 @@ export class AbandonedVillageStage {
       });
     });
 
-    // Ornate Street Lamps with Warm Amber Glow
+    // 3. Modern Cobra-Head Street Luminaires with Warm Glow Pools
     const lampPositions = [
       { x: -5.6, z: -60.0 }, { x: 5.6, z: -60.0 },
       { x: -5.6, z: -30.0 }, { x: 5.6, z: -30.0 },
@@ -1617,17 +1804,30 @@ export class AbandonedVillageStage {
       { x: -5.6, z: 30.0 },  { x: 5.6, z: 30.0 },
       { x: -5.6, z: 60.0 },  { x: 5.6, z: 60.0 }
     ];
+
     lampPositions.forEach(lp => {
-      const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 4.8, 8), this.tireMat);
-      lampPost.position.set(lp.x, 2.4, lp.z);
+      // Steel pole
+      const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 5.4, 8), this.balconyMat);
+      lampPost.position.set(lp.x, 2.7, lp.z);
       furnGroup.add(lampPost);
 
-      const lantern = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24), this.turnSignalMat);
-      lantern.position.set(lp.x, 4.9, lp.z);
-      furnGroup.add(lantern);
+      // Curved cobra-head luminaire arm
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 6), this.balconyMat);
+      arm.rotation.z = lp.x < 0 ? -Math.PI / 4 : Math.PI / 4;
+      arm.position.set(lp.x < 0 ? lp.x + 0.4 : lp.x - 0.4, 5.2, lp.z);
+      furnGroup.add(arm);
 
-      const lampLight = new THREE.PointLight(0xf59e0b, 0.8, 12);
-      lampLight.position.set(lp.x, 4.9, lp.z);
+      // Rectangular cobra-head fixture with glowing lens
+      const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, 0.48), this.balconyMat);
+      fixture.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.5, lp.z);
+      furnGroup.add(fixture);
+
+      const lens = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.4), this.headlightBulbMat);
+      lens.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.44, lp.z);
+      furnGroup.add(lens);
+
+      const lampLight = new THREE.PointLight(0xfef08a, 1.1, 16);
+      lampLight.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.2, lp.z);
       furnGroup.add(lampLight);
     });
 

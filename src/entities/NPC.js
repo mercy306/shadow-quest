@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadSharedModel } from '../core/ModelLoader.js';
 import { AnimationController } from './AnimationController.js';
 import { CircleCollider } from '../physics/Colliders.js';
+import { EthiopianWarriorGear } from './EthiopianWarriorGear.js';
 
 export class NPC {
   constructor(scene, physicsWorld, config = {}) {
@@ -71,28 +72,24 @@ export class NPC {
           }
 
           if (child.material) {
-            // Apply customized Ethiopian styling based on role
-            if (this.role === 'merchant') {
-              // Axumite Caravaneer amber leather & brass
-              child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x6b4423 : 0xd97706,
-                roughness: 0.6,
-                metalness: 0.25
-              });
-            } else if (this.role === 'quest_giver') {
-              // Elder pure white cotton Gabi with gold trim
-              child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x5a3825 : 0xf4f0e6,
-                roughness: 0.75,
-                metalness: 0.1
-              });
-            } else if (this.role === 'forest_hermit') {
-              // Highland Hermit olive and earth-tone Shamma
-              child.material = new THREE.MeshStandardMaterial({
-                color: child.name.toLowerCase().includes('head') ? 0x5a3825 : 0x2e4a28,
-                roughness: 0.8,
-                metalness: 0.1
-              });
+            child.material = child.material.clone();
+            child.material.roughness = Math.max(0.35, child.material.roughness || 0.6);
+
+            // Apply authentic Ethiopian skin tone & realistic traditional woven attire
+            if (child.material.map && (child.name.includes('Mesh') || child.name.includes('Soldier') || child.name.includes('vanguard'))) {
+              child.material.map = EthiopianWarriorGear.createWarriorTexture(child.material.map);
+              child.material.needsUpdate = true;
+            } else {
+              // Realistic human skin tone for heads/limbs, rich fabric for clothing
+              if (child.name.toLowerCase().includes('head')) {
+                child.material.color.setHex(0x5a3825); // Warm Ethiopian bronze complexion
+              } else if (this.role === 'merchant') {
+                child.material.color.setHex(0xb45309); // Rich amber/terracotta Harari merchant tunic
+              } else if (this.role === 'quest_giver') {
+                child.material.color.setHex(0xf8fafc); // Crisp white Harari Gabi/Netela
+              } else {
+                child.material.color.setHex(0x1e3a8a); // Indigo blue Harari cultural attire
+              }
             }
           }
         }
@@ -238,7 +235,8 @@ export class NPC {
       const dist = Math.hypot(dx, dz);
 
       if (dist <= this.interactionRadius + 1.5) {
-        const targetRotY = Math.atan2(dx, dz);
+        // Since Soldier.glb naturally faces -Z, calculate angle to align face towards player
+        const targetRotY = Math.atan2(-dx, -dz);
         // Smooth spherical/angular lerp
         let diff = targetRotY - this.mesh.rotation.y;
         while (diff < -Math.PI) diff += Math.PI * 2;

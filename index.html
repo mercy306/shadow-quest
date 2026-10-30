@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Shadow Quest - 3D Adventure</title>
+    <script type="module" crossorigin src="./assets/index-fhABtCkZ.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-vendor-B_oFQfhz.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-DBqzKT4x.css">
+  </head>
+  <body>
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
+
+    <!-- Screen Lightning Flash Overlay -->
+    <div id="lightning-flash-overlay"></div>
+
+    <!-- Screen Vignette Damage Flash -->
+    <div id="damage-vignette" class="damage-vignette"></div>
+
+    <!-- Smooth Level Transition Overlay -->
+    <div id="level-transition-overlay" class="level-transition-overlay"></div>
+
+    <!-- Photo Mode Cinematic Shutter Flash -->
+    <div id="photo-shutter-flash" class="photo-shutter-flash"></div>
+
+    <!-- Photo Mode Cinematic Letterbox Overlay (2.39:1 Anamorphic Widescreen Bars) -->
+    <div id="photo-letterbox-overlay" class="photo-letterbox-overlay hidden">
+      <div class="letterbox-bar letterbox-top"></div>
+      <div class="letterbox-bar letterbox-bottom"></div>
+    </div>
+
+    <!-- Photo Mode Depth of Field Blur Overlay -->
+    <div id="photo-dof-overlay" class="photo-dof-overlay hidden"></div>
+
+    <!-- Live Build Indicator Badge -->
+    <div id="harar-live-badge" class="harar-live-badge">🟢 LIVE: HARAR JUGOL CGI CINEMATIC & MAIN GATE (v3.3)</div>
+
+    <!-- ==================== MAIN MENU ==================== -->
+    <div id="main-menu" class="main-menu-overlay">
+      <div class="menu-backdrop-gradient"></div>
+      <div class="menu-container">
+        <div class="menu-header">
+          <div class="menu-eyebrow">🏛️ ETHIOPIAN REAL WORLD 3D • ሐረር ጁጎል • HARAR JUGOL</div>
+          <h1 class="menu-title">ጥላ ፍለጋ<br><span style="font-size: 0.58em; letter-spacing: 0.14em; opacity: 0.95;">HARAR JUGOL: HISTORIC WALLED CITY</span></h1>
+          <p class="menu-tagline">Explore the authentic 16th-century walled city of Harar: Shoa Gate, two-tone cobalt blue alleys, Gidir Magala bazaar, Bajajs, and the legendary hyena sanctuary.</p>
+        </div>
+
+        <nav class="menu-actions">
+          <button id="menu-btn-harar-reset" class="menu-btn primary" style="background: linear-gradient(135deg, #1d4ed8, #0284c7); border: 1px solid #38bdf8;">
+            <span class="btn-icon">🏛️</span> PLAY HARAR JUGOL (FRESH START)
+          </button>
+          <button id="menu-btn-play" class="menu-btn secondary">
+            <span class="btn-icon">⚔️</span> NEW GAME (SINGLE PLAYER)
+          </button>
+          <button id="menu-btn-continue" class="menu-btn disabled" disabled>
+            <span class="btn-icon">⏩</span> CONTINUE SAVED GAME
+          </button>
+          <button id="menu-btn-coop" class="menu-btn coop-highlight">
+            <span class="btn-icon">👥</span> TWO-PLAYER CO-OP
+          </button>
+          <button id="menu-btn-settings" class="menu-btn">
+            <span class="btn-icon">⚙️</span> SETTINGS
+          </button>
+          <button id="menu-btn-controls" class="menu-btn">
+            <span class="btn-icon">🎮</span> CONTROLS
+          </button>
+          <button id="menu-btn-credits" class="menu-btn">
+            <span class="btn-icon">📜</span> CREDITS
+          </button>
+        </nav>
+
+        <footer class="menu-footer">
+          <span>v3.3 • HARAR JUGOL CGI CINEMATIC INTRO & SHOA GATE የሐረር በር (OCTOBER 2026)</span>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">SETTINGS</h2>
+          <button id="close-settings-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Audio Section -->
+          <section class="settings-section">
+            <h3 class="section-title">AUDIO</h3>
+            <div class="settings-row">
+              <label for="setting-master-vol">Master Volume</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-master-vol" min="0" max="100" value="80" class="vol-slider" />
+                <span id="master-vol-num" class="setting-val">80%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-music-vol">Music & Ambience</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-music-vol" min="0" max="100" value="65" class="vol-slider" />
+                <span id="music-vol-num" class="setting-val">65%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-sfx-vol">Sound Effects (SFX)</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-sfx-vol" min="0" max="100" value="85" class="vol-slider" />
+                <span id="sfx-vol-num" class="setting-val">85%</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-mute-toggle">Mute Audio</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-mute-toggle" class="setting-checkbox" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Controls Section -->
+          <section class="settings-section">
+            <h3 class="section-title">CAMERA & CONTROLS</h3>
+            <div class="settings-row">
+              <label for="setting-mouse-sens">Mouse Sensitivity</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-mouse-sens" min="1" max="5" step="0.2" value="2.2" class="vol-slider" />
+                <span id="mouse-sens-num" class="setting-val">2.2x</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-invert-y">Invert Y-Axis</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-invert-y" class="setting-checkbox" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Graphics Quality Section -->
+          <section class="settings-section">
+            <h3 class="section-title">GRAPHICS QUALITY</h3>
+            <div class="graphics-presets">
+              <button id="gfx-high-btn" class="preset-btn active">HIGH</button>
+              <button id="gfx-med-btn" class="preset-btn">MEDIUM</button>
+              <button id="gfx-low-btn" class="preset-btn">LOW</button>
+            </div>
+            <p class="gfx-desc">High: 2K Shadows, Full DPI & Atmospheric Particles.</p>
+          </section>
+
+          <!-- Weather & Atmosphere Section -->
+          <section class="settings-section">
+            <h3 class="section-title">WEATHER & DAY / NIGHT</h3>
+            <div class="settings-row">
+              <label for="setting-weather-select">Weather Condition</label>
+              <div class="setting-ctrl">
+                <select id="setting-weather-select" class="setting-select">
+                  <option value="clear">☀️ Clear Skies</option>
+                  <option value="cloudy">☁️ Overcast</option>
+                  <option value="foggy">🌫️ Dense Mist</option>
+                  <option value="rainy">🌧️ Rain</option>
+                  <option value="stormy">⛈️ Thunderstorm</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-time-slider">Time of Day</label>
+              <div class="setting-ctrl">
+                <input type="range" id="setting-time-slider" min="0" max="24" step="0.25" value="14" class="vol-slider" />
+                <span id="time-slider-val" class="setting-val">02:00 PM</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label for="setting-time-flow">Continuous Day/Night Cycle</label>
+              <div class="setting-ctrl">
+                <input type="checkbox" id="setting-time-flow" class="setting-checkbox" checked />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Modal -->
+    <div id="modal-controls" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">GAME CONTROLS</h2>
+          <button id="close-controls-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="controls-grid">
+            <div class="control-card">
+              <div class="key-badge"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+              <div class="control-label">Run / Move</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Shift</kbd> / <kbd>2x W</kbd></div>
+              <div class="control-label">Fast Sprint Boost</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Caps</kbd></div>
+              <div class="control-label">Toggle Walk / Run</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>C</kbd> / <kbd>Ctrl</kbd></div>
+              <div class="control-label">Crouch / Sneak (Silent)</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Space</kbd></div>
+              <div class="control-label">Jump</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>V</kbd> / <kbd>Alt</kbd></div>
+              <div class="control-label">Combat Dodge Roll (i-Frames)</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Left Click</kbd> / <kbd>F</kbd></div>
+              <div class="control-label">Sword Attack / Stealth Takedown</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Q</kbd> / <kbd>Right Click</kbd></div>
+              <div class="control-label">Heavy Spin Slash (Special Attack)</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>K</kbd></div>
+              <div class="control-label">Skill Tree & Talents</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>I</kbd> / <kbd>Tab</kbd></div>
+              <div class="control-label">Inventory & Equipment</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>Mouse</kbd></div>
+              <div class="control-label">360° Free Camera</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>M</kbd></div>
+              <div class="control-label">World Map & Discovery Tracker</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>E</kbd> / <kbd>H</kbd></div>
+              <div class="control-label">Mount Steed (E) • Whistle / Call (H)</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>U</kbd></div>
+              <div class="control-label">Mute / Unmute Audio</div>
+            </div>
+            <div class="control-card">
+              <div class="key-badge"><kbd>ESC</kbd></div>
+              <div class="control-label">Pause Adventure</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div id="modal-credits" class="game-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">CREDITS</h2>
+          <button id="close-credits-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body credits-body">
+          <div class="credits-role">SHADOW QUEST - 3D ADVENTURE</div>
+          <div class="credits-name">Created by Google Antigravity Advanced Agentic Pair Programming</div>
+
+          <div class="credits-role">TECHNOLOGY & ENGINE</div>
+          <div class="credits-name">Three.js WebGL Engine, Web Audio API, Vite Vanilla JavaScript</div>
+
+          <div class="credits-role">MODELS & RIGGED ASSETS</div>
+          <div class="credits-name">Open-source 3D rigged adventurer & enemy models</div>
+
+          <div class="credits-role">SOUNDTRACK & EFFECTS</div>
+          <div class="credits-name">Procedural Audio Synthesizer & Local 16-Bit WAV Soundbanks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== INVENTORY & EQUIPMENT MODAL ==================== -->
+    <div id="modal-inventory" class="game-modal hidden">
+      <div class="modal-card inventory-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">INVENTORY & EQUIPMENT</h2>
+            <span id="inv-capacity-badge" class="inv-capacity-badge">🎒 8 / 20 SLOTS</span>
+            <span id="inv-gold-badge" class="inv-gold-badge">🪙 150 G</span>
+          </div>
+          <button id="close-inventory-btn" class="modal-close-btn" title="Close Inventory (I / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body inventory-modal-body">
+          <!-- Left Column: Character Equipment & Stats Panel -->
+          <div class="inv-character-panel">
+            <h3 class="panel-heading">EQUIPPED GEAR</h3>
+
+            <div class="equipment-slots-grid">
+              <!-- Weapon Slot -->
+              <div class="equip-slot" id="equip-slot-weapon" data-slot="weapon">
+                <div class="equip-slot-type-icon">⚔️</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">WEAPON</div>
+                  <div class="equip-slot-name" id="equip-weapon-name">None</div>
+                  <div class="equip-slot-stat" id="equip-weapon-stat">+0 DMG</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-weapon-btn" title="Unequip">✕</button>
+              </div>
+
+              <!-- Armor Slot -->
+              <div class="equip-slot" id="equip-slot-armor" data-slot="armor">
+                <div class="equip-slot-type-icon">🛡️</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">ARMOR</div>
+                  <div class="equip-slot-name" id="equip-armor-name">None</div>
+                  <div class="equip-slot-stat" id="equip-armor-stat">+0 DEF</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-armor-btn" title="Unequip">✕</button>
+              </div>
+
+              <!-- Trinket Slot -->
+              <div class="equip-slot" id="equip-slot-trinket" data-slot="trinket">
+                <div class="equip-slot-type-icon">🧿</div>
+                <div class="equip-slot-content">
+                  <div class="equip-slot-label">RELIC / TRINKET</div>
+                  <div class="equip-slot-name" id="equip-trinket-name">None</div>
+                  <div class="equip-slot-stat" id="equip-trinket-stat">+0 BONUS</div>
+                </div>
+                <button class="equip-action-btn unequip-btn" id="unequip-trinket-btn" title="Unequip">✕</button>
+              </div>
+            </div>
+
+            <!-- Centralized Character Stats -->
+            <h3 class="panel-heading stats-heading">HERO ATTRIBUTES</h3>
+            <div class="character-stats-grid">
+              <div class="stat-badge">
+                <span class="stat-icon">❤️</span>
+                <span class="stat-name">HEALTH</span>
+                <span class="stat-val" id="stat-val-health">100 / 100</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">⚔️</span>
+                <span class="stat-name">ATTACK</span>
+                <span class="stat-val" id="stat-val-damage">40 DMG</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">🛡️</span>
+                <span class="stat-name">DEFENSE</span>
+                <span class="stat-val" id="stat-val-defense">10 DEF</span>
+              </div>
+              <div class="stat-badge">
+                <span class="stat-icon">⚡</span>
+                <span class="stat-name">SPEED</span>
+                <span class="stat-val" id="stat-val-speed">7.5 m/s</span>
+              </div>
+              <div class="stat-badge stat-badge-full">
+                <span class="stat-icon">🎖️</span>
+                <span class="stat-name">HERO RANK</span>
+                <span class="stat-val" id="stat-val-level">Level 1 (0 XP)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Backpack Grid & Selected Item Card -->
+          <div class="inv-backpack-panel">
+            <div class="inv-filter-tabs">
+              <button class="inv-tab active" data-category="all">ALL</button>
+              <button class="inv-tab" data-category="weapon">WEAPONS</button>
+              <button class="inv-tab" data-category="armor">ARMOR</button>
+              <button class="inv-tab" data-category="consumable">POTIONS</button>
+              <button class="inv-tab" data-category="material">MATERIALS</button>
+              <button class="inv-tab" data-category="quest">QUEST</button>
+              <button class="inv-tab" data-category="collectible">RELICS</button>
+            </div>
+
+            <!-- 20-Slot Backpack Grid -->
+            <div class="inv-slots-grid" id="inv-slots-grid">
+              <!-- Dynamically populated slots -->
+            </div>
+
+            <!-- Selected Item Details Card -->
+            <div class="inv-item-details" id="inv-item-details">
+              <div class="details-placeholder">Select an item in your backpack to view details and actions.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DIALOGUE MODAL ==================== -->
+    <div id="modal-dialogue" class="game-modal hidden">
+      <div class="modal-card dialogue-modal-card">
+        <div class="modal-header dialogue-modal-header">
+          <div class="dialogue-speaker-wrap">
+            <div id="dialogue-avatar" class="dialogue-avatar">🧙‍♂️</div>
+            <div class="dialogue-speaker-meta">
+              <h2 id="dialogue-speaker-name" class="dialogue-speaker-name">Elder Kaelen</h2>
+              <span id="dialogue-speaker-title" class="dialogue-speaker-title">Village Elder & Quest Giver</span>
+            </div>
+          </div>
+          <button id="close-dialogue-btn" class="modal-close-btn" title="Leave Conversation (ESC)">✕</button>
+        </div>
+
+        <div class="modal-body dialogue-modal-body">
+          <div id="dialogue-speech-text" class="dialogue-speech-text">
+            Greetings, traveler.
+          </div>
+          <div id="dialogue-choices-container" class="dialogue-choices-container">
+            <!-- Choice buttons inserted dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MERCHANT SHOP MODAL ==================== -->
+    <div id="modal-merchant" class="game-modal hidden">
+      <div class="modal-card merchant-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">VALEN'S OUTPOST SUPPLIES</h2>
+            <span class="merchant-gold-badge">🪙 Gold: <strong id="merchant-gold-display">150</strong> G</span>
+          </div>
+          <button id="close-merchant-btn" class="modal-close-btn" title="Close Shop (ESC)">✕</button>
+        </div>
+
+        <div class="modal-body merchant-modal-body">
+          <div class="merchant-tabs">
+            <button id="merchant-tab-buy" class="merchant-tab-btn active">BUY WARES</button>
+            <button id="merchant-tab-sell" class="merchant-tab-btn">SELL ITEMS</button>
+          </div>
+          <div id="merchant-items-container" class="merchant-items-container">
+            <!-- Dynamically populated stock or sell list -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CONFIRMATION MODAL ==================== -->
+    <div id="modal-confirm" class="game-modal hidden">
+      <div class="modal-card confirm-modal-card">
+        <div class="modal-header">
+          <h2 id="confirm-modal-title" class="modal-title">CONFIRMATION</h2>
+          <button id="close-confirm-btn" class="modal-close-btn" title="Cancel">✕</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-modal-msg" class="confirm-modal-msg">Are you sure you wish to proceed?</p>
+          <div class="confirm-actions-row">
+            <button id="confirm-modal-ok-btn" class="confirm-action-btn primary">CONFIRM</button>
+            <button id="confirm-modal-cancel-btn" class="confirm-action-btn secondary">CANCEL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SAVE / LOAD SLOTS MODAL ==================== -->
+    <div id="modal-save-slots" class="game-modal hidden">
+      <div class="modal-card save-slots-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 id="save-slots-title" class="modal-title">SAVE & LOAD ADVENTURE</h2>
+            <span id="save-slots-mode-badge" class="save-slots-mode-badge">SAVE GAME</span>
+          </div>
+          <button id="close-save-slots-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body save-slots-modal-body">
+          <div class="save-slots-tabs">
+            <button id="tab-save-mode-btn" class="save-slot-tab active">💾 SAVE GAME</button>
+            <button id="tab-load-mode-btn" class="save-slot-tab">📂 LOAD GAME</button>
+          </div>
+
+          <div id="save-slots-container" class="save-slots-container">
+            <!-- Dynamically populated save slots -->
+          </div>
+
+          <!-- Corrupted Save Recovery Banner -->
+          <div id="save-recovery-banner" class="save-recovery-banner hidden">
+            <div class="recovery-icon">⚠️</div>
+            <div class="recovery-content">
+              <div class="recovery-title">CORRUPTED SAVE FILE QUARANTINED</div>
+              <div id="recovery-desc" class="recovery-desc">A corrupted save file was safely isolated to protect your progress. You can recover progression from your latest autosave checkpoint without losing data.</div>
+            </div>
+            <button id="recovery-action-btn" class="recovery-action-btn">RESTORE FROM AUTOSAVE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SKILL TREE & PROGRESSION MODAL ==================== -->
+    <div id="modal-skills" class="game-modal hidden">
+      <div class="modal-card skills-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">TALENT & SKILL TREE</h2>
+            <span id="skills-level-badge" class="skills-badge level-badge">⭐ HERO LEVEL 1</span>
+            <span id="skills-sp-badge" class="skills-badge sp-badge">🌟 0 SKILL POINTS</span>
+            <span id="skills-xp-badge" class="skills-badge xp-badge">XP: 0 / 100</span>
+          </div>
+          <button id="close-skills-btn" class="modal-close-btn" title="Close Skill Tree (K / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body skills-modal-body">
+          <!-- 3 Branch Columns Container -->
+          <div class="skill-branches-container">
+            <!-- Branch 1: Sword Mastery -->
+            <div class="skill-branch-col" data-branch="sword_mastery">
+              <div class="branch-header">
+                <span class="branch-icon">⚔️</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">SWORD MASTERY</h3>
+                  <span class="branch-desc">Melee offense, spin whirlwind, strike speed</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-sword">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+
+            <!-- Branch 2: Survival -->
+            <div class="skill-branch-col" data-branch="survival">
+              <div class="branch-header">
+                <span class="branch-icon">🛡️</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">SURVIVAL</h3>
+                  <span class="branch-desc">Maximum health, armor mitigation, vital regeneration</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-survival">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+
+            <!-- Branch 3: Mobility -->
+            <div class="skill-branch-col" data-branch="mobility">
+              <div class="branch-header">
+                <span class="branch-icon">⚡</span>
+                <div class="branch-title-wrap">
+                  <h3 class="branch-title">MOBILITY</h3>
+                  <span class="branch-desc">Sprint agility, dodge roll i-frames, kill stamina surge</span>
+                </div>
+              </div>
+              <div class="branch-nodes-list" id="branch-nodes-mobility">
+                <!-- Dynamically generated nodes -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Skill Detail & Upgrade Inspector Drawer -->
+          <div class="skill-inspector-panel" id="skill-inspector-panel">
+            <div class="inspector-header">
+              <span id="inspector-skill-icon" class="inspector-icon">⚔️</span>
+              <div class="inspector-title-wrap">
+                <h4 id="inspector-skill-name" class="inspector-name">Select a Skill</h4>
+                <div class="inspector-badges">
+                  <span id="inspector-branch-tag" class="inspector-tag branch">SWORD MASTERY</span>
+                  <span id="inspector-rank-tag" class="inspector-tag rank">RANK 0 / 3</span>
+                  <span id="inspector-status-tag" class="inspector-tag status">AVAILABLE</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="inspector-body">
+              <p id="inspector-desc" class="inspector-desc">Click on any skill node above to inspect its details, prerequisites, and combat enhancements.</p>
+              
+              <div class="inspector-bonus-boxes">
+                <div class="bonus-box current-rank">
+                  <span class="bonus-box-label">CURRENT RANK BONUS</span>
+                  <p id="inspector-current-bonus" class="bonus-box-text">None (Locked)</p>
+                </div>
+                <div class="bonus-box next-rank">
+                  <span class="bonus-box-label">NEXT RANK BONUS</span>
+                  <p id="inspector-next-bonus" class="bonus-box-text">+12 Attack Damage</p>
+                </div>
+              </div>
+
+              <div id="inspector-prereq-wrap" class="inspector-prereq-wrap hidden">
+                <span class="prereq-icon">🔒</span>
+                <span id="inspector-prereq-text" class="prereq-text">Requires Sword Precision Rank 1</span>
+              </div>
+            </div>
+
+            <div class="inspector-footer">
+              <button id="skill-upgrade-btn" class="skill-upgrade-btn primary" disabled>
+                <span class="upgrade-btn-icon">⚡</span> UPGRADE SKILL (1 SP)
+              </button>
+              <div id="skill-upgrade-feedback" class="skill-upgrade-feedback"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skill Tree Modal Footer with Respec -->
+        <div class="modal-footer skills-modal-footer">
+          <div class="respec-info-wrap">
+            <span class="respec-title">🔄 REASSIGN TALENTS:</span>
+            <span class="respec-desc">Refunds 100% of spent skill points. Costs 100 Gold.</span>
+          </div>
+          <button id="skills-respec-btn" class="skills-respec-btn danger">
+            <span>🪙 RESET ALL SKILLS (100 G)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== WORLD MAP & REGION DISCOVERY MODAL ==================== -->
+    <div id="modal-world-map" class="game-modal hidden">
+      <div class="modal-card world-map-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">REALMS OF SHADOW QUEST</h2>
+            <span id="map-discovery-badge" class="map-discovery-badge">🗺️ 1 / 5 REGIONS DISCOVERED</span>
+            <span id="map-landmarks-badge" class="map-landmarks-badge">📍 1 / 20 LANDMARKS</span>
+          </div>
+          <button id="close-world-map-btn" class="modal-close-btn" title="Close World Map (M / ESC)">✕</button>
+        </div>
+
+        <div class="modal-body world-map-modal-body">
+          <!-- Interactive Map Canvas / Stylized Topology Overview -->
+          <div class="world-map-topology" id="world-map-topology">
+            <!-- Region Nodes in Stylized Network -->
+            <div class="map-region-node active current" id="map-node-dark-forest" data-region="dark-forest" data-index="0">
+              <div class="node-icon">🏰</div>
+              <div class="node-content">
+                <div class="node-title">ሐረር ጁጎል • Harar Jugol</div>
+                <div class="node-sub">ደረጃ ፩ • Historic Walled City & Shoa Gate</div>
+              </div>
+              <div class="node-status-badge">CURRENT</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-ancient-ruins" data-region="ancient-ruins" data-index="1">
+              <div class="node-icon">🏛️</div>
+              <div class="node-content">
+                <div class="node-title">አክሱም ሐውልት • Axum Sanctuary</div>
+                <div class="node-sub">ደረጃ ፪ • Great Obelisk Dais</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-mountain-pass" data-region="mountain-pass" data-index="2">
+              <div class="node-icon">🧗</div>
+              <div class="node-content">
+                <div class="node-title">ደጀን ገደል • Ras Dashen Pass</div>
+                <div class="node-sub">ደረጃ ፫ • Afroalpine Escarpment</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-abandoned-village" data-region="abandoned-village" data-index="3">
+              <div class="node-icon">🏔️</div>
+              <div class="node-content">
+                <div class="node-title">ደብረ ስሜን • Simien Highlands</div>
+                <div class="node-sub">ደረጃ ፬ • Afro-Alpine Wilderness</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+
+            <div class="map-region-node discovered" id="map-node-hidden-cavern" data-region="hidden-cavern" data-index="4">
+              <div class="node-icon">🪨</div>
+              <div class="node-content">
+                <div class="node-title">የሶፍ ዑመር ዋሻ • Sof Omar Caverns</div>
+                <div class="node-sub">ደረጃ ፭ • Subterranean Crypt</div>
+              </div>
+              <div class="node-status-badge">DISCOVERED</div>
+            </div>
+          </div>
+
+          <!-- Region Details Panel -->
+          <div class="world-map-details-panel">
+            <div id="map-region-art-banner" class="map-region-art-banner"></div>
+            <h3 id="map-selected-region-name" class="map-region-title">ደብረ ስሜን • The Simien Highlands</h3>
+            <p id="map-selected-region-desc" class="map-region-desc">
+              The sacred highland crags of ancient Axum, home to the noble Walia and ancient stone altars. Connects to the Ras Dashen Pass, Lalibela Enclave, Axumite Sanctuary, and Sof Omar Caverns.
+            </p>
+            <div class="map-details-section">
+              <h4 class="details-section-title">DISCOVERED LANDMARKS</h4>
+              <ul id="map-landmarks-list" class="map-landmarks-list">
+                <!-- Dynamically populated -->
+              </ul>
+            </div>
+            <div class="map-details-section">
+              <h4 class="details-section-title">CONNECTED REALM PASSAGES</h4>
+              <div id="map-passages-list" class="map-passages-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer world-map-footer">
+          <div class="map-hint">
+            💡 <span>Tip: Walk near gateways or archways and press <kbd>E</kbd> to travel between connected realms.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PHOTO PREVIEW & DOWNLOAD MODAL ==================== -->
+    <div id="photo-preview-modal" class="game-modal hidden">
+      <div class="modal-card photo-preview-card">
+        <div class="modal-header">
+          <h2 class="modal-title">PHOTO CAPTURED</h2>
+          <button id="close-photo-preview-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+        <div class="modal-body photo-preview-body">
+          <div class="photo-preview-frame">
+            <img id="photo-preview-img" alt="Captured Screenshot" class="photo-preview-img" />
+          </div>
+          <div class="photo-preview-details">
+            <span id="photo-preview-meta" class="photo-preview-meta">ShadowQuest_Photo.png • 1920x1080</span>
+          </div>
+        </div>
+        <div class="modal-footer photo-preview-footer">
+          <button id="photo-preview-download-btn" class="modal-btn primary">
+            <span>💾 DOWNLOAD HIGH-RES PNG</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TWO-PLAYER CO-OP MODAL ==================== -->
+    <div id="modal-coop" class="game-modal hidden">
+      <div class="modal-card coop-modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">ONLINE TWO-PLAYER CO-OP</h2>
+            <span class="coop-mode-pill">AUTHORITATIVE REAL-TIME SESSION</span>
+          </div>
+          <button id="close-coop-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body coop-modal-body">
+          <div class="coop-tabs">
+            <button id="tab-coop-host" class="coop-tab-btn active">👑 HOST NEW ROOM</button>
+            <button id="tab-coop-join" class="coop-tab-btn">🤝 JOIN EXISTING ROOM</button>
+          </div>
+
+          <!-- Panel 1: Host Room -->
+          <div id="coop-panel-host" class="coop-panel">
+            <p class="coop-desc">Create a private two-player room and invite a friend. You will explore, fight corrupted guardians, and cleanse the ancient sanctuary together.</p>
+            <div class="coop-field-group">
+              <label for="coop-host-name">Your Character Name</label>
+              <input type="text" id="coop-host-name" class="coop-input" value="Hero 1" maxlength="16" placeholder="Enter name..." />
+            </div>
+            <div class="coop-actions-row">
+              <button id="coop-create-room-btn" class="coop-action-btn primary">
+                <span>CREATE PRIVATE ROOM</span>
+              </button>
+            </div>
+
+            <!-- Host Lobby State -->
+            <div id="coop-host-lobby" class="coop-lobby-card hidden">
+              <div class="lobby-code-badge">
+                <span class="lobby-code-label">ROOM CODE:</span>
+                <span id="coop-display-room-code" class="lobby-code-text">-----</span>
+                <button id="coop-copy-code-btn" class="coop-copy-btn" title="Copy Room Code">📋 COPY</button>
+              </div>
+              <p class="lobby-hint">Share this code with your co-op partner so they can join your realm.</p>
+              
+              <div class="lobby-players-grid">
+                <div class="lobby-player-slot ready">
+                  <span class="slot-crown">👑</span>
+                  <span id="lobby-host-name" class="slot-name">Hero 1 (Host)</span>
+                  <span class="slot-status">READY</span>
+                </div>
+                <div id="lobby-guest-slot" class="lobby-player-slot waiting">
+                  <span class="slot-icon">⏳</span>
+                  <span id="lobby-guest-name" class="slot-name">Waiting for Player 2...</span>
+                  <span class="slot-status">WAITING</span>
+                </div>
+              </div>
+
+              <button id="coop-start-game-btn" class="coop-action-btn primary disabled" disabled>
+                <span>⚔️ EMBARK ON CO-OP QUEST</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel 2: Join Room -->
+          <div id="coop-panel-join" class="coop-panel hidden">
+            <p class="coop-desc">Enter the 5-character private room code provided by your co-op partner.</p>
+            <div class="coop-field-group">
+              <label for="coop-guest-name">Your Character Name</label>
+              <input type="text" id="coop-guest-name" class="coop-input" value="Hero 2" maxlength="16" placeholder="Enter name..." />
+            </div>
+            <div class="coop-field-group">
+              <label for="coop-input-code">5-Character Room Code</label>
+              <input type="text" id="coop-input-code" class="coop-input coop-code-input" maxlength="5" placeholder="e.g. 7K2X9" />
+            </div>
+            <div class="coop-actions-row">
+              <button id="coop-join-room-btn" class="coop-action-btn secondary">
+                <span>CONNECT & JOIN ROOM</span>
+              </button>
+            </div>
+            <div id="coop-join-status" class="coop-join-status hidden"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Discovery Floating Banner -->
+    <div id="discovery-banner" class="discovery-banner hidden">
+      <div class="discovery-banner-glow"></div>
+      <div class="discovery-banner-content">
+        <span id="discovery-type" class="discovery-type">📍 LANDMARK DISCOVERED</span>
+        <h3 id="discovery-title" class="discovery-title">Eagle's Peak Cairn</h3>
+        <span id="discovery-reward" class="discovery-reward">+30 EXPLORATION XP</span>
+      </div>
+    </div>
+
+    <!-- ==================== IN-GAME HUD ==================== -->
+    <div id="ui-overlay" class="hidden">
+      <div id="top-bar">
+        <!-- Unified Single-Line Minimized Menu Bar -->
+        <div id="hud-bar" class="hud-bar">
+          <!-- Level -->
+          <div id="hud-level-badge" class="hud-item hud-level" title="Hero Level">
+            <span class="level-star">⭐</span>
+            <span id="hud-level-text" class="level-text">LVL 1</span>
+            <div class="xp-mini-track" title="XP Progress">
+              <div id="hud-xp-fill" class="xp-fill"></div>
+            </div>
+          </div>
+
+          <span class="hud-sep"></span>
+
+          <!-- Health -->
+          <div id="player-health-bar" class="hud-item player-health-bar" title="Hero Health">
+            <span class="hud-icon">❤️</span>
+            <div class="vital-track health-track">
+              <div id="health-fill" class="vital-fill health-fill"></div>
+            </div>
+            <span id="health-text" class="vital-num health-text">100 / 100</span>
+          </div>
+
+          <!-- Stamina -->
+          <div id="player-stamina-bar" class="hud-item player-stamina-bar" title="Hero Stamina">
+            <span class="hud-icon">⚡</span>
+            <div class="vital-track stamina-track">
+              <div id="stamina-fill" class="vital-fill stamina-fill"></div>
+            </div>
+            <span id="stamina-text" class="vital-num stamina-text">100 / 100</span>
+          </div>
+
+          <span class="hud-sep"></span>
+
+          <!-- Gold Counter -->
+          <div id="hud-gold-counter" class="hud-item gold-counter-badge" title="Ethiopian Birr Currency (ብር)">
+            <span class="hud-icon">🪙</span>
+            <span id="hud-gold-text" class="gold-text">150 ብር</span>
+          </div>
+
+          <!-- Crystal / Wollo Opal Counter -->
+          <div id="crystal-counter" class="hud-item crystal-counter" title="Sacred Wollo Opals (የወሎ ዕንቁዎች)">
+            <span class="hud-icon">💎</span>
+            <span id="crystal-text" class="crystal-text">0 / 5 ዕንቁ</span>
+          </div>
+
+          <!-- Stealth Awareness Status -->
+          <div id="stealth-indicator-badge" class="hud-item stealth-indicator-badge" title="Stealth Awareness">
+            <span id="stealth-eye-icon" class="hud-icon">👁️</span>
+            <span id="stealth-status-text" class="stealth-text">HIDDEN</span>
+          </div>
+
+          <!-- Movement Stance (Running / Sneaking) -->
+          <div id="movement-stance-badge" class="hud-item movement-stance-badge" title="Movement Stance">
+            <span id="stance-icon" class="hud-icon">🏃</span>
+            <span id="stance-label" class="stance-text">RUN</span>
+          </div>
+
+          <!-- Mount Riding Stance (Walia Highland Steed) -->
+          <div id="mount-stance-badge" class="hud-item mount-stance-badge hidden" title="Riding Sacred Walia Mount (ዋላ)">
+            <span class="mount-icon">🐎</span>
+            <span id="mount-speed-text" class="mount-speed-text">TROT</span>
+          </div>
+
+          <!-- Score -->
+          <div id="score-badge" class="hud-item score-badge" title="Score">
+            <span class="hud-icon">🏆</span>
+            <span id="score-text" class="score-text">0 PTS</span>
+          </div>
+
+          <span class="hud-sep"></span>
+
+          <!-- Menu Button inside the bar -->
+          <button id="hud-menu-toggle-btn" class="hud-item hud-menu-btn" title="Open Game Menu (Tab / M)">
+            <span id="hud-toggle-icon">☰</span>
+            <span class="hud-toggle-label">MENU</span>
+          </button>
+        </div>
+
+        <!-- Hidden Slide-Out Menu Drawer (Opens only when MENU is clicked) -->
+        <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
+          <div class="hud-dropdown-header">
+            <div id="game-header">
+              <span class="hud-dropdown-title">ጥላ ፍለጋ • SHADOW QUEST</span>
+              <div id="stage-badge" class="stage-badge">ደረጃ ፩: ደብረ ስሜን • STAGE 1: SIMIEN HIGHLANDS</div>
+            </div>
+            <button id="close-hud-menu-btn" class="hud-dropdown-close" title="Close Menu">✕</button>
+          </div>
+
+          <!-- Dynamic Weather & Time in Menu -->
+          <div id="weather-time-badge" class="weather-time-badge" title="Current Weather & Time of Day">
+            <span id="weather-icon" class="weather-icon">☀️</span>
+            <span id="weather-name" class="weather-name">Clear Skies</span>
+            <span class="weather-divider">•</span>
+            <span id="time-text" class="time-text">02:00 PM</span>
+          </div>
+
+          <!-- Quick Action Shortcuts -->
+          <div class="hud-dropdown-actions">
+            <button id="inventory-toggle-btn" class="hud-drawer-btn" title="Open Inventory (I)">
+              <span class="drawer-btn-icon">🎒</span>
+              <span class="drawer-btn-title">INVENTORY • እቃ</span>
+              <span class="drawer-btn-key">I</span>
+            </button>
+
+            <button id="skills-toggle-btn" class="hud-drawer-btn" title="Open Skill Tree (K)">
+              <span class="drawer-btn-icon">🌳</span>
+              <span class="drawer-btn-title">SKILLS • ችሎታ</span>
+              <span id="hud-sp-badge" class="hud-sp-badge hidden">0 SP</span>
+              <span class="drawer-btn-key">K</span>
+            </button>
+
+            <button id="map-toggle-btn" class="hud-drawer-btn" title="Open World Map (M)">
+              <span class="drawer-btn-icon">🗺️</span>
+              <span class="drawer-btn-title">WORLD MAP • ካርታ</span>
+              <span class="drawer-btn-key">M</span>
+            </button>
+
+            <button id="photo-mode-toggle-btn" class="hud-drawer-btn" title="Photo Mode (P)">
+              <span class="drawer-btn-icon">📷</span>
+              <span class="drawer-btn-title">PHOTO MODE • ፎቶ</span>
+              <span class="drawer-btn-key">P</span>
+            </button>
+
+            <button id="mute-btn" class="hud-drawer-btn" title="Toggle Audio (M)">
+              <span id="mute-icon" class="drawer-btn-icon">🔊</span>
+              <span class="drawer-btn-title">MUTE SOUND • ድምጽ</span>
+              <span class="drawer-btn-key">M</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Co-Op Online Session Status Badge -->
+        <div id="coop-status-badge" class="coop-status-badge hidden" title="Two-Player Co-Op Online Session">
+          <span class="coop-badge-icon">👥</span>
+          <span class="coop-room-code-label">ROOM:</span>
+          <span id="coop-room-code-text" class="coop-room-code-text">-----</span>
+          <span class="coop-divider">•</span>
+          <span id="coop-partner-text" class="coop-partner-text">Waiting for Player 2...</span>
+          <span class="coop-divider">•</span>
+          <span id="coop-ping-text" class="coop-ping-text">--ms</span>
+          <button id="coop-leave-btn" class="coop-leave-btn" title="Leave Co-Op Session">✕</button>
+        </div>
+      </div>
+
+      <!-- Targeted Enemy Health HUD (Boss / Nearby Hostile) -->
+      <div id="targeted-enemy-hud" class="targeted-enemy-hud hidden">
+        <div class="enemy-hud-info">
+          <span id="enemy-hud-name" class="enemy-hud-name">የስሜን ጠባቂ • Highland Sentinel</span>
+          <span id="enemy-hud-hp" class="enemy-hud-hp">80 / 80</span>
+        </div>
+        <div class="enemy-hud-track">
+          <div id="enemy-hud-fill" class="enemy-hud-fill"></div>
+        </div>
+      </div>
+
+      <!-- Dedicated Major Boss Health Bar & Phase Indicator -->
+      <div id="boss-encounter-hud" class="boss-encounter-hud hidden">
+        <div class="boss-hud-header">
+          <div class="boss-name-wrap">
+            <span class="boss-crown-icon">👑</span>
+            <span id="boss-hud-name" class="boss-hud-name">አርዌ — የጥንቱ ዘንዶ • ARWE THE ANCIENT ZANDO</span>
+          </div>
+          <span id="boss-hud-phase" class="boss-hud-phase phase-1">PHASE 1: GUARDIAN AWAKENING</span>
+        </div>
+        <div class="boss-bar-wrapper">
+          <div class="boss-hud-track">
+            <div id="boss-hud-fill" class="boss-hud-fill" style="width: 100%;"></div>
+            <div class="boss-phase-marker marker-p2" style="left: 65%;" title="Phase 2 Threshold"></div>
+            <div class="boss-phase-marker marker-p3" style="left: 30%;" title="Phase 3 Threshold"></div>
+          </div>
+          <div class="boss-bar-decorations">
+            <span class="boss-gem-left">◆</span>
+            <span id="boss-hud-hp-text" class="boss-hud-hp-text">450 / 450 HP</span>
+            <span class="boss-gem-right">◆</span>
+          </div>
+        </div>
+        <div id="boss-stagger-banner" class="boss-stagger-banner hidden">⚡ STAGGERED — VULNERABLE!</div>
+      </div>
+
+      <!-- Quest Objectives Tracker (Hidden for realistic street exploration) -->
+      <div id="quest-tracker" class="quest-tracker" style="display: none !important;">
+        <h3 id="quest-title" class="quest-title">RESTORE THE FOREST</h3>
+        <ul id="quest-objectives" class="quest-objectives">
+          <li id="obj-enemies" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Enemies defeated: 0 / 3</span>
+          </li>
+          <li id="obj-crystals" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Crystals collected: 0 / 5</span>
+          </li>
+          <li id="obj-entrance" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Ancient entrance: Locked</span>
+          </li>
+          <li id="obj-exit" class="obj-item">
+            <span class="obj-dot"></span>
+            <span class="obj-label">Ruins Exit Portal: Sealed</span>
+          </li>
+        </ul>
+
+        <!-- Side Quests Tracker Section -->
+        <div id="side-quests-container" class="side-quests-container hidden">
+          <h4 class="side-quests-header">SIDE QUESTS</h4>
+          <ul id="side-quests-list" class="side-quests-list">
+            <!-- Dynamically populated side quests -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Contextual Interaction Prompt Banner -->
+      <div id="interaction-prompt" class="interaction-prompt hidden">
+        <span class="prompt-icon">💡</span>
+        <span id="interaction-prompt-text">Step into the Altar Portal to Complete Mission</span>
+      </div>
+
+      <!-- Unlock Notification Banner -->
+      <div id="unlock-banner" class="unlock-banner hidden">
+        <span class="unlock-icon">✨</span>
+        <span id="unlock-banner-text">ANCIENT RUINS UNLOCKED - The portal barrier has dissolved!</span>
+      </div>
+
+      <!-- Floating Collect Notification Toast -->
+      <div id="collect-toast" class="collect-toast hidden">
+        <span id="toast-text">+1 Shadow Crystal</span>
+      </div>
+
+      <!-- Persistent Save Status Indicator Toast -->
+      <div id="save-indicator" class="save-indicator hidden">
+        <span id="save-indicator-icon" class="save-indicator-icon">💾</span>
+        <span id="save-indicator-text" class="save-indicator-text">GAME PROGRESS SAVED</span>
+      </div>
+
+      <!-- Pointer Lock Hint -->
+      <div id="pointer-lock-hint" class="pointer-lock-hint">
+        <span>Click screen to enable 360° Mouse Look</span>
+      </div>
+
+      <div id="controls-hint">
+        <span>[W A S D] Move • [Shift] Sprint • [Space] Jump • [V] Roll • [Left Click / F] Strike • [Q / R-Click] Heavy Spin • [K] Skills • [I] Inventory • [M] Map • [P] Photo • [ESC] Pause</span>
+      </div>
+    </div>
+
+    <!-- ==================== PHOTO MODE OVERLAY ==================== -->
+    <div id="photo-mode-overlay" class="photo-mode-overlay hidden">
+      <!-- Rule of thirds & viewfinder frame -->
+      <div class="photo-viewfinder">
+        <div class="photo-rule-of-thirds">
+          <div class="grid-line grid-v1"></div>
+          <div class="grid-line grid-v2"></div>
+          <div class="grid-line grid-h1"></div>
+          <div class="grid-line grid-h2"></div>
+        </div>
+        <div class="photo-center-crosshair"></div>
+        <div class="photo-hud-tag">PHOTO MODE</div>
+      </div>
+
+      <!-- Controls Dock at Bottom -->
+      <div id="photo-controls-dock" class="photo-controls-dock">
+        <div class="photo-dock-header">
+          <div class="photo-dock-title">
+            <span class="photo-dock-icon">📷</span>
+            <h3>CINEMATIC PHOTO STUDIO</h3>
+          </div>
+          <div class="photo-dock-shortcuts">
+            <span>[Drag] Look • [WASD] Fly • [Q/E/Space] Elevate • [Wheel] Zoom • [H] Hide UI</span>
+          </div>
+          <button id="photo-btn-hide-ui" class="photo-tool-btn" title="Hide Photo UI (H / Tab)">
+            <span>👁️ HIDE UI</span>
+          </button>
+        </div>
+
+        <div class="photo-controls-grid">
+          <!-- Column 1: Lens & Framing -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">LENS & FRAMING</div>
+            
+            <div class="photo-slider-row">
+              <label for="photo-slider-fov">Field of View (Zoom)</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-fov" min="20" max="90" step="1" value="60" class="photo-range" />
+                <span id="photo-val-fov" class="photo-val">60°</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-roll">Camera Roll (Dutch Angle)</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-roll" min="-35" max="35" step="1" value="0" class="photo-range" />
+                <span id="photo-val-roll" class="photo-val">0°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Atmosphere & Lighting -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">ATMOSPHERE & GRADING</div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-exposure">Exposure / Brightness</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-exposure" min="0.4" max="2.2" step="0.05" value="1.0" class="photo-range" />
+                <span id="photo-val-exposure" class="photo-val">1.00x</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-select-filter">Artistic Color Filter</label>
+              <div class="photo-select-wrap">
+                <select id="photo-select-filter" class="photo-select">
+                  <option value="none">Natural (Default)</option>
+                  <option value="vibrant">Vibrant Fantasy</option>
+                  <option value="noir">Dark Noir (B&W)</option>
+                  <option value="sunset">Golden Sunset</option>
+                  <option value="mystic">Mystic Moonlight</option>
+                  <option value="dramatic">Cinematic Contrast</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Cinematics & Focus -->
+          <div class="photo-control-col">
+            <div class="photo-col-title">CINEMATICS & FOCUS</div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-focus">Focus Distance</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-focus" min="1.0" max="30.0" step="0.5" value="5.0" class="photo-range" />
+                <span id="photo-val-focus" class="photo-val">5.0m</span>
+              </div>
+            </div>
+
+            <div class="photo-slider-row">
+              <label for="photo-slider-blur">Depth of Field Blur</label>
+              <div class="photo-slider-wrap">
+                <input type="range" id="photo-slider-blur" min="0.0" max="1.0" step="0.05" value="0" class="photo-range" />
+                <span id="photo-val-blur" class="photo-val">0%</span>
+              </div>
+            </div>
+
+            <div class="photo-checkbox-row">
+              <label for="photo-toggle-letterbox" class="photo-checkbox-label">
+                <input type="checkbox" id="photo-toggle-letterbox" class="photo-checkbox" />
+                <span>2.39:1 Cinematic Letterbox Bars</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="photo-dock-actions">
+          <div class="photo-dock-actions-left">
+            <button id="photo-btn-reset" class="photo-action-btn secondary">
+              <span>↺ RESET CAMERA</span>
+            </button>
+          </div>
+          <div class="photo-dock-actions-right">
+            <button id="photo-btn-exit" class="photo-action-btn danger">
+              <span>✕ EXIT PHOTO MODE [P/ESC]</span>
+            </button>
+            <button id="photo-btn-capture" class="photo-action-btn primary capture-glow">
+              <span>📸 CAPTURE PHOTO [ENTER]</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Show UI Pill Button (visible when UI is hidden) -->
+      <button id="photo-show-ui-pill" class="photo-show-ui-pill hidden">
+        <span>👁️ Show Controls [H]</span>
+      </button>
+    </div>
+
+    <!-- ==================== PAUSE SCREEN ==================== -->
+    <div id="pause-screen" class="hidden">
+      <div class="pause-content">
+        <h2 class="pause-title">GAME PAUSED</h2>
+        <p class="pause-instructions">Press <kbd>ESC</kbd> or click button to resume quest</p>
+
+        <div class="pause-actions">
+          <button id="resume-btn" class="pause-btn primary">RESUME ADVENTURE</button>
+          <button id="pause-coop-leave-btn" class="pause-btn danger hidden">👥 LEAVE CO-OP (RETURN TO SINGLE PLAYER)</button>
+          <button id="pause-photo-btn" class="pause-btn">📷 PHOTO MODE</button>
+          <button id="pause-save-btn" class="pause-btn save-btn">💾 QUICK SAVE</button>
+          <button id="pause-slots-btn" class="pause-btn save-btn">📁 SAVE / LOAD SLOTS</button>
+          <button id="pause-load-btn" class="pause-btn load-btn">📂 QUICK LOAD</button>
+          <button id="pause-restart-btn" class="pause-btn secondary">RESTART LEVEL</button>
+          <button id="pause-settings-btn" class="pause-btn secondary">SETTINGS</button>
+          <button id="pause-menu-btn" class="pause-btn danger">RETURN TO MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== GAME OVER SCREEN ==================== -->
+    <div id="game-over-screen" class="game-over-screen hidden">
+      <div class="game-over-card">
+        <div class="game-over-badge">DEFEAT</div>
+        <h1 class="game-over-title">YOU HAVE FALLEN</h1>
+        <p class="game-over-subtitle">The ancient darkness has consumed your light. Rise again and conquer the trial.</p>
+
+        <div class="game-over-actions">
+          <button id="gameover-retry-btn" class="gameover-btn primary">RETRY LEVEL</button>
+          <button id="gameover-menu-btn" class="gameover-btn secondary">RETURN TO MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MISSION COMPLETED SCREEN ==================== -->
+    <div id="victory-screen" class="victory-screen hidden">
+      <div class="victory-card">
+        <div id="victory-badge" class="victory-badge">MISSION ACCOMPLISHED</div>
+        <h1 id="victory-title" class="victory-title">RESTORE THE FOREST</h1>
+        <p id="victory-subtitle" class="victory-subtitle">The ancient darkness recedes as the forest comes back to life.</p>
+
+        <div class="results-grid">
+          <div class="result-row">
+            <span id="res-enemies-label">Enemies Defeated:</span>
+            <span id="res-enemies" class="res-val">3 / 3 (+900 pts)</span>
+          </div>
+          <div class="result-row">
+            <span id="res-crystals-label">Crystals Gathered:</span>
+            <span id="res-crystals" class="res-val">5 / 5 (+1000 pts)</span>
+          </div>
+          <div class="result-row">
+            <span>Completion Time:</span>
+            <span id="res-time" class="res-val">01:45</span>
+          </div>
+          <div class="result-row">
+            <span>Stage Score:</span>
+            <span id="res-stage-score" class="res-val">2,850 PTS</span>
+          </div>
+          <div class="result-row total-row">
+            <span>TOTAL CUMULATIVE SCORE:</span>
+            <span id="res-score" class="res-val-gold">2,850 PTS</span>
+          </div>
+        </div>
+
+        <div class="victory-actions">
+          <button id="next-level-btn" class="victory-btn">CONTINUE TO NEXT LEVEL</button>
+          <button id="victory-restart-btn" class="victory-btn secondary">RESTART LEVEL</button>
+          <button id="victory-menu-btn" class="victory-btn tertiary">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CLEAN LOADING SCREEN ==================== -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <h1 class="loader-title">SHADOW QUEST</h1>
+        <p class="loader-subtitle">Preparing 3D World...</p>
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="loading-status" class="loading-status">Initializing engine...</p>
+      </div>
+    </div>
+
+    <!-- Error Screen (Fallback) -->
+    <div id="error-screen" class="hidden">
+      <div class="error-content">
+        <h2>Unable to Initialize 3D Engine</h2>
+        <p id="error-message">Please check WebGL support in your browser.</p>
+        <button id="error-reload-btn" onclick="if ('caches' in window) { caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => { window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now(); }); } else { window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now(); }" style="margin-top: 20px; padding: 12px 24px; background: linear-gradient(135deg, #eab308, #ca8a04); color: #1e1b4b; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14px; letter-spacing: 0.06em; box-shadow: 0 4px 14px rgba(234,179,8,0.4); transition: transform 0.15s, filter 0.15s;">🔄 RELOAD GAME (CLEAR CACHE)</button>
+      </div>
+    </div>
+
+  </body>
+</html>

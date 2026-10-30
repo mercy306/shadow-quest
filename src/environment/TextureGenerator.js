@@ -520,6 +520,83 @@ export class TextureGenerator {
   }
 
   /**
+   * Generates iconic Harari two-tone painted wall texture (signature look of Harar Jugol as seen in documentary vlogs).
+   * Bottom section: vibrant Harari Indigo/Cobalt Blue, Sky Blue, or Terracotta with splash weathering.
+   * Top section: crisp whitewashed lime plaster with subtle weathering.
+   */
+  static createHararTwoToneTexture(bottomHex = '#1d4ed8', topHex = '#f8fafc', splitRatio = 0.38, size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const splitY = Math.floor(size * (1 - splitRatio));
+
+    // Top section: Whitewashed lime plaster
+    ctx.fillStyle = topHex;
+    ctx.fillRect(0, 0, size, splitY);
+
+    // Subtle lime plaster wash variation on top
+    const topGrad = ctx.createLinearGradient(0, 0, 0, splitY);
+    topGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+    topGrad.addColorStop(1, 'rgba(0, 0, 0, 0.04)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, size, splitY);
+
+    // Bottom section: Iconic Harari cobalt blue / terracotta
+    ctx.fillStyle = bottomHex;
+    ctx.fillRect(0, splitY, size, size - splitY);
+
+    // Hand-painted organic dividing border with subtle wavering brush strokes
+    ctx.fillStyle = bottomHex;
+    ctx.beginPath();
+    ctx.moveTo(0, splitY);
+    for (let x = 0; x <= size; x += 8) {
+      const wave = Math.sin(x * 0.05) * 2.5 + (Math.random() - 0.5) * 3;
+      ctx.lineTo(x, splitY + wave);
+    }
+    ctx.lineTo(size, size);
+    ctx.lineTo(0, size);
+    ctx.closePath();
+    ctx.fill();
+
+    // Weathered plaster grain and lime efflorescence
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 22;
+      const speckle = Math.random() < 0.03 ? (Math.random() - 0.5) * 35 : 0;
+      data[i] = Math.min(255, Math.max(0, data[i] + noise + speckle));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise + speckle));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise + speckle));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // Subtle fine hairline plaster fractures
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.lineWidth = 1.0;
+    for (let f = 0; f < 5; f++) {
+      let cx = Math.random() * size;
+      let cy = Math.random() * size;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      for (let s = 0; s < 3; s++) {
+        cx += (Math.random() - 0.5) * 35;
+        cy += Math.random() * 25;
+        ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.repeat.set(1, 1);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  /**
    * Generates historic Harar Jugol cobblestone street paving texture.
    * Irregular rounded limestone & basalt stones embedded in dark sand mortar.
    */

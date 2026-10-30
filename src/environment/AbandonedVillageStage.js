@@ -87,6 +87,27 @@ export class AbandonedVillageStage {
       metalness: 0.1
     });
 
+    // Iconic Two-Tone Harari Plaster Textures (from real-world Harar Jugol documentary footage)
+    this.hararTwoToneBlueTex = TextureGenerator.createHararTwoToneTexture('#1d4ed8', '#f8fafc', 0.38, 512);
+    this.hararTwoToneCyanTex = TextureGenerator.createHararTwoToneTexture('#0284c7', '#f8fafc', 0.38, 512);
+    this.hararTwoToneTerracottaTex = TextureGenerator.createHararTwoToneTexture('#c2410c', '#f8fafc', 0.38, 512);
+
+    this.hararTwoToneBlueMat = new THREE.MeshStandardMaterial({
+      map: this.hararTwoToneBlueTex,
+      roughness: 0.86,
+      metalness: 0.05
+    });
+    this.hararTwoToneCyanMat = new THREE.MeshStandardMaterial({
+      map: this.hararTwoToneCyanTex,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    this.hararTwoToneTerracottaMat = new THREE.MeshStandardMaterial({
+      map: this.hararTwoToneTerracottaTex,
+      roughness: 0.88,
+      metalness: 0.05
+    });
+
     // Harar Jugol Architectural Stucco Colors with Realistic Lime Plaster Texturing
     this.hararBlueMat = new THREE.MeshStandardMaterial({
       map: this.hararPlasterBlueTex,
@@ -1264,16 +1285,16 @@ export class AbandonedVillageStage {
     // WEST STREET BLOCK (x: -14.0, facing East towards street: rotY = Math.PI / 2)
     const westRot = Math.PI / 2;
     const westBuildings = [
-      { z: -80.0, amh: 'የሐረር ቡና መፍጫ', eng: 'HARAR COFFEE ROASTERY', bg: '#78350f', fg: '#fef08a', h: 8.5, mat: this.hararBlueMat },
+      { z: -80.0, amh: 'የሐረር ቡና መፍጫ', eng: 'HARAR COFFEE ROASTERY', bg: '#78350f', fg: '#fef08a', h: 8.5, mat: this.hararTwoToneBlueMat },
       { z: -64.0, amh: 'የኢትዮጵያ ንግድ ባንክ', eng: 'CBE HARAR JUGOL BRANCH', bg: '#6b21a8', fg: '#fef08a', h: 10.2, mat: this.hararWhiteMat },
-      { z: -48.0, amh: 'አል-አሚን ሻይና ሳምቡሳ', eng: 'AL-AMIN TEA & SAMBUSA CAFE', bg: '#047857', fg: '#ffffff', h: 8.4, mat: this.hararTerracottaMat },
-      { z: -32.0, amh: 'ቴሌብር ሐረር', eng: 'TELEBIRR HARAR JUGOL', bg: '#0284c7', fg: '#ffffff', h: 8.2, mat: this.hararBlueMat },
-      { z: -16.0, amh: 'የሐረሪ ባህል ቅርሶች', eng: 'HARARI CULTURAL BASKETS', bg: '#b45309', fg: '#fef3c7', h: 8.0, mat: this.hararTerracottaMat },
-      { z: 0.0, amh: 'አስመዲን ቡና ቤት', eng: 'ASMADIN TRADITIONAL BUNNA', bg: '#78350f', fg: '#fef08a', h: 8.4, mat: this.hararBlueMat },
+      { z: -48.0, amh: 'አል-አሚን ሻይና ሳምቡሳ', eng: 'AL-AMIN TEA & SAMBUSA CAFE', bg: '#047857', fg: '#ffffff', h: 8.4, mat: this.hararTwoToneTerracottaMat },
+      { z: -32.0, amh: 'ቴሌብር ሐረር', eng: 'TELEBIRR HARAR JUGOL', bg: '#0284c7', fg: '#ffffff', h: 8.2, mat: this.hararTwoToneCyanMat },
+      { z: -16.0, amh: 'የሐረሪ ባህል ቅርሶች', eng: 'HARARI CULTURAL BASKETS', bg: '#b45309', fg: '#fef3c7', h: 8.0, mat: this.hararTwoToneBlueMat },
+      { z: 0.0, amh: 'አስመዲን ቡና ቤት', eng: 'ASMADIN TRADITIONAL BUNNA', bg: '#78350f', fg: '#fef08a', h: 8.4, mat: this.hararTwoToneCyanMat },
       { z: 16.0, amh: 'አዋሽ ባንክ ሸዋ በር', eng: 'AWASH BANK SHOA GATE', bg: '#0369a1', fg: '#f97316', h: 9.8, mat: this.hararWhiteMat },
-      { z: 32.0, amh: 'የሐረር ፍራፍሬና ጫት', eng: 'HARAR FRESH PRODUCE', bg: '#15803d', fg: '#fef08a', h: 8.0, mat: this.hararTerracottaMat },
-      { z: 48.0, amh: 'ኤረር በር ፋርማሲ', eng: 'ERER GATE PHARMACY', bg: '#059669', fg: '#ffffff', h: 8.2, mat: this.hararBlueMat },
-      { z: 64.0, amh: 'ራስ መኮንን ሆቴል', eng: 'RAS MEKONNEN HOTEL', bg: '#b45309', fg: '#fef3c7', h: 10.5, mat: this.hararWhiteMat }
+      { z: 32.0, amh: 'የሐረር ፍራፍሬና ጫት', eng: 'HARAR FRESH PRODUCE', bg: '#15803d', fg: '#fef08a', h: 8.0, mat: this.hararTwoToneTerracottaMat },
+      { z: 48.0, amh: 'ኤረር በር ፋርማሲ', eng: 'ERER GATE PHARMACY', bg: '#059669', fg: '#ffffff', h: 8.2, mat: this.hararTwoToneBlueMat },
+      { z: 64.0, amh: 'ራስ መኮንን ሆቴል', eng: 'RAS MEKONNEN HOTEL', bg: '#b45309', fg: '#fef3c7', h: 10.5, mat: this.hararTwoToneCyanMat }
     ];
 
     westBuildings.forEach((b, idx) => {
@@ -1866,38 +1887,48 @@ export class AbandonedVillageStage {
     const portals = [
       {
         z: -105.0,
-        amharic: 'የሐረር ጁጎል መውጫ ➔ ወደ ድሬዳዋና አዲስ አበባ',
-        english: 'HARAR JUGOL FREEWAY ➔ TO DIRE DAWA & ADDIS ABABA'
+        amharic: 'የሐረር ጁጎል ታሪካዊ መግቢያ በር • ወደ ድሬዳዋ መንገድ',
+        english: 'HISTORIC HARAR JUGOL GATEWAY • DIRE DAWA HIGHWAY'
       },
       {
         z: 105.0,
-        amharic: 'ወደ ባቢሌና ምስራቅ ቆላማ ምድር',
-        english: 'BABILE ELEPHANT SANCTUARY ➔ EASTERN VALLEYS'
+        amharic: 'የደቡብ ምስራቅ ቆላማ ምድር በር • ወደ ባቢሌና ኦጋዴን',
+        english: 'SOUTHEAST GATEWAY • BABILE ELEPHANT SANCTUARY'
       }
     ];
 
     portals.forEach(p => {
-      const gantry = new THREE.Group();
-      gantry.position.set(0, 0, p.z);
+      const gate = new THREE.Group();
+      gate.position.set(0, 0, p.z);
 
-      [-5.8, 5.8].forEach(cx => {
-        const colMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 6.4, 8), this.balconyMat);
-        colMesh.position.set(cx, 3.2, 0);
-        gantry.add(colMesh);
+      // Flanking stone pillars matching the 16th-century Jugol wall
+      [-6.0, 6.0].forEach(cx => {
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(2.0, 7.2, 2.0), this.jugolStoneMat);
+        pillar.position.set(cx, 3.6, 0);
+        pillar.castShadow = true;
+        gate.add(pillar);
+
+        // Stone battlement crenels on each pillar
+        const crenel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.6), this.hararWhiteMat);
+        crenel.position.set(cx, 7.2 + 0.35, 0);
+        gate.add(crenel);
       });
 
-      const truss = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.4, 0.4), this.balconyMat);
-      truss.position.set(0, 6.0, 0);
-      gantry.add(truss);
+      // Monumental arch bridge beam
+      const archBeam = new THREE.Mesh(new THREE.BoxGeometry(12.8, 1.6, 2.2), this.hararWhiteMat);
+      archBeam.position.set(0, 6.4, 0);
+      archBeam.castShadow = true;
+      gate.add(archBeam);
 
+      // Historic Ge'ez and English gate name sign
       const signMat = new THREE.MeshBasicMaterial({
-        map: this.createSignTexture(p.amharic, p.english, '#15803d', '#ffffff')
+        map: this.createSignTexture(p.amharic, p.english, '#047857', '#ffffff')
       });
-      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(9.2, 1.4, 0.1), signMat);
-      signBoard.position.set(0, 5.2, 0);
-      gantry.add(signBoard);
+      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(9.8, 1.25, 0.1), signMat);
+      signBoard.position.set(0, 6.4, 1.15);
+      gate.add(signBoard);
 
-      this.group.add(gantry);
+      this.group.add(gate);
     });
   }
 

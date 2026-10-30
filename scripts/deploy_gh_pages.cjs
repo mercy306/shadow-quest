@@ -20,5 +20,23 @@ execSync('git push -f origin gh-pages', { cwd: tempDir, stdio: 'inherit' });
 
 console.log('4. Cleaning up temp directory...');
 fs.rmSync(tempDir, { recursive: true, force: true });
-
 console.log('🎉 Successfully published production build to gh-pages branch!');
+
+// 5. Automatic Portfolio & Vercel Sync
+const portfolioPath = path.resolve('C:/Users/bsd/Desktop/all in one/New folder 123/portfolio/portfolio');
+if (fs.existsSync(portfolioPath)) {
+  console.log('5. Syncing portfolio repository for automatic Vercel deployment...');
+  try {
+    const status = execSync('git status --porcelain', { cwd: portfolioPath, encoding: 'utf8' });
+    if (status && status.trim().length > 0) {
+      execSync('git add components/Projects.tsx', { cwd: portfolioPath, stdio: 'inherit' });
+      execSync('git commit -m "chore(sync): update Shadow Quest Harar Jugol 3D live project"', { cwd: portfolioPath, stdio: 'inherit' });
+      execSync('git push origin main', { cwd: portfolioPath, stdio: 'inherit' });
+      console.log('🚀 Successfully pushed portfolio update to GitHub (triggers automatic Vercel deploy)!');
+    } else {
+      console.log('ℹ️ Portfolio repository is already up to date with Vercel.');
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not automatically push portfolio sync:', err.message);
+  }
+}

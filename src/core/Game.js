@@ -19,6 +19,7 @@ import { MountManager } from '../entities/MountManager.js';
 import { PhotoModeManager } from '../systems/PhotoModeManager.js';
 import { NetworkManager } from '../network/NetworkManager.js';
 import { loadSharedModel } from './ModelLoader.js';
+import { PostProcessor } from './PostProcessor.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
@@ -70,7 +71,7 @@ export class Game {
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 1.0;
+      this.renderer.toneMappingExposure = 1.32;
       this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       if (!this.container) {
@@ -90,6 +91,7 @@ export class Game {
 
       // 4. Camera Manager with Pointer Lock
       this.cameraManager = new CameraManager();
+      this.postProcessor = new PostProcessor(this.renderer, this.scene, this.cameraManager.getCamera());
       this.cameraManager.setupPointerLock(this.renderer.domElement);
       this.cameraManager.setLockEnabled(false); // Initially disabled on main menu
       this.cameraManager.onLockChange((isLocked) => {
@@ -835,6 +837,10 @@ export class Game {
       const ratio = this.currentGraphicsPreset === 'low' ? 1.0 : (this.currentGraphicsPreset === 'medium' ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2));
       this.renderer.setPixelRatio(ratio);
     }
+
+    if (this.postProcessor) {
+      this.postProcessor.setSize(width, height);
+    }
   }
 
   start() {
@@ -1007,7 +1013,12 @@ export class Game {
 
   render() {
     if (this.renderer && this.scene && this.cameraManager) {
-      this.renderer.render(this.scene, this.cameraManager.getCamera());
+      const cam = this.cameraManager.getCamera();
+      if (this.postProcessor) {
+        this.postProcessor.render(cam);
+      } else {
+        this.renderer.render(this.scene, cam);
+      }
     }
   }
 
@@ -1022,6 +1033,10 @@ export class Game {
     }
     if (this.vfxManager) {
       this.vfxManager.dispose();
+    }
+    if (this.postProcessor) {
+      this.postProcessor.dispose();
+      this.postProcessor = null;
     }
     if (this.audioManager) {
       this.audioManager.stopAmbience();

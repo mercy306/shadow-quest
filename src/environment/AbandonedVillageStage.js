@@ -24,6 +24,7 @@ export class AbandonedVillageStage {
     this.group = new THREE.Group();
     this.colliders = [];
     this.animatedHyenas = [];
+    this.animatedPedestrians = [];
 
     this.initMaterials();
     this.buildTerrain();
@@ -43,6 +44,7 @@ export class AbandonedVillageStage {
     this.buildAzmariAndHarariMusicStation();
     this.buildCityStreetFurnitureAndLights();
     this.buildDistantHighwayPortals();
+    this.buildAtmosphericSunlightMotes();
 
     this.scene.add(this.group);
   }
@@ -1204,7 +1206,14 @@ export class AbandonedVillageStage {
       const h = config.h || 8.4;
       const d = config.d || 7.0;
 
-      // Wall plaster in Harari architectural color
+      // 1. Heavy Stone Base Plinth (Grounded 3D foundation along sidewalk)
+      const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.35, 0.45, d + 0.35), this.cobbleMat);
+      plinth.position.y = 0.225;
+      plinth.castShadow = true;
+      plinth.receiveShadow = true;
+      bldg.add(plinth);
+
+      // 2. Main Wall Plaster in signature two-tone or historic Harari plaster
       const shellGeo = new THREE.BoxGeometry(w, h, d);
       const shell = new THREE.Mesh(shellGeo, config.wallMat || this.hararBlueMat);
       shell.position.y = h / 2;
@@ -1212,25 +1221,57 @@ export class AbandonedVillageStage {
       shell.receiveShadow = true;
       bldg.add(shell);
 
-      // Roll-up corrugated shop shutter
+      // 3. Horizontal Timber Stringcourse / Belt molding between ground & upper floors
+      const stringCourse = new THREE.Mesh(new THREE.BoxGeometry(w + 0.22, 0.2, d + 0.22), this.timberMat);
+      stringCourse.position.y = 3.65;
+      stringCourse.castShadow = true;
+      bldg.add(stringCourse);
+
+      // 4. Ground Floor Commercial Frontage
+      // Corrugated steel roll-up shop shutter
       const shutter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.45, 2.7, 0.12), this.shutterMat);
       shutter.position.set(w * 0.18, 1.35, d / 2 + 0.08);
       bldg.add(shutter);
 
-      // Traditional Carved Harari Wooden Double Door (የሐረሪ ባህል የተቀረጸ የእንጨት በር)
+      // Shutter top housing hood & steel guides
+      const shutterHood = new THREE.Mesh(new THREE.BoxGeometry(w * 0.48, 0.32, 0.26), this.timberMat);
+      shutterHood.position.set(w * 0.18, 2.82, d / 2 + 0.15);
+      shutterHood.castShadow = true;
+      bldg.add(shutterHood);
+
+      // Traditional Carved Harari Wooden Double Door
       const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.7, 0.14), this.hararDoorMat);
       door.position.set(-w * 0.24, 1.35, d / 2 + 0.1);
       bldg.add(door);
+
+      // Heavy 3D Timber Doorframe Architrave & Stone Threshold
+      const doorLintel = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.22, 0.26), this.timberMat);
+      doorLintel.position.set(-w * 0.24, 2.8, d / 2 + 0.16);
+      doorLintel.castShadow = true;
+      bldg.add(doorLintel);
+
+      [-w * 0.24 - 0.88, -w * 0.24 + 0.88].forEach(jx => {
+        const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.7, 0.22), this.timberMat);
+        jamb.position.set(jx, 1.35, d / 2 + 0.14);
+        jamb.castShadow = true;
+        bldg.add(jamb);
+      });
+
+      const doorStep = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.14, 0.32), this.cobbleMat);
+      doorStep.position.set(-w * 0.24, 0.07, d / 2 + 0.2);
+      doorStep.castShadow = true;
+      doorStep.receiveShadow = true;
+      bldg.add(doorStep);
 
       // Storefront Signboard
       const signMat = new THREE.MeshBasicMaterial({
         map: this.createSignTexture(config.amharicSign, config.englishSign, config.signBg, config.signFg)
       });
       const sign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.88, 1.05, 0.14), signMat);
-      sign.position.set(0, 3.3, d / 2 + 0.15);
+      sign.position.set(0, 3.25, d / 2 + 0.16);
       bldg.add(sign);
 
-      // Fabric / Metal Awning with striped or solid textures
+      // Fabric / Metal Awning with diagonal support struts
       if (config.hasAwning) {
         const awningMat = config.awningMat || (config.hasStripedAwning ? this.hararAwningMatRed : this.hararAwningMatGreen);
         const awning = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, 0.15, 2.2), awningMat);
@@ -1238,17 +1279,25 @@ export class AbandonedVillageStage {
         awning.rotation.x = 0.14;
         awning.castShadow = true;
         bldg.add(awning);
+
+        // Angled iron support struts connecting awning edge back to wall
+        [-w * 0.4, w * 0.4].forEach(sx => {
+          const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.85, 6), this.chromeMat);
+          strut.rotation.x = Math.PI / 4.2;
+          strut.position.set(sx, 2.2, d / 2 + 0.85);
+          bldg.add(strut);
+        });
       }
 
-      // Traditional Harari Woven Wall Baskets on the Upper Facade (የሐረሪ ቅርጫቶች)
-      [-w * 0.3, w * 0.3].forEach((bx, bIdx) => {
+      // Traditional Harari Woven Wall Baskets on Upper Facade
+      [-w * 0.3, w * 0.3].forEach((bx) => {
         const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.08, 14), this.hararBasketMat);
         basket.rotation.x = Math.PI / 2;
-        basket.position.set(bx, h - 1.4, d / 2 + 0.08);
+        basket.position.set(bx, h - 1.4, d / 2 + 0.1);
         bldg.add(basket);
       });
 
-      // Historic wooden ceiling rafter beams protruding beneath parapet (የእንጨት ማገሮች)
+      // Historic wooden ceiling rafter beams protruding beneath parapet (monkey-head timber beams)
       const rafterCount = 6;
       const rafterStep = (w - 1.2) / (rafterCount - 1);
       for (let r = 0; r < rafterCount; r++) {
@@ -1259,39 +1308,74 @@ export class AbandonedVillageStage {
         bldg.add(rafter);
       }
 
-      // Cascading Bougainvillea flowers on alternating houses
+      // Cascading Bougainvillea flowers
       if (config.hasBougainvillea) {
         const vine = this.createBougainvilleaCluster(1.3);
-        vine.position.set(w / 2 - 0.3, h - 1.5, d / 2 + 0.15);
+        vine.position.set(w / 2 - 0.3, h - 1.5, d / 2 + 0.18);
         bldg.add(vine);
       }
 
-      // Traditional Harari Mashrabiya (Carved Wooden Lattice Balconies)
+      // 5. Upper Storeys with 3D Mashrabiya, Balconies, Timber Lintels, Projecting Sills, and Open Wooden Shutters
       for (let floor = 2; floor <= Math.floor(h / 2.8); floor++) {
         const floorY = floor * 2.7;
         if (floorY + 1.2 < h) {
+          // Balcony slab
           const bSlab = new THREE.Mesh(new THREE.BoxGeometry(w * 0.75, 0.18, 1.4), this.cobbleMat);
           bSlab.position.set(0, floorY, d / 2 + 0.7);
+          bSlab.castShadow = true;
           bldg.add(bSlab);
 
           // Wood lattice screen
           const bRail = new THREE.Mesh(new THREE.BoxGeometry(w * 0.75, 0.85, 0.08), this.timberMat);
           bRail.position.set(0, floorY + 0.45, d / 2 + 1.35);
+          bRail.castShadow = true;
           bldg.add(bRail);
 
+          // Heavy Protruding Timber Window Lintel above
+          const wLintel = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.22, 0.28), this.timberMat);
+          wLintel.position.set(0, floorY + 1.65, d / 2 + 0.14);
+          wLintel.castShadow = true;
+          bldg.add(wLintel);
+
+          // Projecting Stone Window Sill below
+          const wSill = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.14, 0.26), this.cobbleMat);
+          wSill.position.set(0, floorY + 0.2, d / 2 + 0.14);
+          wSill.castShadow = true;
+          bldg.add(wSill);
+
+          // Open Wooden Window Shutters on Left & Right casting realistic shadows
+          const leftShutter = new THREE.Mesh(new THREE.BoxGeometry(0.48, 1.3, 0.05), this.hararDoorMat);
+          leftShutter.position.set(-1.15, floorY + 0.9, d / 2 + 0.12);
+          leftShutter.rotation.y = -0.25;
+          leftShutter.castShadow = true;
+          bldg.add(leftShutter);
+
+          const rightShutter = new THREE.Mesh(new THREE.BoxGeometry(0.48, 1.3, 0.05), this.hararDoorMat);
+          rightShutter.position.set(1.15, floorY + 0.9, d / 2 + 0.12);
+          rightShutter.rotation.y = 0.25;
+          rightShutter.castShadow = true;
+          bldg.add(rightShutter);
+
+          // Recessed Window Glass
           const uWin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 0.1), this.carGlassMat);
           uWin.position.set(0, floorY + 0.9, d / 2 + 0.06);
           bldg.add(uWin);
         }
       }
 
+      // 6. Overhanging Corrugated Roof Eaves (Casts deep continuous shadow on top floor)
+      const eaveCapping = new THREE.Mesh(new THREE.BoxGeometry(w + 0.42, 0.14, d + 0.42), this.shutterMat);
+      eaveCapping.position.y = h + 0.07;
+      eaveCapping.castShadow = true;
+      bldg.add(eaveCapping);
+
       // Parapet & Rooftop ROTO tank
       const parapet = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.65, d + 0.1), config.wallMat || this.hararBlueMat);
-      parapet.position.y = h + 0.32;
+      parapet.position.y = h + 0.4;
       bldg.add(parapet);
 
       const rotoGroup = new THREE.Group();
-      rotoGroup.position.set(-w * 0.25, h, -d * 0.2);
+      rotoGroup.position.set(-w * 0.25, h + 0.1, -d * 0.2);
       const stand = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 1.5), this.balconyMat);
       stand.position.y = 0.35;
       rotoGroup.add(stand);
@@ -1303,12 +1387,22 @@ export class AbandonedVillageStage {
       // Rooftop Satellite Dish
       const dish = new THREE.Mesh(new THREE.SphereGeometry(0.48, 12, 8, 0, Math.PI * 2, 0, Math.PI / 3), this.taxiWhiteMat);
       dish.rotation.x = Math.PI / 3;
-      dish.position.set(w * 0.25, h + 0.9, d * 0.2);
+      dish.position.set(w * 0.25, h + 1.0, d * 0.2);
       bldg.add(dish);
 
+      // 7. Wall-mounted Electric Utility Meter & Conduit
+      const meterBox = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.42, 0.15), this.shutterMat);
+      meterBox.position.set(w / 2 - 0.38, 1.8, d / 2 + 0.1);
+      meterBox.castShadow = true;
+      bldg.add(meterBox);
+
+      const conduit = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.8, 6), this.tireMat);
+      conduit.position.set(w / 2 - 0.38, 0.9, d / 2 + 0.08);
+      bldg.add(conduit);
+
       if (this.physicsWorld) {
-        const halfX = config.rotY ? (d / 2 + 0.2) : (w / 2 + 0.2);
-        const halfZ = config.rotY ? (w / 2 + 0.2) : (d / 2 + 0.2);
+        const halfX = config.rotY ? (d / 2 + 0.25) : (w / 2 + 0.25);
+        const halfZ = config.rotY ? (w / 2 + 0.25) : (d / 2 + 0.25);
         const col = new BoxCollider(config.x, config.z, halfX, halfZ);
         this.physicsWorld.addCollider(col);
         this.colliders.push(col);
@@ -1734,7 +1828,7 @@ export class AbandonedVillageStage {
   buildHararPedestrians() {
     const crowdGroup = new THREE.Group();
 
-    // Helper: Create a stylized realistic textured Ethiopian pedestrian
+    // Helper: Create a stylized realistic textured Ethiopian pedestrian with limbs for animation
     const createPerson = ({ x, y = 0.22, z, rotY = 0, skinColor = 0x5a3825, clothesColor = 0xf8fafc, accentColor = 0x16a34a, hasGabi = false, hasKofia = false, hasShash = false, isSeated = false }) => {
       const person = new THREE.Group();
       person.position.set(x, y, z);
@@ -1763,6 +1857,11 @@ export class AbandonedVillageStage {
         metalness: 0.05
       });
 
+      let headMesh = null;
+      let leftArmMesh = null;
+      let rightArmMesh = null;
+      let cupArmMesh = null;
+
       if (isSeated) {
         // Seated lower body
         const thighs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.42), clothesMat);
@@ -1779,17 +1878,15 @@ export class AbandonedVillageStage {
         person.add(torso);
 
         // Head & Neck
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
-        head.position.set(0, 1.20, 0);
-        person.add(head);
+        headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
+        headMesh.position.set(0, 1.20, 0);
+        person.add(headMesh);
 
         if (hasGabi) {
-          // Traditional draped white Gabi blanket over shoulders
           const gabi = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.55, 10), this.hararWhiteMat);
           gabi.position.set(0, 0.78, 0);
           person.add(gabi);
 
-          // Tibeb colored embroidered border trim
           const trim = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.06, 10), accentMat);
           trim.position.set(0, 0.52, 0);
           person.add(trim);
@@ -1802,10 +1899,10 @@ export class AbandonedVillageStage {
         }
 
         // Arm holding small cini coffee cup
-        const cupArm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.32, 6), clothesMat);
-        cupArm.rotation.x = Math.PI / 3;
-        cupArm.position.set(0.18, 0.72, 0.16);
-        person.add(cupArm);
+        cupArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.32, 6), clothesMat);
+        cupArmMesh.rotation.x = Math.PI / 3;
+        cupArmMesh.position.set(0.18, 0.72, 0.16);
+        person.add(cupArmMesh);
 
         const cini = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 0.05, 8), this.hararWhiteMat);
         cini.position.set(0.18, 0.82, 0.30);
@@ -1813,9 +1910,10 @@ export class AbandonedVillageStage {
 
       } else {
         // Standing legs
-        [-0.1, 0.1].forEach(lx => {
-          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.78, 8), clothesMat);
-          leg.position.set(lx, 0.39, 0);
+        const legMat = clothesMat;
+        [-0.12, 0.12].forEach(lx => {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.75, 8), legMat);
+          leg.position.set(lx, 0.40, 0);
           person.add(leg);
         });
 
@@ -1825,17 +1923,15 @@ export class AbandonedVillageStage {
         person.add(torso);
 
         // Head
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
-        head.position.set(0, 1.48, 0);
-        person.add(head);
+        headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
+        headMesh.position.set(0, 1.48, 0);
+        person.add(headMesh);
 
         if (hasShash) {
-          // Draped colorful Harari headscarf (Shash)
           const shash = new THREE.Mesh(new THREE.SphereGeometry(0.165, 12, 10), accentMat);
           shash.position.set(0, 1.50, -0.02);
           person.add(shash);
 
-          // Hanging fabric ends down shoulders
           const veil = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.42, 0.08), accentMat);
           veil.position.set(0, 1.25, -0.12);
           person.add(veil);
@@ -1847,13 +1943,24 @@ export class AbandonedVillageStage {
           person.add(cap);
         }
 
-        // Arms
-        [-0.24, 0.24].forEach(ax => {
-          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.58, 6), clothesMat);
-          arm.position.set(ax, 1.05, 0);
-          person.add(arm);
-        });
+        leftArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.58, 6), clothesMat);
+        leftArmMesh.position.set(-0.24, 1.05, 0);
+        person.add(leftArmMesh);
+
+        rightArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.58, 6), clothesMat);
+        rightArmMesh.position.set(0.24, 1.05, 0);
+        person.add(rightArmMesh);
       }
+
+      this.animatedPedestrians.push({
+        group: person,
+        head: headMesh,
+        leftArm: leftArmMesh,
+        rightArm: rightArmMesh,
+        cupArm: cupArmMesh,
+        type: isSeated ? 'seated' : 'standing',
+        baseY: y
+      });
 
       return person;
     };
@@ -1903,12 +2010,26 @@ export class AbandonedVillageStage {
       basket.position.set(8.2 + bx, 0.35, -13.5);
       crowdGroup.add(basket);
 
-      // Heaped oranges / mangoes in basket
       const fruitMat = new THREE.MeshStandardMaterial({ color: bIdx === 0 ? 0xf97316 : 0x84cc16, roughness: 0.6 });
       const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), fruitMat);
       fruit.position.set(8.2 + bx, 0.48, -13.5);
       crowdGroup.add(fruit);
     });
+
+    // 5. Additional Street Pedestrians strolling along sidewalks
+    const strollerWest = createPerson({
+      x: -5.2, y: 0.22, z: -42.0, rotY: 0,
+      skinColor: 0x563821, clothesColor: 0x0f766e, accentColor: 0xf59e0b,
+      hasKofia: true, isSeated: false
+    });
+    crowdGroup.add(strollerWest);
+
+    const strollerEast = createPerson({
+      x: 5.2, y: 0.22, z: 38.0, rotY: Math.PI,
+      skinColor: 0x4b2c18, clothesColor: 0x7c3aed, accentColor: 0xec4899,
+      hasShash: true, isSeated: false
+    });
+    crowdGroup.add(strollerEast);
 
     this.group.add(crowdGroup);
   }
@@ -2158,13 +2279,67 @@ export class AbandonedVillageStage {
     });
   }
 
+  buildAtmosphericSunlightMotes() {
+    const particleCount = 220;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 32.0;    // X across avenue
+      positions[i * 3 + 1] = 0.5 + Math.random() * 8.5;  // Y altitude
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 180.0; // Z street length
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const material = new THREE.PointsMaterial({
+      color: 0xfde047,
+      size: 0.16,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    this.sunMotes = new THREE.Points(geometry, material);
+    this.group.add(this.sunMotes);
+  }
+
   update(deltaTime) {
-    // Subtle gentle breathing animation for the friendly Harar spotted hyenas
+    const t = Date.now() * 0.002;
+
+    // 1. Spotted Hyenas gentle breathing
     if (this.animatedHyenas && this.animatedHyenas.length > 0) {
-      const t = Date.now() * 0.002;
       this.animatedHyenas.forEach((hyena, idx) => {
         hyena.rotation.z = Math.sin(t + idx * 1.5) * 0.02;
       });
+    }
+
+    // 2. Pedestrian Idle & Life Animations (head scanning, arm swing, coffee cup sipping)
+    if (this.animatedPedestrians && this.animatedPedestrians.length > 0) {
+      this.animatedPedestrians.forEach((p, idx) => {
+        if (p.type === 'standing') {
+          p.group.position.y = p.baseY + Math.sin(t * 1.6 + idx * 0.8) * 0.012;
+          if (p.head) p.head.rotation.y = Math.sin(t * 0.7 + idx * 1.4) * 0.22;
+          if (p.leftArm) p.leftArm.rotation.x = Math.sin(t * 1.8 + idx) * 0.18;
+          if (p.rightArm) p.rightArm.rotation.x = -Math.sin(t * 1.8 + idx) * 0.18;
+        } else {
+          p.group.position.y = p.baseY + Math.sin(t * 1.2 + idx * 1.1) * 0.006;
+          if (p.head) p.head.rotation.y = Math.sin(t * 0.5 + idx * 1.2) * 0.15;
+          if (p.cupArm) {
+            p.cupArm.rotation.x = Math.PI / 3 + Math.sin(t * 0.9) * 0.14;
+          }
+        }
+      });
+    }
+
+    // 3. Floating Sun Dust Motes Drift
+    if (this.sunMotes) {
+      const pos = this.sunMotes.geometry.attributes.position.array;
+      for (let i = 0; i < pos.length; i += 3) {
+        pos[i + 1] += Math.sin(t * 0.8 + i) * 0.0025;
+      }
+      this.sunMotes.geometry.attributes.position.needsUpdate = true;
     }
   }
 

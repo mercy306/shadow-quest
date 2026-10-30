@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 
 export class CameraManager {
-  constructor(fov = 60, aspect = window.innerWidth / window.innerHeight, near = 0.1, far = 2500) {
+  constructor(fov = 52, aspect = window.innerWidth / window.innerHeight, near = 0.1, far = 2500) {
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this.baseFOV = fov;
     this.targetFOV = fov;
 
     // Orbit parameters
-    this.distance = 5.8;
-    this.targetDistance = 5.8;
+    this.distance = 5.2;
+    this.targetDistance = 5.2;
     this.minDistance = 2.0;
     this.maxDistance = 12.0;
     this.lookAtOffset = new THREE.Vector3(0, 1.5, 0);
@@ -18,7 +18,7 @@ export class CameraManager {
     // Spherical angles (in radians)
     // theta = horizontal azimuth (yaw), phi = vertical elevation (pitch)
     this.theta = Math.PI; // Face down negative Z by default
-    this.phi = Math.PI * 0.38; // Slightly looking down from above
+    this.phi = Math.PI * 0.44; // Slightly looking down from above
 
     // Pitch constraints (allows looking high up into the sky and down to feet)
     this.minPhi = Math.PI * 0.08; // Looking steep downward from above
@@ -212,7 +212,7 @@ export class CameraManager {
 
     // Dynamic sprint velocity FOV expansion
     const isSprinting = target && target.isSprinting;
-    this.targetFOV = isSprinting ? 67 : this.baseFOV;
+    this.targetFOV = isSprinting ? 58 : this.baseFOV;
     if (Math.abs(this.camera.fov - this.targetFOV) > 0.05) {
       this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, this.targetFOV, 8.0 * deltaTime);
       this.camera.updateProjectionMatrix();
@@ -348,7 +348,7 @@ export class CameraManager {
     );
     this.photoCameraPos.copy(center).add(defaultOffset);
 
-    this.camera.fov = 60;
+    this.camera.fov = 52;
     this.camera.updateProjectionMatrix();
   }
 

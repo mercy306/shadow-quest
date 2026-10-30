@@ -51,8 +51,8 @@ export class Environment {
     this.dirLight.position.set(55, 65, 40);
     this.dirLight.castShadow = true;
 
-    this.dirLight.shadow.mapSize.width = 2048;
-    this.dirLight.shadow.mapSize.height = 2048;
+    this.dirLight.shadow.mapSize.width = 4096;
+    this.dirLight.shadow.mapSize.height = 4096;
     this.dirLight.shadow.camera.near = 1.0;
     this.dirLight.shadow.camera.far = 220;
 
@@ -61,8 +61,8 @@ export class Environment {
     this.dirLight.shadow.camera.right = d;
     this.dirLight.shadow.camera.top = d;
     this.dirLight.shadow.camera.bottom = -d;
-    this.dirLight.shadow.bias = -0.0001;
-    this.dirLight.shadow.normalBias = 0.04;
+    this.dirLight.shadow.bias = -0.0002;
+    this.dirLight.shadow.normalBias = 0.025;
 
     this.scene.add(this.dirLight);
 

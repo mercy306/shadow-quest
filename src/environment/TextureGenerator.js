@@ -1295,4 +1295,71 @@ export class TextureGenerator {
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
   }
+  /**
+   * Loads the authentic photograph of Harar Main Gate (የሐረር በር),
+   * cuts out the central road portal and pedestrian arches for transparent 3D pass-through,
+   * and clips out the sky above the battlements so the dynamic sky shows through.
+   */
+  static createPhotorealisticHararGateTexture(callback) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || 1024;
+      canvas.height = img.naturalHeight || 684;
+      const ctx = canvas.getContext('2d');
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Draw the authentic photograph
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // 1. Cut out Central Vehicular Road Portal (Allows looking & walking through into the 3D city)
+      // Scaled proportionally to natural dimensions
+      const cx = Math.floor(w * 0.252);
+      const cw = Math.floor(w * 0.435);
+      const cy = Math.floor(h * 0.365);
+      const ch = h - cy;
+      ctx.clearRect(cx, cy, cw, ch);
+
+      // 2. Cut out Left Pedestrian Arch Portal
+      const lx = Math.floor(w * 0.112);
+      const lw = Math.floor(w * 0.088);
+      const ly = Math.floor(h * 0.445);
+      const lh = h - ly;
+      ctx.clearRect(lx, ly, lw, lh);
+
+      // 3. Cut out Right Pedestrian Arch Portal
+      const rx = Math.floor(w * 0.718);
+      const rw = Math.floor(w * 0.088);
+      const ry = Math.floor(h * 0.445);
+      const rh = h - ry;
+      ctx.clearRect(rx, ry, rw, rh);
+
+      // 4. Cut out Night Sky above the lower parapets outside the central crest
+      // Left sky
+      ctx.clearRect(0, 0, Math.floor(w * 0.325), Math.floor(h * 0.185));
+      // Right sky
+      ctx.clearRect(Math.floor(w * 0.605), 0, w - Math.floor(w * 0.605), Math.floor(h * 0.185));
+      // Sky above central crest
+      ctx.clearRect(Math.floor(w * 0.325), 0, Math.floor(w * 0.28), Math.floor(h * 0.04));
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+
+      if (typeof callback === 'function') {
+        callback(texture);
+      }
+    };
+
+    img.onerror = (err) => {
+      console.warn('Could not load ./harar-main-gate.jpg, falling back:', err);
+    };
+
+    img.src = './harar-main-gate.jpg';
+  }
+
 }

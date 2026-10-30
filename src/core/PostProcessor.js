@@ -11,9 +11,9 @@ const CinematicDepthShader = {
     tDiffuse: { value: null },
     vignetteOffset: { value: 1.1 },
     vignetteDarkness: { value: 0.8 },
-    saturation: { value: 1.1 },
-    contrast: { value: 1.06 },
-    warmth: { value: 1.03 }
+    saturation: { value: 1.0 },
+    contrast: { value: 1.0 },
+    warmth: { value: 1.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -75,7 +75,7 @@ export class PostProcessor {
 
     // 2. High-End Physical Bloom (Subtle Ethiopian sunlight glow on plaster and vehicles)
     const bloomResolution = new THREE.Vector2(width, height);
-    this.bloomPass = new UnrealBloomPass(bloomResolution, 0.32, 0.45, 0.82);
+    this.bloomPass = new UnrealBloomPass(bloomResolution, 0.06, 0.25, 0.95);
     this.composer.addPass(this.bloomPass);
 
     // 3. Cinematic Color Grading & Lens Depth

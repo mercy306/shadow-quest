@@ -645,6 +645,7 @@ export class AbandonedVillageStage {
   buildShoaGateAsmadinBari() {
     const gateGroup = new THREE.Group();
     gateGroup.position.set(0, 0, -42.0);
+    gateGroup.rotation.y = Math.PI; // Face entrance outward towards approach (-Z)
 
     // ── DIMENSIONS FROM PHOTO ──────────────────────────────────────────────
     // Total gate face width: ~24m (spans across 8.4m road + thick flanking walls)
@@ -973,7 +974,7 @@ export class AbandonedVillageStage {
     guardPositions.forEach(gp => {
       const guard = new THREE.Group();
       guard.position.set(gp.x, 0, gp.z);
-      guard.rotation.y = Math.PI; // face outward toward player
+      guard.rotation.y = 0; // In rotated gateGroup, faces world -Z toward approaching player
 
       // Legs (white jellabiya)
       [-0.13, 0.13].forEach(lx => {

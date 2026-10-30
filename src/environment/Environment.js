@@ -221,17 +221,17 @@ export class Environment {
       // Radiant Eastern Ethiopian plateau sunshine (1,885m altitude) with golden warmth,
       // rich azure sky, and warm bounce light off the indigo blue & terracotta stucco walls
       this.ambientLight.color.setHex(0xfef3c7);
-      this.ambientLight.intensity = 0.65;
+      this.ambientLight.intensity = 0.38;
       this.hemiLight.color.setHex(0x38bdf8); // Vivid azure sky
       this.hemiLight.groundColor.setHex(0xc2410c); // Terracotta ground bounce
-      this.hemiLight.intensity = 0.72;
+      this.hemiLight.intensity = 0.35;
 
       this.dirLight.color.setHex(0xfff8db); // Warm golden sun
-      this.dirLight.intensity = 1.65;
+      this.dirLight.intensity = 1.05;
 
       if (this.rimLight) {
         this.rimLight.color.setHex(0xfbbf24);
-        this.rimLight.intensity = 0.55;
+        this.rimLight.intensity = 0.18;
       }
 
       const skyUniforms = this.sky.material.uniforms;

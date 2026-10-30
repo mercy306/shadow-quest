@@ -27,10 +27,10 @@ const portfolioPath = path.resolve('C:/Users/bsd/Desktop/all in one/New folder 1
 if (fs.existsSync(portfolioPath)) {
   console.log('5. Syncing portfolio repository for automatic Vercel deployment...');
   try {
-    const status = execSync('git status --porcelain', { cwd: portfolioPath, encoding: 'utf8' });
+    const status = execSync('git status --porcelain components/Projects.tsx', { cwd: portfolioPath, encoding: 'utf8' });
     if (status && status.trim().length > 0) {
       execSync('git add components/Projects.tsx', { cwd: portfolioPath, stdio: 'inherit' });
-      execSync('git commit -m "chore(sync): update Shadow Quest Harar Jugol 3D live project"', { cwd: portfolioPath, stdio: 'inherit' });
+      execSync('git commit -m "chore(sync): update Shadow Quest Harar Jugol 3D CGI cinematic and gate live project"', { cwd: portfolioPath, stdio: 'inherit' });
       execSync('git push origin main', { cwd: portfolioPath, stdio: 'inherit' });
       console.log('🚀 Successfully pushed portfolio update to GitHub (triggers automatic Vercel deploy)!');
     } else {

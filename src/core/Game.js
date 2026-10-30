@@ -20,9 +20,11 @@ import { PhotoModeManager } from '../systems/PhotoModeManager.js';
 import { NetworkManager } from '../network/NetworkManager.js';
 import { loadSharedModel } from './ModelLoader.js';
 import { PostProcessor } from './PostProcessor.js';
+import { CinematicIntro } from './CinematicIntro.js';
 
 export const GameState = {
   MAIN_MENU: 'MAIN_MENU',
+  CINEMATIC_INTRO: 'CINEMATIC_INTRO',
   PLAYING: 'PLAYING',
   PAUSED: 'PAUSED',
   GAME_OVER: 'GAME_OVER',
@@ -45,6 +47,7 @@ export class Game {
     this.merchantManager = null;
     this.mountManager = null;
     this.photoModeManager = null;
+    this.cinematicIntro = null;
     this.networkManager = new NetworkManager(this);
     this.isCoopMode = false;
     this.gameState = GameState.MAIN_MENU;
@@ -71,7 +74,7 @@ export class Game {
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 1.32;
+      this.renderer.toneMappingExposure = 0.95;
       this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       if (!this.container) {
@@ -302,11 +305,61 @@ export class Game {
     }
   }
 
-  startGame() {
+  startGame(playIntro = true) {
+    if (playIntro && this.levelManager && this.levelManager.currentLevelIndex === 0) {
+      this.playCinematicIntro();
+      return;
+    }
+    this.launchDirectGameplay();
+  }
+
+  playCinematicIntro() {
+    this.gameState = GameState.CINEMATIC_INTRO;
+    this.isPaused = false;
+    if (this.player) {
+      this.player.isEnabled = false;
+      this.player.teleport(0, -32.0, Math.PI, false, false);
+      this.player.groundToTerrain(0, -32.0);
+    }
+    if (this.cameraManager) {
+      this.cameraManager.setLockEnabled(false);
+      this.cameraManager.exitPointerLock();
+    }
+    this.uiManager.hideMainMenu();
+
+    if (this.audioManager) {
+      this.audioManager.initAudioContext();
+      this.audioManager.playAmbience(this.levelManager.currentLevelIndex);
+    }
+
+    if (this.cinematicIntro) {
+      this.cinematicIntro.dispose();
+    }
+
+    this.cinematicIntro = new CinematicIntro(this.cameraManager.getCamera(), () => {
+      this.cinematicIntro = null;
+      this.launchDirectGameplay();
+    });
+    this.cinematicIntro.start();
+  }
+
+  launchDirectGameplay() {
     this.gameState = GameState.PLAYING;
     this.isPaused = false;
-    this.player.isEnabled = true;
-    this.cameraManager.setLockEnabled(true);
+    if (this.player) {
+      this.player.isEnabled = true;
+      if (this.levelManager && this.levelManager.currentLevelIndex === 0 && this.player.getPosition().z < -40) {
+        this.player.teleport(0, -32.0, Math.PI, true, false);
+        this.player.groundToTerrain(0, -32.0);
+      }
+    }
+    if (this.cameraManager) {
+      this.cameraManager.setLockEnabled(true);
+      if (this.player) {
+        this.cameraManager.snapToTarget(this.player);
+      }
+      this.cameraManager.requestPointerLock();
+    }
     this.uiManager.hideMainMenu();
 
     // Start audio on user gesture
@@ -316,10 +369,6 @@ export class Game {
     }
 
     this.clock.getDelta();
-    if (this.cameraManager && this.player) {
-      this.cameraManager.snapToTarget(this.player);
-      this.cameraManager.requestPointerLock();
-    }
   }
 
   setupInputListeners() {
@@ -869,6 +918,20 @@ export class Game {
       return;
     }
 
+    // 0b. Cinematic CGI Intro
+    if (this.gameState === GameState.CINEMATIC_INTRO) {
+      if (this.cinematicIntro) {
+        this.cinematicIntro.update(deltaTime);
+      }
+      if (this.environment) {
+        this.environment.update(deltaTime);
+      }
+      if (this.vfxManager) {
+        this.vfxManager.update(deltaTime);
+      }
+      return;
+    }
+
     // 1. Main menu mode: cinematic camera orbit & ambient world animation
     if (this.gameState === GameState.MAIN_MENU) {
       if (this.cameraManager) {
@@ -1033,6 +1096,10 @@ export class Game {
     }
     if (this.vfxManager) {
       this.vfxManager.dispose();
+    }
+    if (this.cinematicIntro) {
+      this.cinematicIntro.dispose();
+      this.cinematicIntro = null;
     }
     if (this.postProcessor) {
       this.postProcessor.dispose();

@@ -1,7 +1,8 @@
 export const STAGE_CONFIGS = [
   {
     index: 0,
-    id: 'gondar-city',
+    id: 'harar-jugol',
+    legacyIds: ['gondar-city', 'abandoned-village'],
     name: 'Harar Jugol (Walled City)',
     badgeText: 'ደረጃ ፩: ሐረር ጁጎል • STAGE 1: HARAR JUGOL (HISTORIC WALLED CITY)',
     playerSpawn: { x: 0, z: -20, rotY: 0 },
@@ -58,7 +59,7 @@ export const STAGE_CONFIGS = [
       { id: 'av-music', name: 'የሐረሪ ባህል ሙዚቃ ጣቢያ • Harari Minstrel Station', x: 9, z: -16, radius: 7.0, xpReward: 30 }
     ],
     quest: {
-      id: 'mission-gondar-city',
+      id: 'mission-harar-jugol',
       title: 'የሐረር ጁጎል ክብር • GLORY OF HARAR JUGOL',
       subtitle: 'The historic 16th-century fortified city of Harar Jugol welcomes you.',
       description: 'Explore the historic gates of Harar Jugol, visit Gidir Magala market and Jamia Mosque, recover 3 Harari relics, and protect the peace of the city.',

@@ -536,7 +536,7 @@ export class SaveManager {
           timestamp: migrated.timestamp,
           dateFormatted: new Date(migrated.timestamp).toLocaleString(),
           stageIndex: migrated.world?.currentLevelIndex ?? meta.stageIndex ?? 0,
-          stageName: meta.stageName || (migrated.world?.currentLevelIndex === 1 ? 'Axumite Sanctuary' : 'The Simien Highlands'),
+          stageName: meta.stageName || (migrated.world?.currentLevelIndex === 0 ? 'Harar Jugol (Walled City)' : (migrated.world?.currentLevelIndex === 1 ? 'Axumite Sanctuary' : 'The Simien Highlands')),
           badgeText: meta.badgeText || '',
           score: meta.score ?? (migrated.world?.cumulativeScore || 0),
           level: migrated.player?.level || 1,

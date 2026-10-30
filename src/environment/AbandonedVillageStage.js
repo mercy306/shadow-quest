@@ -554,23 +554,47 @@ export class AbandonedVillageStage {
       tower.receiveShadow = true;
       gateGroup.add(tower);
 
-      // Upper crenelated parapet
-      const parapetGeo = new THREE.CylinderGeometry(2.65, 2.65, 0.8, 16);
-      const parapet = new THREE.Mesh(parapetGeo, this.hararTerracottaMat);
-      parapet.position.set(tx, 9.2 + 0.4, 0);
-      gateGroup.add(parapet);
+      // Upper stone cornice & flat defensive parapet
+      const corniceGeo = new THREE.CylinderGeometry(2.7, 2.5, 0.4, 24);
+      const cornice = new THREE.Mesh(corniceGeo, this.hararTerracottaMat);
+      cornice.position.set(tx, 9.2 + 0.2, 0);
+      gateGroup.add(cornice);
 
-      // Conical dome cap
-      const domeGeo = new THREE.ConeGeometry(2.5, 1.8, 16);
-      const dome = new THREE.Mesh(domeGeo, this.islamicGreenMat);
-      dome.position.set(tx, 10.4, 0);
-      gateGroup.add(dome);
+      // Upper parapet walkway
+      const parapetWalkGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 24);
+      const parapetWalk = new THREE.Mesh(parapetWalkGeo, this.jugolStoneMat);
+      parapetWalk.position.set(tx, 9.4 + 0.1, 0);
+      gateGroup.add(parapetWalk);
 
-      // Golden Crescent finial (ጨረቃ)
-      const crescentGeo = new THREE.TorusGeometry(0.28, 0.05, 8, 16, Math.PI * 1.5);
-      const crescent = new THREE.Mesh(crescentGeo, this.goldMat);
-      crescent.position.set(tx, 11.6, 0);
-      gateGroup.add(crescent);
+      // Authentic Harari stone battlements (crenelations) around tower rim
+      const numMerlons = 8;
+      for (let m = 0; m < numMerlons; m++) {
+        const angle = (m / numMerlons) * Math.PI * 2;
+        const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.75, 0.4), this.hararWhiteMat);
+        merlon.position.set(
+          tx + Math.sin(angle) * 2.3,
+          9.5 + 0.38,
+          Math.cos(angle) * 2.3
+        );
+        merlon.rotation.y = angle;
+        merlon.castShadow = true;
+        merlon.receiveShadow = true;
+        gateGroup.add(merlon);
+      }
+
+      // Traditional exposed timber beam ends ("monkey heads") beneath cornice
+      for (let b = 0; b < 6; b++) {
+        const bAngle = (b / 6) * Math.PI * 2;
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.6, 8), this.timberMat);
+        beam.rotation.x = Math.PI / 2;
+        beam.rotation.z = bAngle;
+        beam.position.set(
+          tx + Math.sin(bAngle) * 2.55,
+          9.0,
+          Math.cos(bAngle) * 2.55
+        );
+        gateGroup.add(beam);
+      }
 
       // Cascading Bougainvillea flowers draping down the tower
       const vine = this.createBougainvilleaCluster(1.4);

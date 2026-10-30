@@ -40,19 +40,19 @@ export class CollectibleManager {
     let itemPickups = [];
 
     if (levelIndex === 0) {
-      // STAGE 1: GONDAR IMPERIAL CITY & BAZAAR (3 Imperial Relics + Cultural Feasts)
+      // STAGE 1: HARAR JUGOL (3 Harari Relics + Cultural Feasts)
       crystalLocations = [
-        { id: 'city-cryst-1', x: 0.0, z: 2.0, desc: 'Axum Obelisk Monument Relic' },
-        { id: 'city-cryst-2', x: 16.0, z: 16.0, desc: 'Fasilides Royal Castle Relic' },
-        { id: 'city-cryst-3', x: 6.0, z: -8.0, desc: 'Bazaar Coffee Ceremony Relic' }
+        { id: 'city-cryst-1', x: 0.0, z: 0.0, desc: 'Gidir Magala Harari Mesob Relic' },
+        { id: 'city-cryst-2', x: 0.0, z: -42.0, desc: 'Shoa Gate Asmadin Emblem' },
+        { id: 'city-cryst-3', x: -20.0, z: 12.0, desc: 'Jamia Grand Mosque Crescent Relic' }
       ];
       itemPickups = [
-        { id: 'pickup-bunna-bet', itemId: 'injera_doro_wat', x: 12.0, z: -5.0, quantity: 1 },
-        { id: 'pickup-coffee-ceremony', itemId: 'ethiopian_bunna', x: 6.0, z: -8.0, quantity: 2 },
-        { id: 'pickup-cultural-shop', itemId: 'tej_honey_mead', x: 12.0, z: 7.5, quantity: 1 },
-        { id: 'pickup-kolo-stand', itemId: 'kolo_snack', x: 4.8, z: -18.0, quantity: 3 },
-        { id: 'pickup-elder-lockbox', itemId: 'radiant_crystal_heart', x: -25.0, z: -15.0, quantity: 1 },
-        { id: 'pickup-village-blade', itemId: 'shadow_cleaver', x: 16.0, z: -18.0, quantity: 1 }
+        { id: 'pickup-bunna-bet', itemId: 'injera_doro_wat', x: -14.0, z: 0.0, quantity: 1 },
+        { id: 'pickup-coffee-ceremony', itemId: 'ethiopian_bunna', x: -8.8, z: 0.0, quantity: 2 },
+        { id: 'pickup-rimbaud', itemId: 'tej_honey_mead', x: 20.0, z: 14.0, quantity: 1 },
+        { id: 'pickup-hyena-ground', itemId: 'radiant_crystal_heart', x: 18.0, z: -12.0, quantity: 1 },
+        { id: 'pickup-kolo-stand', itemId: 'kolo_snack', x: 3.0, z: -14.0, quantity: 3 },
+        { id: 'pickup-palace-blade', itemId: 'shadow_cleaver', x: -20.0, z: -18.0, quantity: 1 }
       ];
     } else if (levelIndex === 1) {
       // STAGE 2: THE ANCIENT RUINS (3 Void Relic Orbs)

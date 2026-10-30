@@ -2,8 +2,8 @@ export const STAGE_CONFIGS = [
   {
     index: 0,
     id: 'gondar-city',
-    name: 'Gondar Imperial City',
-    badgeText: 'ደረጃ ፩: ጎንደር ታሪካዊ ከተማ • STAGE 1: GONDAR IMPERIAL CITY',
+    name: 'Harar Jugol (Walled City)',
+    badgeText: 'ደረጃ ፩: ሐረር ጁጎል • STAGE 1: HARAR JUGOL (HISTORIC WALLED CITY)',
     playerSpawn: { x: 0, z: -20, rotY: 0 },
     passages: [
       {
@@ -48,28 +48,28 @@ export const STAGE_CONFIGS = [
       }
     ],
     landmarks: [
-      { id: 'av-square', name: 'የፋሲል ግቢ አደባባይ • Fasilides Royal Plaza', x: 0, z: 0, radius: 9.0, xpReward: 30 },
-      { id: 'av-obelisk', name: 'የአክሱም ሐውልት • Axum Obelisk Roundabout', x: 0, z: 0, radius: 8.0, xpReward: 40 },
-      { id: 'av-taxi', name: 'የታክሲና ባጃጅ ማቆሚያ • Taxi & Bajaj Stand', x: 7, z: -14, radius: 7.0, xpReward: 30 },
-      { id: 'av-bunna', name: 'የባህል ቡና ቤት • Traditional Bunna Bet', x: 12, z: -5, radius: 7.0, xpReward: 35 },
-      { id: 'av-castle', name: 'የፋሲል ግንብ • Fasilides Castle Keep', x: 16, z: 16, radius: 10.0, xpReward: 50 },
-      { id: 'av-bazaar', name: 'የጎንደር ገበያና ቡና ስነ-ስርዓት • Bazaar & Coffee Ceremony', x: 6, z: -8, radius: 8.0, xpReward: 40 },
-      { id: 'av-music', name: 'የአዝማሪ ቤት • Azmari Minstrel Station', x: -8, z: -8, radius: 7.0, xpReward: 30 },
-      { id: 'av-well', name: 'የቅዱስ ጸበል ምንጭ • Sacred Tsebel Holy Spring', x: -5, z: 5, radius: 7.0, xpReward: 30 }
+      { id: 'av-square', name: 'ግድር መጋላ • Gidir Magala Central Market', x: 0, z: 0, radius: 9.0, xpReward: 30 },
+      { id: 'av-shoa', name: 'ሸዋ በር • Shoa Gate (Asmadin Bari)', x: 0, z: -42, radius: 8.0, xpReward: 40 },
+      { id: 'av-hyena', name: 'ቡዳ በርና የጅብ መመገቢያ • Buda Gate & Hyena Station', x: 18, z: -12, radius: 8.0, xpReward: 50 },
+      { id: 'av-mosque', name: 'አል-ጃሚዕ ታላቁ መስጊድ • Jamia Grand Mosque', x: -20, z: 12, radius: 10.0, xpReward: 45 },
+      { id: 'av-rimbaud', name: 'የአርተር ራምቦ ሙዚየም • Arthur Rimbaud Museum', x: 20, z: 14, radius: 9.0, xpReward: 40 },
+      { id: 'av-palace', name: 'የራስ መኮንን ቤተ-መንግሥት • Ras Mekonnen Palace', x: -20, z: -18, radius: 10.0, xpReward: 45 },
+      { id: 'av-bunna', name: 'የሐረር ባህል ቡናና ሻይ • Harar Coffee Terrace', x: -9, z: 0, radius: 7.0, xpReward: 35 },
+      { id: 'av-music', name: 'የሐረሪ ባህል ሙዚቃ ጣቢያ • Harari Minstrel Station', x: 9, z: -16, radius: 7.0, xpReward: 30 }
     ],
     quest: {
       id: 'mission-gondar-city',
-      title: 'የጎንደር ከተማ ክብር • GLORY OF GONDAR CITY',
-      subtitle: 'The imperial cobblestone city of Gondar welcomes you in golden morning light.',
-      description: 'Explore the imperial city of Gondar, experience the coffee ceremony, gather 3 imperial relics, and banish 3 intruders.',
+      title: 'የሐረር ጁጎል ክብር • GLORY OF HARAR JUGOL',
+      subtitle: 'The historic 16th-century fortified city of Harar Jugol welcomes you.',
+      description: 'Explore the historic gates of Harar Jugol, visit Gidir Magala market and Jamia Mosque, recover 3 Harari relics, and protect the peace of the city.',
       enemiesRequired: 3,
       crystalsRequired: 3,
       enemiesLabel: 'Intruders banished',
-      crystalsLabel: 'Imperial Relics recovered',
-      entranceLabel: 'Gondar City Gate',
+      crystalsLabel: 'Harari Relics recovered',
+      entranceLabel: 'Shoa Gate (Asmadin Bari)',
       exitLabel: 'Sanctuary Passage',
       exitLocation: { x: -5, z: 5, radius: 3.5 },
-      unlockMessage: 'GONDAR SANCTUARY RESTORED - The passage to the ancient realm is open!'
+      unlockMessage: 'HARAR JUGOL RESTORED - The passage to the ancient realm is open!'
     }
   },
   {
@@ -198,13 +198,13 @@ export const STAGE_CONFIGS = [
     passages: [
       {
         id: 'forest-to-city',
-        name: 'Gondar Imperial City',
+        name: 'Harar Jugol (Walled City)',
         targetLevelIndex: 0,
         targetSpawn: { x: 0, z: -20, rotY: 0 },
         x: 0,
         z: -40,
         radius: 4.5,
-        prompt: '[E] Return to Gondar Imperial City'
+        prompt: '[E] Return to Harar Jugol'
       },
       {
         id: 'forest-to-mountain',

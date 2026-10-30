@@ -22,12 +22,12 @@ export class NPCManager {
 
     let npcConfigs = [];
     if (levelIndex === 0) {
-      // STAGE 1: GONDAR IMPERIAL CITY & BAZAAR
+      // STAGE 1: HARAR JUGOL (HISTORIC WALLED CITY)
       npcConfigs = [
         {
           id: 'npc-mara',
-          name: 'ወይዘሮ ማርታ • Weyzero Marta',
-          title: 'የጎንደር ከተማ ጠባቂ • Guardian of Gondar',
+          name: 'ወይዘሮ ማርያም • Mariam',
+          title: 'የሐረር ጁጎል ታሪክ ጠባቂ • Guardian of Harar Jugol',
           role: 'village_survivor',
           modelPath: './models/Xbot.glb',
           avatar: '🕯️',
@@ -39,53 +39,53 @@ export class NPCManager {
         },
         {
           id: 'npc-azmari',
-          name: 'አዝማሪው ብርሃኑ • Azmari Berhanu',
-          title: 'የከተማው ዘማሪ • Gondar Imperial Minstrel',
+          name: 'አባ ዩሱፍ • Yusuf',
+          title: 'የሐረር ጅብ መጋቢ • Harari Hyena Keeper & Whisperer',
           role: 'forest_hermit',
           modelPath: './models/Soldier.glb',
-          avatar: '🎻',
-          x: -8.0,
+          avatar: '🐺',
+          x: 18.0,
           y: 0,
-          z: -7.0,
-          rotY: 0.6,
+          z: -8.0,
+          rotY: -0.8,
           interactionRadius: 3.5
         },
         {
           id: 'npc-taytu',
-          name: 'ወይዘሮ ታዬች • Taytu',
-          title: 'የቡና እናት • Coffee Ceremony Maiden',
+          name: 'ወይዘሮ ፋጡማ • Fatuma',
+          title: 'የሐረር ቡና እናት • Harar Coffee Maiden',
           role: 'merchant',
           modelPath: './models/Xbot.glb',
           avatar: '☕',
-          x: 6.0,
+          x: -8.0,
           y: 0,
-          z: -7.0,
+          z: 0.0,
           rotY: -0.6,
           interactionRadius: 3.5
         },
         {
           id: 'npc-qesis',
-          name: 'ቀሲስ ገብረ ማርያም • Qesis Gebre Maryam',
-          title: 'የደብረ ብርሃን ካህን • Priest of Debre Berhan',
+          name: 'ሼክ አብዱራህማን • Sheikh Abdurahman',
+          title: 'የታላቁ ጃሚዕ መስጊድ ኢማም • Elder of Jamia Grand Mosque',
           role: 'quest_giver',
           modelPath: './models/Soldier.glb',
-          avatar: '✝️',
-          x: 16.0,
+          avatar: '🕌',
+          x: -18.0,
           y: 0,
-          z: 10.0,
+          z: 12.0,
           rotY: 0.0,
           interactionRadius: 3.5
         },
         {
           id: 'npc-valen',
           name: 'ተክሌ • Tekle',
-          title: 'የከተማ ነጋዴ • City Merchant & Shopkeeper',
+          title: 'የግድር መጋላ ነጋዴ • Gidir Magala Merchant',
           role: 'merchant',
           modelPath: './models/Xbot.glb',
           avatar: '🏬',
-          x: 8.0,
+          x: 3.0,
           y: 0,
-          z: -18.0,
+          z: -14.0,
           rotY: -0.7,
           interactionRadius: 3.5
         }

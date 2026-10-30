@@ -485,99 +485,102 @@ export class DialogueManager {
       };
     }
 
-    // --- 5. WEYZERO MARTA (LALIBELA GUARDIAN) ---
+    // --- 5. WEYZERO MARIAM (HARAR JUGOL GUARDIAN) ---
     if (npc.role === 'village_survivor' || npc.id === 'npc-mara') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'ሰላም • Lalibela was once a flourishing sanctuary until shadowy spirits crept into the courtyards. The ancient monastery mill still whispers of ancient days...',
+        text: 'ሰላም • Welcome to Harar Jugol (ሓረር ጁጎል), the sacred walled city of peace. Built in the 16th century by Emir Nur, our five historic gates have guarded our rich culture for centuries.',
         choices: [
           {
-            text: '⛪ "Tell me of the rock-hewn chapels."',
+            text: '🏰 "Tell me of the five gates of Harar Jugol."',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'Bet Giyorgis and the monoliths were carved straight from living red tuff. Cleanse the restless spirits from the central plaza so the monks may pray in peace.',
-                choices: [{ text: 'I will put their spirits to rest.', action: () => this.startDialogue(this.activeNPC, this.player) }]
+                text: 'Our ancestors entered through five historic gates: Shoa Gate (Asmadin Bari) to the west, Buda Gate (Asum Bari) to the south where the hyenas gather, Sanga Gate to the east, Erer Gate to the southeast, and Fallana Gate to the north. Walk in honor within these walls!',
+                choices: [{ text: 'Thank you, Mariam. I will honor the city.', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
           },
           {
-            text: '🕳️ "Where does the holy well lead?"',
+            text: '🏬 "Where is Gidir Magala central market?"',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'The sacred Tsebel spring descends into the subterranean limestone galleries of Sof Omar. Smugglers and holy hermits once traversed it in secret.',
-                choices: [{ text: 'Good to know. Farewell.', action: () => this.closeDialogue() }]
+                text: 'Follow Asmadin Avenue directly into the central roundabout. You will find Gidir Magala bustling with Harar coffee sacks, woven baskets, and fragrant spices.',
+                choices: [{ text: 'Much obliged. Farewell.', action: () => this.closeDialogue() }]
               });
             }
           },
-          { text: '👋 "በረከት ይድረሶት • Blessings, Weyzero Marta."', action: () => this.closeDialogue() }
+          { text: '👋 "ሰላም ሁኚ • Peace be upon you, Mariam."', action: () => this.closeDialogue() }
         ]
       };
     }
 
-    // --- 5B. AZMARI BERHANU (GONDAR MINSTREL) ---
+    // --- 5B. ABA YUSUF (HARARI HYENA KEEPER & FEEDER) ---
     if (npc.id === 'npc-azmari') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'እንኳን ደህና መጣህ ጀግናው! (Welcome, champion!) My Masenqo sings the praises of Axum and the courage of our highland warriors. What song do you wish to hear?',
+        text: 'እንኳን ደህና መጣህ! (Welcome, traveler!) I am Yusuf, the hyena whisperer of Harar. Every dusk at Buda Gate, the wild spotted hyenas of the hills gather peacefully to be fed from my hand. Have no fear of them—they are friends of Harar.',
         choices: [
           {
-            text: '🎵 "Sing of the Shotel and the Simien warriors."',
+            text: '🐺 "Tell me of the Hyena Feeding Tradition."',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: '♪ ሾተሉን አንስቶ ጋሻውን ያነሳ... የስሜኑ ጀግና ጠላቱን ደመሰሰ! (Lifting the Shotel, bracing the Gasha... the warrior of Simien crushes the darkness!) May your courage never waver, champion!',
-                choices: [{ text: 'እግዚአብሔር ይስጥልኝ • Beautiful song, Azmari!', action: () => this.startDialogue(this.activeNPC, this.player) }]
+                text: 'For generations, the people of Harar have lived in harmony with the hyenas. We feed them meat on wooden sticks, and in return, they clean the outskirts and guard the city from malevolent spirits. Witness them resting calmly beside the gate!',
+                choices: [{ text: 'An incredible tradition, Yusuf!', action: () => this.startDialogue(this.activeNPC, this.player) }]
               });
             }
           },
           {
-            text: '🎻 "Tell me of your Masenqo and Krar."',
+            text: '🥩 "May I have a charm from the hyena grounds?"',
             action: () => {
+              if (this.player?.inventorySystem) {
+                this.player.inventorySystem.addItem('radiant_crystal_heart', 1);
+              }
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'The Masenqo has one string of horsehair, yet it speaks every sorrow and triumph of our people. Combined with the five strings of the Krar, our ancestors channeled the very spirit of the highlands.',
-                choices: [{ text: 'Fascinating. Farewell, Azmari.', action: () => this.closeDialogue() }]
+                text: 'Take this protective Harari talisman. The spirits of the wild will recognize your courage and grant you swiftness.',
+                choices: [{ text: 'Thank you, Aba Yusuf!', action: () => this.closeDialogue() }]
               });
             }
           },
-          { text: '👋 "ሰላም ሁን፣ አዝማሪ • Farewell, Azmari."', action: () => this.closeDialogue() }
+          { text: '👋 "ሰላም ሁን፣ አባ ዩሱፍ • Farewell, Yusuf."', action: () => this.closeDialogue() }
         ]
       };
     }
 
-    // --- 5C. TAYTU (COFFEE CEREMONY MAIDEN) ---
+    // --- 5C. FATUMA (HARAR COFFEE & TEA MAIDEN) ---
     if (npc.id === 'npc-taytu') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'እንኳን ደህና መጣህ! (Welcome to our coffee ceremony!) The frankincense is burning and the Jebena is steaming. Sit on the fresh Qetema grass and taste the first cup—Abol.',
+        text: 'እንኳን ደህና መጣህ! (Welcome to the Harar Coffee Terrace!) World-renowned Harar Longberry Mocha is roasting over hot coals, and fragrant spiced Habesha tea is brewing. Sit on our fresh Qetema grass and taste the true soul of eastern Ethiopia.',
         choices: [
           {
-            text: '☕ "Tell me of the three rounds of Bunna."',
+            text: '☕ "Tell me of Harar coffee and Harari culture."',
             action: () => {
               this.renderNode({
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'Our tradition honors three sacred rounds: Abol (አቦል) the first cup of friendship and strength, Tona (ቶና) the second cup of contemplation, and Baraka (በረካ) the third cup of peace and divine blessing.',
+                text: 'Harar is the historic cradle of world coffee trading. Our beans carry wine and blueberry notes, sun-dried naturally on raised beds. In our traditional Gegar houses, we adorn our walls with colorful Ulad Gar baskets and share coffee in joy.',
                 choices: [
                   {
-                    text: '☕ "May I partake in the Bunna and Kolo?"',
+                    text: '☕ "May I taste the Harar Bunna?"',
                     action: () => {
                       if (this.player?.inventorySystem) {
                         this.player.inventorySystem.addItem('ethiopian_bunna', 2);
@@ -587,31 +590,31 @@ export class DialogueManager {
                         speaker: npc.name,
                         title: npc.title,
                         avatar: npc.avatar,
-                        text: 'Here is fresh highland Bunna and roasted Kolo for your road. May warmth and endurance go with you!',
-                        choices: [{ text: 'እግዚአብሔር ይስጥልኝ • Thank you, Taytu.', action: () => this.closeDialogue() }]
+                        text: 'Here is steaming Harar Bunna and roasted Kolo for your voyage through Jugol. May it give you vitality and peace!',
+                        choices: [{ text: 'እግዚአብሔር ይስጥልኝ • Thank you, Fatuma.', action: () => this.closeDialogue() }]
                       });
                     }
                   },
-                  { text: 'A beautiful tradition. Farewell.', action: () => this.closeDialogue() }
+                  { text: 'Wonderful history. Farewell.', action: () => this.closeDialogue() }
                 ]
               });
             }
           },
-          { text: '👋 "ሰላም ሁኚ፣ ታዬች • Stay blessed, Taytu."', action: () => this.closeDialogue() }
+          { text: '👋 "ሰላም ሁኚ፣ ፋጡማ • Peace be with you, Fatuma."', action: () => this.closeDialogue() }
         ]
       };
     }
 
-    // --- 5D. QESIS GEBRE MARYAM (PRIEST OF DEBRE BERHAN) ---
+    // --- 5D. SHEIKH ABDURAHMAN (JAMIA GRAND MOSQUE ELDER) ---
     if (npc.id === 'npc-qesis') {
       return {
         speaker: npc.name,
         title: npc.title,
         avatar: npc.avatar,
-        text: 'ሰላመ እግዚአብሔር ከእናንተ ጋር ይሁን (The peace of God be with you, child). I hold the holy silver blessing cross of Gondar before the royal castle.',
+        text: 'ሰላም ዓለይኩም (Peace be upon you, child of truth). You stand before the ancient Jamia Grand Mosque, a bastion of faith, scholarship, and tolerance since the 10th century.',
         choices: [
           {
-            text: '✝️ "Father, bestow your blessing upon my blade."',
+            text: '🕌 "Elder, bestow your blessing upon my path."',
             action: () => {
               if (this.player) {
                 this.player.health = this.player.maxHealth;
@@ -623,8 +626,8 @@ export class DialogueManager {
                 speaker: npc.name,
                 title: npc.title,
                 avatar: npc.avatar,
-                text: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ። May the celestial angels of Debre Berhan watch over your path. Take this blessed Axumite Silver Cross to shield your soul.',
-                choices: [{ text: 'አሜን • Amen, Father. Thank you.', action: () => this.closeDialogue() }]
+                text: 'May the peace and light of Harar Jugol envelop your heart. Walk with integrity, defend the innocent, and fear no shadow. Take this sacred talisman of protection.',
+                choices: [{ text: 'አሜን • Thank you, Sheikh Abdurahman.', action: () => this.closeDialogue() }]
               });
             }
           },

@@ -1011,44 +1011,39 @@ export class UIManager {
       return `
         <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="gondarSky" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#b45309"/>
-              <stop offset="50%" stop-color="#f59e0b"/>
-              <stop offset="100%" stop-color="#fde68a"/>
+            <linearGradient id="hararSky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#0284c7"/>
+              <stop offset="55%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#fed7aa"/>
             </linearGradient>
           </defs>
-          <rect width="400" height="120" fill="url(#gondarSky)"/>
-          <circle cx="340" cy="35" r="20" fill="#fffbeb" opacity="0.9"/>
-          <!-- Distant Gondar Mountain Ridges -->
-          <polygon points="0,85 80,60 180,80 270,55 360,75 400,65 400,120 0,120" fill="#78350f" opacity="0.6"/>
-          <!-- Fasilides Castle Central Keep -->
-          <rect x="160" y="45" width="80" height="65" fill="#334155"/>
-          <rect x="156" y="40" width="88" height="6" fill="#1e293b"/>
-          <!-- 4 Corner Towers with Domed Caps -->
-          <rect x="150" y="32" width="22" height="78" fill="#1e293b"/>
-          <ellipse cx="161" cy="32" rx="12" ry="8" fill="#475569"/>
-          <line x1="161" y1="24" x2="161" y2="18" stroke="#fbbf24" stroke-width="2"/>
-          
-          <rect x="228" y="32" width="22" height="78" fill="#1e293b"/>
-          <ellipse cx="239" cy="32" rx="12" ry="8" fill="#475569"/>
-          <line x1="239" y1="24" x2="239" y2="18" stroke="#fbbf24" stroke-width="2"/>
-
-          <!-- Arched Balcony and Doorway -->
-          <rect x="190" y="58" width="20" height="14" fill="#0f172a"/>
-          <rect x="194" y="86" width="12" height="24" fill="#0f172a"/>
-
-          <!-- Traditional Coffee Ceremony Jebena & Qetema Grass -->
-          <ellipse cx="65" cy="108" rx="28" ry="8" fill="#16a34a"/>
-          <ellipse cx="65" cy="98" rx="7" ry="7" fill="#1c1917"/>
-          <line x1="65" y1="98" x2="65" y2="84" stroke="#1c1917" stroke-width="3"/>
-          <path d="M68,96 L76,90" stroke="#1c1917" stroke-width="2"/>
-
-          <!-- Woven Mesob Table -->
-          <polygon points="305,108 315,95 325,108" fill="#b91c1c"/>
-          <polygon points="310,95 315,85 320,95" fill="#fbbf24"/>
-
-          <!-- Foreground Cobblestone Street -->
-          <rect x="0" y="110" width="400" height="10" fill="#1e293b"/>
+          <rect width="400" height="120" fill="url(#hararSky)"/>
+          <circle cx="340" cy="30" r="18" fill="#fffbeb" opacity="0.95"/>
+          <!-- Jugol Fortified Wall -->
+          <rect x="0" y="70" width="400" height="40" fill="#a8a29e"/>
+          <!-- Battlements -->
+          <polygon points="10,70 10,64 25,64 25,70 35,70 35,64 50,64 50,70 60,70 60,64 75,64 75,70 85,70 85,64 100,64 100,70 110,70 110,64 125,64 125,70 275,70 275,64 290,64 290,70 300,70 300,64 315,64 315,70 325,70 325,64 340,64 340,70 350,70 350,64 365,64 365,70 375,70 375,64 390,64 390,70" fill="#78716c"/>
+          <!-- Shoa Gate (Asmadin Bari) Archway -->
+          <rect x="155" y="45" width="90" height="65" fill="#f5f5f4"/>
+          <!-- Twin Towers -->
+          <rect x="140" y="32" width="22" height="78" fill="#e7e5e4"/>
+          <rect x="238" y="32" width="22" height="78" fill="#e7e5e4"/>
+          <polygon points="140,32 151,20 162,32" fill="#16a34a"/>
+          <polygon points="238,32 249,20 260,32" fill="#16a34a"/>
+          <!-- Horseshoe Gate Arch -->
+          <path d="M180,110 L180,72 A20,20 0 0,1 220,72 L220,110 Z" fill="#1e293b"/>
+          <!-- Harari Blue Townhouse -->
+          <rect x="20" y="50" width="45" height="55" fill="#1d4ed8"/>
+          <rect x="28" y="60" width="12" height="15" fill="#f8fafc"/>
+          <!-- Terracotta House -->
+          <rect x="75" y="55" width="40" height="50" fill="#c2410c"/>
+          <!-- Green & Yellow / Blue & White Bajaj -->
+          <rect x="290" y="85" width="28" height="18" fill="#16a34a"/>
+          <rect x="293" y="77" width="22" height="10" fill="#eab308"/>
+          <circle cx="295" cy="105" r="5" fill="#0f172a"/>
+          <circle cx="313" cy="105" r="5" fill="#0f172a"/>
+          <!-- Foreground Street -->
+          <rect x="0" y="108" width="400" height="12" fill="#1e293b"/>
         </svg>
       `;
     } else if (stageId === 'hidden-cavern') {

@@ -394,113 +394,100 @@ export class AbandonedVillageStage {
    */
   buildRealisticHararAvenue() {
     const streetGroup = new THREE.Group();
-    const roadLength = 220.0;
-    const roadWidth = 11.2;
+    const alleyLength = 220.0;
+    const alleyWidth = 8.4; // Authentic intimate Harar Jugol street width
 
-    const roadGeo = new THREE.PlaneGeometry(roadWidth, roadLength);
-    roadGeo.rotateX(-Math.PI / 2);
-    this.roadTex.wrapS = THREE.RepeatWrapping;
-    this.roadTex.wrapT = THREE.RepeatWrapping;
-    this.roadTex.repeat.set(1, 3);
+    // 1. Full-width Ancient Harari Cobblestone Ground Pavement
+    const cobbleGeo = new THREE.PlaneGeometry(alleyWidth, alleyLength);
+    cobbleGeo.rotateX(-Math.PI / 2);
+    const cobbleMesh = new THREE.Mesh(cobbleGeo, this.cobbleMat);
+    cobbleMesh.position.set(0, 0.02, 0);
+    cobbleMesh.receiveShadow = true;
+    streetGroup.add(cobbleMesh);
 
-    const roadMesh = new THREE.Mesh(roadGeo, this.asphaltMat);
-    roadMesh.position.set(0, 0.02, 0);
-    roadMesh.receiveShadow = true;
-    streetGroup.add(roadMesh);
+    // 2. Central Polished Flagstone Spine (Natural stone slabs worn smooth over 500 years of donkey & foot traffic)
+    const spineGeo = new THREE.PlaneGeometry(2.8, alleyLength);
+    spineGeo.rotateX(-Math.PI / 2);
+    const spineMesh = new THREE.Mesh(spineGeo, this.stoneMat);
+    spineMesh.position.set(0, 0.025, 0);
+    spineMesh.receiveShadow = true;
+    streetGroup.add(spineMesh);
 
-    // Elevated Concrete Sidewalks
-    [-8.3, 8.3].forEach(sideX => {
-      const walkGeo = new THREE.BoxGeometry(5.4, 0.22, roadLength);
-      const walk = new THREE.Mesh(walkGeo, this.sidewalkMat);
-      walk.position.set(sideX, 0.11, 0);
-      walk.receiveShadow = true;
-      streetGroup.add(walk);
+    // 3. Natural Hand-Cut Stone Gutter Curbs along the building walls (x: -4.15 and +4.15)
+    [-4.12, 4.12].forEach(curbX => {
+      const stoneCurb = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, alleyLength), this.cobbleMat);
+      stoneCurb.position.set(curbX, 0.09, 0);
+      stoneCurb.castShadow = true;
+      stoneCurb.receiveShadow = true;
+      streetGroup.add(stoneCurb);
     });
 
-    // Alternating Red & White Curbs with drainage grates
-    [-5.6, 5.6].forEach(xCur => {
-      const curbCount = 96;
-      const curbLen = roadLength / curbCount;
-      for (let c = 0; c < curbCount; c++) {
-        const curbZ = -roadLength / 2 + c * curbLen + curbLen / 2;
-        const isNearZebra = Math.abs(curbZ + 50) < 2.0 || Math.abs(curbZ + 16) < 2.0 || Math.abs(curbZ - 16) < 2.0 || Math.abs(curbZ - 50) < 2.0;
-        const curbH = isNearZebra ? 0.08 : 0.24;
-        const isRed = (c % 2 === 0);
-        const curb = new THREE.Mesh(
-          new THREE.BoxGeometry(0.26, curbH, curbLen - 0.03),
-          isRed ? this.curbRedMat : this.curbWhiteMat
-        );
-        curb.position.set(xCur, curbH / 2 + 0.01, curbZ);
-        curb.receiveShadow = true;
-        streetGroup.add(curb);
+    // 4. Weathered Rustic Wooden Utility & Telephone Poles along street edges
+    const polePositions = [-3.85, 3.85];
+    const poleZs = [-70.0, -35.0, 0.0, 35.0, 70.0];
 
-        // Stormwater Drainage Grates along gutter every 8 sections
-        if (c % 8 === 0) {
-          const grate = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.02, 0.72), this.tireMat);
-          grate.position.set(xCur > 0 ? xCur - 0.38 : xCur + 0.38, 0.03, curbZ);
-          streetGroup.add(grate);
-        }
-      }
-    });
+    polePositions.forEach((px, pIdx) => {
+      poleZs.forEach((pz, zIdx) => {
+        // Rustic wooden pole with slight natural lean
+        const poleGroup = new THREE.Group();
+        poleGroup.position.set(px, 0, pz);
+        poleGroup.rotation.z = (pIdx === 0 ? 0.02 : -0.02);
+        poleGroup.rotation.x = ((zIdx % 2 === 0) ? 0.015 : -0.015);
 
-    // Central Harar Plaza Roundabout Ring at (0, 0, 0)
-    const ringGeo = new THREE.RingGeometry(6.4, 6.8, 36);
-    ringGeo.rotateX(-Math.PI / 2);
-    const ringMesh = new THREE.Mesh(ringGeo, this.curbWhiteMat);
-    ringMesh.position.set(0, 0.12, 0);
-    streetGroup.add(ringMesh);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.17, 7.8, 8), this.timberMat);
+        pole.position.y = 3.9;
+        pole.castShadow = true;
+        poleGroup.add(pole);
 
-    // Harar Street Name Signs
-    [-5.7, 5.7].forEach((sx, sIdx) => {
-      const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 3.2, 8), this.tireMat);
-      signPost.position.set(sx, 1.6, -16.0);
-      streetGroup.add(signPost);
+        // Timber crossarm near top (y: 6.8)
+        const crossarm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.12), this.timberMat);
+        crossarm.position.set(0, 6.8, 0);
+        crossarm.castShadow = true;
+        poleGroup.add(crossarm);
 
-      const stSignMat = new THREE.MeshBasicMaterial({
-        map: this.createSignTexture('አስማዲን ጎዳና • ሸዋ በር', 'ASMADIN AVENUE • SHOA GATE WAY', '#15803d', '#ffffff')
-      });
-      const stPlate = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.38, 0.04), stSignMat);
-      stPlate.position.set(sx + (sIdx === 0 ? 0.7 : -0.7), 2.9, -16.0);
-      streetGroup.add(stPlate);
-    });
-
-    // Realistic Sidewalk Shade Trees (Branched Trunks & Tiered Dense Foliage)
-    [-8.0, 8.0].forEach(px => {
-      [-80.0, -60.0, -40.0, -20.0, 20.0, 40.0, 60.0, 80.0].forEach(pz => {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.35, 1.4), this.curbWhiteMat);
-        box.position.set(px, 0.28, pz);
-        streetGroup.add(box);
-
-        const soil = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.05, 1.15), this.clayMat);
-        soil.position.set(px, 0.46, pz);
-        streetGroup.add(soil);
-
-        // Organic multi-segment tree trunk
-        const trunkGroup = new THREE.Group();
-        trunkGroup.position.set(px, 0.48, pz);
-
-        const trunkMain = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 2.2, 8), this.timberMat);
-        trunkMain.position.y = 1.1;
-        trunkGroup.add(trunkMain);
-
-        // Tiered organic leaf canopy clusters
-        const leafClumps = [
-          { y: 2.2, r: 1.25, h: 0.9, ox: 0, oz: 0 },
-          { y: 2.7, r: 1.45, h: 0.85, ox: 0.2, oz: -0.15 },
-          { y: 3.2, r: 1.35, h: 0.8, ox: -0.15, oz: 0.2 },
-          { y: 3.7, r: 0.95, h: 0.75, ox: 0.05, oz: 0.05 }
-        ];
-
-        leafClumps.forEach(lc => {
-          const cMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(lc.r, 1), this.flagGreenMat);
-          cMesh.position.set(lc.ox, lc.y, lc.oz);
-          cMesh.scale.set(1.0, lc.h / lc.r, 1.0);
-          cMesh.castShadow = true;
-          trunkGroup.add(cMesh);
+        // Ceramic insulators on crossarms
+        [-0.6, 0.6].forEach(ix => {
+          const insulator = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.12, 6), this.taxiWhiteMat);
+          insulator.position.set(ix, 6.94, 0);
+          poleGroup.add(insulator);
         });
 
-        streetGroup.add(trunkGroup);
+        streetGroup.add(poleGroup);
       });
+    });
+
+    // 5. Overhead Tangle of Power & Telephone Cables Criss-Crossing the Alley
+    poleZs.forEach(pz => {
+      // Direct cross-street power line (x: -3.85 to +3.85)
+      const crossWire = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 7.7, 4), this.tireMat);
+      crossWire.rotation.z = Math.PI / 2;
+      crossWire.position.set(0, 6.6, pz);
+      streetGroup.add(crossWire);
+
+      // Sagging diagonal service drop cables crossing to opposite building rooftops
+      const diagWire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 9.2, 4), this.tireMat);
+      diagWire.rotation.z = Math.PI / 2;
+      diagWire.rotation.y = 0.28;
+      diagWire.position.set(0, 6.4, pz + 6.0);
+      streetGroup.add(diagWire);
+    });
+
+    // Longitudinal power lines running along both sides from pole to pole
+    [-3.85, 3.85].forEach(lx => {
+      const lineWire = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, alleyLength, 4), this.tireMat);
+      lineWire.position.set(lx, 6.85, 0);
+      streetGroup.add(lineWire);
+    });
+
+    // 6. Street Name Markers on Harari Blue Wall Plates
+    [-4.0, 4.0].forEach((sx, sIdx) => {
+      const stSignMat = new THREE.MeshBasicMaterial({
+        map: this.createSignTexture('አስማዲን ደርብ • ሸዋ በር', 'ASMADIN DERB • SHOA GATE CORRIDOR', '#0284c7', '#ffffff')
+      });
+      const stPlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.38, 0.04), stSignMat);
+      stPlate.position.set(sx + (sIdx === 0 ? 0.08 : -0.08), 2.8, -16.0);
+      stPlate.rotation.y = (sIdx === 0 ? Math.PI / 2 : -Math.PI / 2);
+      streetGroup.add(stPlate);
     });
 
     this.group.add(streetGroup);
@@ -604,7 +591,7 @@ export class AbandonedVillageStage {
     gateGroup.position.set(0, 0, -42.0); // Spans across the avenue
 
     // Twin defensive semicircular bastions flanking the avenue
-    [-7.2, 7.2].forEach(tx => {
+    [-5.4, 5.4].forEach(tx => {
       const towerGeo = new THREE.CylinderGeometry(2.4, 2.6, 9.2, 16);
       const tower = new THREE.Mesh(towerGeo, this.hararWhiteMat);
       tower.position.set(tx, 4.6, 0);
@@ -677,7 +664,7 @@ export class AbandonedVillageStage {
     });
 
     // Grand Archway Overhead Bridge
-    const bridgeGeo = new THREE.BoxGeometry(12.0, 3.4, 3.2);
+    const bridgeGeo = new THREE.BoxGeometry(9.6, 3.4, 3.2);
     const bridge = new THREE.Mesh(bridgeGeo, this.hararWhiteMat);
     bridge.position.set(0, 6.8, 0);
     bridge.castShadow = true;
@@ -686,18 +673,18 @@ export class AbandonedVillageStage {
     // Open Historic Carved Wooden Fortress Gates (የተከፈቱ የሸዋ በር የእንጨት በሮች)
     // Left leaf swung inward
     const leftGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
-    leftGate.position.set(-3.8, 2.4, 1.4);
+    leftGate.position.set(-2.8, 2.4, 1.4);
     leftGate.rotation.y = Math.PI * 0.35;
     gateGroup.add(leftGate);
 
     // Right leaf swung inward
     const rightGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
-    rightGate.position.set(3.8, 2.4, 1.4);
+    rightGate.position.set(2.8, 2.4, 1.4);
     rightGate.rotation.y = -Math.PI * 0.35;
     gateGroup.add(rightGate);
 
     // Decorative Terracotta Horseshoe Arch Moldings
-    const archBorder = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.45, 3.4), this.hararTerracottaMat);
+    const archBorder = new THREE.Mesh(new THREE.BoxGeometry(9.8, 0.45, 3.4), this.hararTerracottaMat);
     archBorder.position.set(0, 8.6, 0);
     gateGroup.add(archBorder);
 
@@ -705,7 +692,7 @@ export class AbandonedVillageStage {
     const gateSignMat = new THREE.MeshBasicMaterial({
       map: this.createSignTexture('አስማዲን በሪ • ሸዋ በር', 'ASMADIN BARI • SHOA GATE OF HARAR JUGOL', '#15803d', '#ffffff')
     });
-    const gateSign = new THREE.Mesh(new THREE.BoxGeometry(8.6, 1.5, 0.15), gateSignMat);
+    const gateSign = new THREE.Mesh(new THREE.BoxGeometry(7.2, 1.5, 0.15), gateSignMat);
     gateSign.position.set(0, 6.8, 1.68);
     gateGroup.add(gateSign);
 
@@ -1078,24 +1065,27 @@ export class AbandonedVillageStage {
    */
   buildGidirMagalaCentralMarket() {
     const marketGroup = new THREE.Group();
-    marketGroup.position.set(0, 0, 0); // At the central plaza roundabout
+    marketGroup.position.set(0, 0, 16.0); // Integrated directly along the central market derb
 
     // Market Plaza Centerpiece Monument: Harari Traditional Mesob Urn (የሐረሪ መሶብ)
     const mesobStand = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.6, 16), this.hararWhiteMat);
+    const mesobGroup = new THREE.Group();
+    mesobGroup.position.set(0, 0, 9.5);
     mesobStand.position.y = 0.3;
-    marketGroup.add(mesobStand);
+    mesobGroup.add(mesobStand);
 
     const mesobBody = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.85, 1.4, 16), this.basketRedMat);
     mesobBody.position.y = 1.3;
-    marketGroup.add(mesobBody);
+    mesobGroup.add(mesobBody);
 
     const mesobLid = new THREE.Mesh(new THREE.ConeGeometry(1.35, 1.8, 16), this.basketGreenMat);
     mesobLid.position.y = 2.9;
-    marketGroup.add(mesobLid);
+    mesobGroup.add(mesobLid);
 
     const mesobFinial = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 10), this.goldMat);
     mesobFinial.position.y = 3.9;
-    marketGroup.add(mesobFinial);
+    mesobGroup.add(mesobFinial);
+    marketGroup.add(mesobGroup);
 
     // Traditional Harari Market Stalls surrounding the central monument
     const stallConfigs = [
@@ -1428,7 +1418,7 @@ export class AbandonedVillageStage {
 
     westBuildings.forEach((b, idx) => {
       buildingsGroup.add(buildGegarHouse({
-        x: -14.0, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: westRot,
+        x: -7.6, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: westRot,
         amharicSign: b.amh, englishSign: b.eng, signBg: b.bg, signFg: b.fg,
         wallMat: b.mat, hasAwning: true,
         hasBougainvillea: idx % 2 === 0,
@@ -1453,7 +1443,7 @@ export class AbandonedVillageStage {
 
     eastBuildings.forEach((b, idx) => {
       buildingsGroup.add(buildGegarHouse({
-        x: 14.0, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: eastRot,
+        x: 7.6, z: b.z, w: 7.2, h: b.h, d: 7.0, rotY: eastRot,
         amharicSign: b.amh, englishSign: b.eng, signBg: b.bg, signFg: b.fg,
         wallMat: b.mat, hasAwning: true,
         hasBougainvillea: idx % 2 === 1,
@@ -1474,14 +1464,14 @@ export class AbandonedVillageStage {
 
     garlandZs.forEach(gz => {
       // Suspension cable across the street (x: -10 to +10 at y: 6.8)
-      const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 20.4, 4), this.balconyMat);
+      const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 8.4, 4), this.balconyMat);
       cable.rotation.z = Math.PI / 2;
       cable.position.set(0, 6.8, gz);
       buntingGroup.add(cable);
 
       // Pennant flags hanging along cable
       const pennantCount = 14;
-      const pennantStep = 18.0 / (pennantCount - 1);
+      const pennantStep = 7.6 / (pennantCount - 1);
       const flagColors = [this.flagGreenMat, this.flagYellowMat, this.flagRedMat];
 
       for (let p = 0; p < pennantCount; p++) {
@@ -1648,23 +1638,23 @@ export class AbandonedVillageStage {
     };
 
     // 1. Blue & White Harari Bajaj at Shoa Gate entrance
-    fleetGroup.add(buildHararBajaj(3.8, -14.0, 0, this.bajajBlueMat, 'ሸዋ በር - ግድር መጋላ', 'ሓረሪ 2 - 38291'));
+    fleetGroup.add(buildHararBajaj(2.3, -14.0, 0, this.bajajBlueMat, 'ሸዋ በር - ግድር መጋላ', 'ሓረሪ 2 - 38291'));
 
     // 2. Green & Yellow Harari Bajaj outside Gidir Magala
-    fleetGroup.add(buildHararBajaj(-3.8, 16.0, Math.PI, this.bajajGreenMat, 'አስማዲን - ቡዳ በር', 'ሓረሪ 2 - 14920'));
+    fleetGroup.add(buildHararBajaj(-2.3, 16.0, Math.PI, this.bajajGreenMat, 'አስማዲን - ቡዳ በር', 'ሓረሪ 2 - 14920'));
 
     // 3. Golden Yellow Harari Bajaj parked near Buda Gate
-    fleetGroup.add(buildHararBajaj(7.2, -6.0, -Math.PI / 4, this.bajajYellowMat, 'ጀጎል ዙሪያ', 'ሓረሪ 2 - 82910'));
+    fleetGroup.add(buildHararBajaj(2.4, -6.0, -0.2, this.bajajYellowMat, 'ጀጎል ዙሪያ', 'ሓረሪ 2 - 82910'));
 
     // 4. Sky Blue Harari Bajaj at West Bajaj Stop
-    fleetGroup.add(buildHararBajaj(-3.8, -32.0, Math.PI * 0.1, this.bajajBlueMat, 'ኤረር በር - ሸዋ በር', 'ሓረሪ 2 - 59281'));
+    fleetGroup.add(buildHararBajaj(-2.4, -30.0, 0.1, this.bajajBlueMat, 'ኤረር በር - ሸዋ በር', 'ሓረሪ 2 - 59281'));
 
     // 5. Emerald Green Harari Bajaj near Rimbaud Cultural Center
-    fleetGroup.add(buildHararBajaj(3.8, 32.0, -Math.PI * 0.15, this.bajajGreenMat, 'አርተር ራምቦ - ራስ መኮንን', 'ሓረሪ 2 - 47102'));
+    fleetGroup.add(buildHararBajaj(2.3, 32.0, -0.15, this.bajajGreenMat, 'አርተር ራምቦ - ራስ መኮንን', 'ሓረሪ 2 - 47102'));
 
     // 6. Classic Blue & White Lada 2101 City Taxi with Roof TAXI Light
     const lada = new THREE.Group();
-    lada.position.set(3.6, 0, -26.0);
+    lada.position.set(2.2, 0, -25.0);
 
     const ladaLower = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.65, 4.2), this.ladaBlueMat);
     ladaLower.position.y = 0.58;
@@ -1730,7 +1720,7 @@ export class AbandonedVillageStage {
 
     // 7. Iconic Ethiopian Toyota HiAce Minibus Taxi ("ሰላም ሚኒባስ")
     const minibus = new THREE.Group();
-    minibus.position.set(3.8, 0, 2.0);
+    minibus.position.set(2.1, 0, 4.0);
 
     const miniLower = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.85, 4.6), this.taxiBlueMat);
     miniLower.position.y = 0.68;
@@ -1772,7 +1762,7 @@ export class AbandonedVillageStage {
 
     // 8. Isuzu Cargo Truck carrying Harar Coffee Sacks (የሐረር ቡና)
     const truck = new THREE.Group();
-    truck.position.set(-3.8, 0, 32.0);
+    truck.position.set(-2.1, 0, 42.0);
     truck.rotation.y = Math.PI;
 
     const truckCab = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 1.8), this.taxiWhiteMat);
@@ -1800,8 +1790,8 @@ export class AbandonedVillageStage {
     this.group.add(fleetGroup);
 
     if (this.physicsWorld) {
-      const colLada = new BoxCollider(3.6, -26.0, 1.2, 2.3);
-      const colMini = new BoxCollider(3.8, 2.0, 1.3, 2.4);
+      const colLada = new BoxCollider(2.2, -25.0, 1.2, 2.3);
+      const colMini = new BoxCollider(2.1, 4.0, 1.3, 2.4);
       const colTruck = new BoxCollider(-3.8, 32.0, 1.4, 3.2);
       this.physicsWorld.addCollider(colLada);
       this.physicsWorld.addCollider(colMini);
@@ -1967,7 +1957,7 @@ export class AbandonedVillageStage {
 
     // 1. Elder at Coffee Terrace enjoying traditional Harar Bunna
     const elder = createPerson({
-      x: -8.8, y: 0.22, z: 1.2, rotY: Math.PI * 0.15,
+      x: -3.2, y: 0.02, z: 1.2, rotY: Math.PI * 0.15,
       skinColor: 0x4a2e1b, clothesColor: 0xf8fafc, accentColor: 0xd97706,
       hasGabi: true, hasKofia: true, isSeated: true
     });
@@ -1975,14 +1965,14 @@ export class AbandonedVillageStage {
 
     // 2. Harari Women shoppers browsing spices at Gidir Magala
     const woman1 = createPerson({
-      x: -4.8, y: 0.22, z: -2.8, rotY: Math.PI * 0.65,
+      x: -1.8, y: 0.02, z: -3.8, rotY: Math.PI * 0.65,
       skinColor: 0x5a3825, clothesColor: 0xd97706, accentColor: 0xb91c1c,
       hasShash: true, isSeated: false
     });
     crowdGroup.add(woman1);
 
     const woman2 = createPerson({
-      x: 4.8, y: 0.22, z: 2.2, rotY: -Math.PI * 0.45,
+      x: 1.8, y: 0.02, z: 2.0, rotY: -Math.PI * 0.45,
       skinColor: 0x6b4423, clothesColor: 0x0284c7, accentColor: 0xfacc15,
       hasShash: true, isSeated: false
     });
@@ -1990,7 +1980,7 @@ export class AbandonedVillageStage {
 
     // 3. Bajaj Driver standing near his parked Bajaj
     const driver = createPerson({
-      x: 3.8, y: 0.02, z: -23.6, rotY: Math.PI * 0.3,
+      x: 2.6, y: 0.02, z: -16.0, rotY: Math.PI * 0.3,
       skinColor: 0x54351e, clothesColor: 0x1e293b, accentColor: 0xef4444,
       hasKofia: false, isSeated: false
     });
@@ -1998,7 +1988,7 @@ export class AbandonedVillageStage {
 
     // 4. Sidewalk Khat & Fruit Merchant seated with wicker baskets
     const merchant = createPerson({
-      x: 8.2, y: 0.22, z: -14.0, rotY: -Math.PI * 0.4,
+      x: 3.2, y: 0.02, z: -12.0, rotY: -Math.PI * 0.4,
       skinColor: 0x4e311a, clothesColor: 0x15803d, accentColor: 0xeab308,
       hasGabi: false, hasKofia: true, isSeated: true
     });
@@ -2007,25 +1997,25 @@ export class AbandonedVillageStage {
     // Woven market baskets of fresh fruit beside merchant
     [-0.55, 0.55].forEach((bx, bIdx) => {
       const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.25, 10), this.burlapMat);
-      basket.position.set(8.2 + bx, 0.35, -13.5);
+      basket.position.set(2.8 + bx * 0.7, 0.22, -12.0);
       crowdGroup.add(basket);
 
       const fruitMat = new THREE.MeshStandardMaterial({ color: bIdx === 0 ? 0xf97316 : 0x84cc16, roughness: 0.6 });
       const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), fruitMat);
-      fruit.position.set(8.2 + bx, 0.48, -13.5);
+      fruit.position.set(2.8 + bx * 0.7, 0.34, -12.0);
       crowdGroup.add(fruit);
     });
 
     // 5. Additional Street Pedestrians strolling along sidewalks
     const strollerWest = createPerson({
-      x: -5.2, y: 0.22, z: -42.0, rotY: 0,
+      x: -1.6, y: 0.02, z: -35.0, rotY: 0,
       skinColor: 0x563821, clothesColor: 0x0f766e, accentColor: 0xf59e0b,
       hasKofia: true, isSeated: false
     });
     crowdGroup.add(strollerWest);
 
     const strollerEast = createPerson({
-      x: 5.2, y: 0.22, z: 38.0, rotY: Math.PI,
+      x: 1.6, y: 0.02, z: 28.0, rotY: Math.PI,
       skinColor: 0x4b2c18, clothesColor: 0x7c3aed, accentColor: 0xec4899,
       hasShash: true, isSeated: false
     });
@@ -2036,7 +2026,7 @@ export class AbandonedVillageStage {
 
   buildHararCoffeeAndTeaTerrace() {
     const ceremonyGroup = new THREE.Group();
-    ceremonyGroup.position.set(-8.8, 0.22, 0.0);
+    ceremonyGroup.position.set(-3.2, 0.02, 0.0);
 
     const qetema = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.03, 16), this.qetemaMat);
     qetema.position.set(0, 0.02, 0);
@@ -2138,89 +2128,51 @@ export class AbandonedVillageStage {
   buildCityStreetFurnitureAndLights() {
     const furnGroup = new THREE.Group();
 
-    // 1. Concrete Utility Power Poles (Height: 8.2m) with Transformers & Suspended Power Cables
-    const polePositions = [-7.8, 7.8];
-    const poleZs = [-75.0, -25.0, 25.0, 75.0];
+    // 1. Wall-Mounted Traditional Wrought-Iron Harari Lanterns (Mounted directly on building facades at x: ±4.1)
+    const lanternZs = [-60.0, -40.0, -20.0, 0.0, 20.0, 40.0, 60.0];
 
-    polePositions.forEach((px, pIdx) => {
-      poleZs.forEach(pz => {
-        // Tapered concrete power pole
-        const pMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 8.4, 8), this.curbWhiteMat);
-        pMesh.position.set(px, 4.2, pz);
-        pMesh.castShadow = true;
-        furnGroup.add(pMesh);
+    lanternZs.forEach(lz => {
+      [-4.05, 4.05].forEach((lx, sIdx) => {
+        const lanternGroup = new THREE.Group();
+        lanternGroup.position.set(lx, 3.4, lz);
 
-        // Timber crossarm
-        const crossarm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.12), this.timberMat);
-        crossarm.position.set(px, 7.8, pz);
-        furnGroup.add(crossarm);
+        // Wrought-iron mounting plate against wall
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.32, 0.18), this.balconyMat);
+        lanternGroup.add(plate);
 
-        // Cylindrical transformer on selected poles
-        if (pz === -25.0 || pz === 25.0) {
-          const transformer = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.75, 10), this.shutterMat);
-          transformer.position.set(px > 0 ? px - 0.35 : px + 0.35, 6.2, pz);
-          furnGroup.add(transformer);
-        }
+        // Arched iron arm extending out from wall
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.55, 6), this.balconyMat);
+        arm.rotation.z = (sIdx === 0 ? Math.PI / 2 : -Math.PI / 2);
+        arm.position.set(sIdx === 0 ? 0.28 : -0.28, 0.05, 0);
+        lanternGroup.add(arm);
+
+        // Hexagonal glass lantern fixture
+        const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.38, 6), this.headlightBulbMat);
+        lamp.position.set(sIdx === 0 ? 0.52 : -0.52, -0.08, 0);
+        lamp.castShadow = true;
+        lanternGroup.add(lamp);
+
+        // Point light for warm nocturnal/late afternoon glow
+        const light = new THREE.PointLight(0xf59e0b, 0.85, 10);
+        light.position.set(sIdx === 0 ? 0.52 : -0.52, -0.08, 0);
+        lanternGroup.add(light);
+
+        furnGroup.add(lanternGroup);
       });
-
-      // 3 Black Electrical Power Lines running along the length of the street between poles
-      for (let w = 0; w < 3; w++) {
-        const wireOffset = -0.55 + w * 0.55;
-        const cableGeo = new THREE.CylinderGeometry(0.012, 0.012, 160.0, 4);
-        cableGeo.rotateX(Math.PI / 2);
-        const cableMesh = new THREE.Mesh(cableGeo, this.tireMat);
-        cableMesh.position.set(px + wireOffset, 7.85, 0);
-        furnGroup.add(cableMesh);
-      }
     });
 
-    // 2. Ethiopian Tricolor & Harari Regional Flagpoles
-    [-5.7, 5.7].forEach(fx => {
-      [-30.0, 2.0].forEach(fz => {
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 8.5, 8), this.goldMat);
-        pole.position.set(fx, 4.25, fz);
+    // 2. Ethiopian National & Harari Bunting Flagpoles atop Shoa Gate approach
+    [-4.1, 4.1].forEach(fx => {
+      [-38.0].forEach(fz => {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 6.2, 8), this.timberMat);
+        pole.position.set(fx, 3.1, fz);
         furnGroup.add(pole);
 
-        const flag = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.4), this.flagGreenMat);
-        flag.position.set(fx + 1.25, 7.8, fz);
-        flag.rotation.y = 0.25;
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.1), this.flagGreenMat);
+        flag.position.set(fx > 0 ? fx - 0.9 : fx + 0.9, 5.6, fz);
+        flag.rotation.y = 0.2;
         furnGroup.add(flag);
       });
-    });
-
-    // 3. Modern Cobra-Head Street Luminaires with Warm Glow Pools
-    const lampPositions = [
-      { x: -5.6, z: -60.0 }, { x: 5.6, z: -60.0 },
-      { x: -5.6, z: -30.0 }, { x: 5.6, z: -30.0 },
-      { x: -5.6, z: 0.0 },   { x: 5.6, z: 0.0 },
-      { x: -5.6, z: 30.0 },  { x: 5.6, z: 30.0 },
-      { x: -5.6, z: 60.0 },  { x: 5.6, z: 60.0 }
-    ];
-
-    lampPositions.forEach(lp => {
-      // Steel pole
-      const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 5.4, 8), this.balconyMat);
-      lampPost.position.set(lp.x, 2.7, lp.z);
-      furnGroup.add(lampPost);
-
-      // Curved cobra-head luminaire arm
-      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 6), this.balconyMat);
-      arm.rotation.z = lp.x < 0 ? -Math.PI / 4 : Math.PI / 4;
-      arm.position.set(lp.x < 0 ? lp.x + 0.4 : lp.x - 0.4, 5.2, lp.z);
-      furnGroup.add(arm);
-
-      // Rectangular cobra-head fixture with glowing lens
-      const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, 0.48), this.balconyMat);
-      fixture.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.5, lp.z);
-      furnGroup.add(fixture);
-
-      const lens = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.4), this.headlightBulbMat);
-      lens.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.44, lp.z);
-      furnGroup.add(lens);
-
-      const lampLight = new THREE.PointLight(0xfef08a, 1.1, 16);
-      lampLight.position.set(lp.x < 0 ? lp.x + 0.75 : lp.x - 0.75, 5.2, lp.z);
-      furnGroup.add(lampLight);
     });
 
     this.group.add(furnGroup);

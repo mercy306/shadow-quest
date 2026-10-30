@@ -176,7 +176,7 @@ export class SaveManager {
       },
       player: player ? player.getSaveState() : {
         position: { x: 0, y: 0.8, z: 2 },
-        rotationY: Math.PI,
+        rotationY: 0,
         health: 100,
         maxHealth: 100,
         stamina: 100,

@@ -151,7 +151,7 @@ export class Player {
     // Initial forest spawn coordinates
     this.spawnX = 0;
     this.spawnZ = 2;
-    this.lastSafePosition = { x: 0, y: 0.8, z: 2, rotationY: Math.PI };
+    this.lastSafePosition = { x: 0, y: 0.8, z: 2, rotationY: 0 };
     this.groundToTerrain(this.spawnX, this.spawnZ);
 
     this.scene.add(this.mesh);
@@ -184,7 +184,7 @@ export class Player {
       this.model = gltf.scene;
 
       this.model.scale.set(1.0, 1.0, 1.0);
-      this.model.rotation.y = Math.PI;
+      this.model.rotation.y = 0; // Natural forward orientation of Soldier.glb faces forward (-Z)
 
       let rightHandBone = null;
       let leftHandBone = null;
@@ -322,6 +322,9 @@ export class Player {
   teleport(x, z, rotY = 0, isEnabled = true, resetHealth = false) {
     this.groundToTerrain(x, z);
     this.mesh.rotation.y = rotY;
+    if (this.model) {
+      this.model.rotation.set(0, rotY, 0);
+    }
     this.verticalVelocity = 0;
     this.isGrounded = true;
     this.isAttacking = false;
@@ -885,7 +888,7 @@ export class Player {
         this.physicsWorld.resolveCollisions(this.position, this.radius, this.height);
       }
       if (this.model) {
-        const rollAngle = Math.atan2(this.rollDirection.x, this.rollDirection.z);
+        const rollAngle = Math.atan2(-this.rollDirection.x, -this.rollDirection.z);
         this.model.rotation.y = rollAngle;
       }
       if (this.rollTimer >= this.rollDuration) {
@@ -1047,7 +1050,8 @@ export class Player {
       }
 
       if (this.model) {
-        const targetAngle = Math.atan2(this._moveDir.x, this._moveDir.z);
+        // Since Soldier.glb naturally faces -Z in model space, align its forward face with _moveDir
+        const targetAngle = Math.atan2(-this._moveDir.x, -this._moveDir.z);
         this._targetQuat.setFromAxisAngle(this._upVec, targetAngle);
         const lerpFactor = 1.0 - Math.exp(-this.rotationSpeed * deltaTime);
         this.model.quaternion.slerp(this._targetQuat, lerpFactor);

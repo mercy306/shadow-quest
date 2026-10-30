@@ -56,7 +56,7 @@ export class RemotePlayer {
       this.model = gltf.scene;
 
       this.model.scale.set(1.0, 1.0, 1.0);
-      this.model.rotation.y = Math.PI;
+      this.model.rotation.y = 0; // Natural forward orientation of Soldier.glb (-Z)
 
       let rightHandBone = null;
 

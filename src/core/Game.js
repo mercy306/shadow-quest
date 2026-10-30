@@ -83,7 +83,7 @@ export class Game {
 
       // 3. Physics World & Environment
       this.physicsWorld = new PhysicsWorld();
-      this.environment = new Environment(this.scene, this.physicsWorld);
+      this.environment = new Environment(this.scene, this.physicsWorld, this.renderer);
       this.initStep = 'environment';
 
       this.uiManager.setLoadingProgress(55, 'Initializing camera and controls...');

@@ -816,4 +816,254 @@ export class TextureGenerator {
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
   }
+  /**
+   * Generates an equirectangular environment canvas for PMREM skylight reflections.
+   * Gives car paint, glass, chrome, and polished asphalt realistic environmental reflections.
+   */
+  static createHdriSkyCanvas(w = 512, h = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // Sky gradient (Zenith to Horizon to Ground)
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+    skyGrad.addColorStop(0.0, '#0284c7');  // Zenith rich azure blue
+    skyGrad.addColorStop(0.42, '#38bdf8'); // Mid sky
+    skyGrad.addColorStop(0.50, '#fef08a'); // Radiant golden sunlit horizon
+    skyGrad.addColorStop(0.53, '#a16207'); // Highland ground haze
+    skyGrad.addColorStop(1.0, '#78350f');  // Terracotta ground bounce
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Radiant Sun Flare in the sky
+    const sunX = w * 0.65;
+    const sunY = h * 0.32;
+    const sunGrad = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, 80);
+    sunGrad.addColorStop(0.0, '#ffffff');
+    sunGrad.addColorStop(0.2, '#fffbeb');
+    sunGrad.addColorStop(0.6, 'rgba(253, 224, 71, 0.45)');
+    sunGrad.addColorStop(1.0, 'rgba(253, 224, 71, 0.0)');
+    ctx.fillStyle = sunGrad;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+    ctx.fill();
+
+    return canvas;
+  }
+
+  /**
+   * Generates a high-precision tangent-space Normal Map for asphalt roads.
+   * Micro-aggregate bumps, fine gravel texture, and road wear normal perturbations.
+   */
+  static createAsphaltNormalMap(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(size, size);
+    const data = imgData.data;
+
+    // Generate height buffer
+    const height = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const n1 = Math.sin(x * 0.25) * Math.cos(y * 0.25) * 0.25;
+        const n2 = (Math.random() - 0.5) * 0.75;
+        height[y * size + x] = n1 + n2;
+      }
+    }
+
+    // Sobel operator to derive tangent-space normal vectors
+    const strength = 2.4;
+    for (let y = 0; y < size; y++) {
+      const ym = (y - 1 + size) % size;
+      const yp = (y + 1) % size;
+      for (let x = 0; x < size; x++) {
+        const xm = (x - 1 + size) % size;
+        const xp = (x + 1) % size;
+
+        const dzdx = (height[y * size + xp] - height[y * size + xm]) * strength;
+        const dzdy = (height[yp * size + x] - height[ym * size + x]) * strength;
+
+        const nx = -dzdx;
+        const ny = -dzdy;
+        const nz = 1.0;
+        const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+        const idx = (y * size + x) * 4;
+        data[idx] = Math.floor(((nx / len) * 0.5 + 0.5) * 255);
+        data[idx + 1] = Math.floor(((ny / len) * 0.5 + 0.5) * 255);
+        data[idx + 2] = Math.floor(((nz / len) * 0.5 + 0.5) * 255);
+        data[idx + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(8, 24);
+    return texture;
+  }
+
+  /**
+   * Generates tangent-space Normal Map for Harari cobblestone alleyways.
+   * Convex stone dome normals with deep recess grooves between stones.
+   */
+  static createCobblestoneNormalMap(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(size, size);
+    const data = imgData.data;
+
+    const cols = 16;
+    const rows = 16;
+    const cellW = size / cols;
+    const cellH = size / rows;
+    const height = new Float32Array(size * size);
+
+    for (let r = 0; r < rows; r++) {
+      const rowOff = (r % 2) * (cellW * 0.5);
+      for (let c = -1; c <= cols; c++) {
+        const cx = c * cellW + rowOff + cellW * 0.5;
+        const cy = r * cellH + cellH * 0.5;
+        const rx = cellW * 0.44;
+        const ry = cellH * 0.40;
+
+        for (let dy = -cellH; dy <= cellH; dy++) {
+          const py = Math.floor(cy + dy);
+          if (py < 0 || py >= size) continue;
+          for (let dx = -cellW; dx <= cellW; dx++) {
+            const px = Math.floor(cx + dx);
+            if (px < 0 || px >= size) continue;
+
+            const distSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+            if (distSq < 1.0) {
+              const domeH = Math.sqrt(1.0 - distSq) * 0.85;
+              const pIdx = py * size + px;
+              if (domeH > height[pIdx]) {
+                height[pIdx] = domeH;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Add grit
+    for (let i = 0; i < height.length; i++) {
+      height[i] += (Math.random() - 0.5) * 0.08;
+    }
+
+    const strength = 3.2;
+    for (let y = 0; y < size; y++) {
+      const ym = (y - 1 + size) % size;
+      const yp = (y + 1) % size;
+      for (let x = 0; x < size; x++) {
+        const xm = (x - 1 + size) % size;
+        const xp = (x + 1) % size;
+
+        const dzdx = (height[y * size + xp] - height[y * size + xm]) * strength;
+        const dzdy = (height[yp * size + x] - height[ym * size + x]) * strength;
+
+        const nx = -dzdx;
+        const ny = -dzdy;
+        const nz = 1.0;
+        const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+        const idx = (y * size + x) * 4;
+        data[idx] = Math.floor(((nx / len) * 0.5 + 0.5) * 255);
+        data[idx + 1] = Math.floor(((ny / len) * 0.5 + 0.5) * 255);
+        data[idx + 2] = Math.floor(((nz / len) * 0.5 + 0.5) * 255);
+        data[idx + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+    return texture;
+  }
+
+  /**
+   * Generates tangent-space Normal Map for Harari lime plaster walls.
+   * Realistic trowel-sweep ridges, pitted lime pockets, and micro relief.
+   */
+  static createHararPlasterNormalMap(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(size, size);
+    const data = imgData.data;
+
+    const height = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const trowel = Math.sin(x * 0.08 + y * 0.04) * 0.2;
+        const grain = (Math.random() - 0.5) * 0.45;
+        height[y * size + x] = trowel + grain;
+      }
+    }
+
+    const strength = 1.8;
+    for (let y = 0; y < size; y++) {
+      const ym = (y - 1 + size) % size;
+      const yp = (y + 1) % size;
+      for (let x = 0; x < size; x++) {
+        const xm = (x - 1 + size) % size;
+        const xp = (x + 1) % size;
+
+        const dzdx = (height[y * size + xp] - height[y * size + xm]) * strength;
+        const dzdy = (height[yp * size + x] - height[ym * size + x]) * strength;
+
+        const nx = -dzdx;
+        const ny = -dzdy;
+        const nz = 1.0;
+        const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+        const idx = (y * size + x) * 4;
+        data[idx] = Math.floor(((nx / len) * 0.5 + 0.5) * 255);
+        data[idx + 1] = Math.floor(((ny / len) * 0.5 + 0.5) * 255);
+        data[idx + 2] = Math.floor(((nz / len) * 0.5 + 0.5) * 255);
+        data[idx + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 2);
+    return texture;
+  }
+
+  /**
+   * Generates soft radial Contact Shadow texture for vehicles, stalls, and buildings.
+   * Grounding objects firmly to the asphalt pavement so they never look like they float.
+   */
+  static createContactShadowTexture(size = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const half = size / 2;
+    const radGrad = ctx.createRadialGradient(half, half, size * 0.1, half, half, half);
+    radGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0.85)');
+    radGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.55)');
+    radGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.20)');
+    radGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+    ctx.fillStyle = radGrad;
+    ctx.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
 }

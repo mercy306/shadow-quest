@@ -1,3 +1,4 @@
+import { TextureGenerator } from './TextureGenerator.js';
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { Terrain } from './Terrain.js';
@@ -11,7 +12,8 @@ import { WhisperingCavernStage } from './WhisperingCavernStage.js';
 import { WeatherManager } from './WeatherManager.js';
 
 export class Environment {
-  constructor(scene, physicsWorld = null) {
+  constructor(scene, physicsWorld = null, renderer = null) {
+    this.renderer = renderer;
     this.scene = scene;
     this.physicsWorld = physicsWorld;
     this.sun = new THREE.Vector3();
@@ -28,6 +30,7 @@ export class Environment {
 
     this.initLighting();
     this.initSky();
+    this.initEnvironmentReflections();
 
     // Dynamic Weather and Day/Night Manager
     this.weatherManager = new WeatherManager(this, this.scene);
@@ -67,6 +70,24 @@ export class Environment {
     this.rimLight = new THREE.DirectionalLight(0x7dd3fc, 0.4);
     this.rimLight.position.set(-50, 40, -40);
     this.scene.add(this.rimLight);
+  }
+
+  initEnvironmentReflections() {
+    if (this.renderer) {
+      try {
+        const pmrem = new THREE.PMREMGenerator(this.renderer);
+        pmrem.compileEquirectangularShader();
+        const skyCanvas = TextureGenerator.createHdriSkyCanvas(512, 256);
+        const envTex = new THREE.CanvasTexture(skyCanvas);
+        envTex.mapping = THREE.EquirectangularReflectionMapping;
+        envTex.colorSpace = THREE.SRGBColorSpace;
+        this.scene.environment = pmrem.fromEquirectangular(envTex).texture;
+        pmrem.dispose();
+        envTex.dispose();
+      } catch (err) {
+        console.warn('[Environment] PMREM sky reflections initialization:', err);
+      }
+    }
   }
 
   initSky() {

@@ -52,6 +52,20 @@ export class AbandonedVillageStage {
     this.roadTex = TextureGenerator.createAsphaltRoadTexture(1024, 2048);
     this.sidewalkTex = TextureGenerator.createSidewalkTileTexture(512);
 
+    // High-Resolution Tangent-Space PBR Normal Maps (gives surfaces real microscopic 3D depth)
+    this.asphaltNormalTex = TextureGenerator.createAsphaltNormalMap(512);
+    this.cobbleNormalTex = TextureGenerator.createCobblestoneNormalMap(512);
+    this.hararPlasterNormalTex = TextureGenerator.createHararPlasterNormalMap(512);
+
+    // Soft Contact Shadow Decal Material for grounding objects firmly to pavement
+    this.contactShadowTex = TextureGenerator.createContactShadowTexture(256);
+    this.contactShadowMat = new THREE.MeshBasicMaterial({
+      map: this.contactShadowTex,
+      transparent: true,
+      opacity: 0.82,
+      depthWrite: false
+    });
+
     // Dedicated Harari Procedural Textures
     this.hararPlasterBlueTex = TextureGenerator.createHararPlasterTexture('#1d4ed8', '#1e40af', 512);
     this.hararPlasterLightBlueTex = TextureGenerator.createHararPlasterTexture('#38bdf8', '#0284c7', 512);
@@ -65,8 +79,10 @@ export class AbandonedVillageStage {
 
     this.asphaltMat = new THREE.MeshStandardMaterial({
       map: this.roadTex,
-      roughness: 0.82,
-      metalness: 0.08
+      normalMap: this.asphaltNormalTex,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughness: 0.78,
+      metalness: 0.12
     });
 
     this.sidewalkMat = new THREE.MeshStandardMaterial({
@@ -77,8 +93,10 @@ export class AbandonedVillageStage {
 
     this.cobbleMat = new THREE.MeshStandardMaterial({
       map: this.hararCobbleTex,
-      roughness: 0.88,
-      metalness: 0.12
+      normalMap: this.cobbleNormalTex,
+      normalScale: new THREE.Vector2(1.2, 1.2),
+      roughness: 0.82,
+      metalness: 0.15
     });
 
     this.timberMat = new THREE.MeshStandardMaterial({
@@ -94,18 +112,24 @@ export class AbandonedVillageStage {
 
     this.hararTwoToneBlueMat = new THREE.MeshStandardMaterial({
       map: this.hararTwoToneBlueTex,
-      roughness: 0.86,
-      metalness: 0.05
+      normalMap: this.hararPlasterNormalTex,
+      normalScale: new THREE.Vector2(0.75, 0.75),
+      roughness: 0.82,
+      metalness: 0.06
     });
     this.hararTwoToneCyanMat = new THREE.MeshStandardMaterial({
       map: this.hararTwoToneCyanTex,
-      roughness: 0.85,
-      metalness: 0.05
+      normalMap: this.hararPlasterNormalTex,
+      normalScale: new THREE.Vector2(0.75, 0.75),
+      roughness: 0.80,
+      metalness: 0.06
     });
     this.hararTwoToneTerracottaMat = new THREE.MeshStandardMaterial({
       map: this.hararTwoToneTerracottaTex,
-      roughness: 0.88,
-      metalness: 0.05
+      normalMap: this.hararPlasterNormalTex,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughness: 0.85,
+      metalness: 0.06
     });
 
     // Harar Jugol Architectural Stucco Colors with Realistic Lime Plaster Texturing
@@ -260,13 +284,13 @@ export class AbandonedVillageStage {
       opacity: 0.82
     });
 
-    // Harar Bajaj & Vehicle Materials
-    this.bajajBlueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3, metalness: 0.5 });
-    this.bajajGreenMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.3, metalness: 0.5 });
-    this.bajajYellowMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3, metalness: 0.4 });
-    this.taxiBlueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af, roughness: 0.25, metalness: 0.6 });
-    this.taxiWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.22, metalness: 0.4 });
-    this.ladaBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.28, metalness: 0.6 });
+    // Harar Bajaj & Vehicle Materials with High-End Automotive Metallic Clearcoat
+    this.bajajBlueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.16, metalness: 0.72 });
+    this.bajajGreenMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.16, metalness: 0.72 });
+    this.bajajYellowMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.20, metalness: 0.65 });
+    this.taxiBlueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af, roughness: 0.14, metalness: 0.78 });
+    this.taxiWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.15, metalness: 0.60 });
+    this.ladaBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.14, metalness: 0.75 });
     this.truckGreenMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.7 });
     this.burlapMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.95 });
     this.tireMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.92 });
@@ -323,6 +347,16 @@ export class AbandonedVillageStage {
     ctx.fillStyle = '#fef08a';
     ctx.fillText(english, 256, 96);
     return new THREE.CanvasTexture(canvas);
+  }
+
+  createContactShadow(width, length, opacity = 0.8) {
+    const geo = new THREE.PlaneGeometry(width, length);
+    geo.rotateX(-Math.PI / 2);
+    const mat = this.contactShadowMat.clone();
+    mat.opacity = opacity;
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 0.035;
+    return mesh;
   }
 
   buildTerrain() {

@@ -39,6 +39,7 @@ export class AbandonedVillageStage {
     this.buildOverheadTricolorBuntings();
     this.buildHararVehicleFleet();
     this.buildHararCoffeeAndTeaTerrace();
+    this.buildHararPedestrians();
     this.buildAzmariAndHarariMusicStation();
     this.buildCityStreetFurnitureAndLights();
     this.buildDistantHighwayPortals();
@@ -1721,6 +1722,197 @@ export class AbandonedVillageStage {
    * Aromatic Qetema grass carpet, low Rekebot wooden tray with porcelain Cini cups,
    * clay Jebena pot, glowing frankincense burner (ዕጣን), and carved wooden stools.
    */
+
+  /**
+   * Authentic Harari Pedestrian Street Life:
+   * Recreates the vibrant local life seen in documentary video footage:
+   * - An elder enjoying coffee in a white gabi at the Bunna Bet terrace
+   * - Harari women in traditional colorful attire (Gey Anooyo) at the Gidir Magala spice market
+   * - A local Bajaj driver waiting beside his vehicle
+   * - A sidewalk merchant selling fresh khat bundles and citrus fruit
+   */
+  buildHararPedestrians() {
+    const crowdGroup = new THREE.Group();
+
+    // Helper: Create a stylized realistic textured Ethiopian pedestrian
+    const createPerson = ({ x, y = 0.22, z, rotY = 0, skinColor = 0x5a3825, clothesColor = 0xf8fafc, accentColor = 0x16a34a, hasGabi = false, hasKofia = false, hasShash = false, isSeated = false }) => {
+      const person = new THREE.Group();
+      person.position.set(x, y, z);
+      person.rotation.y = rotY;
+
+      // Contact shadow decal on the ground
+      const pShadow = this.createContactShadow(0.8, 0.8, 0.7);
+      pShadow.position.set(0, 0.02, 0);
+      person.add(pShadow);
+
+      const skinMat = new THREE.MeshStandardMaterial({
+        color: skinColor,
+        roughness: 0.82,
+        metalness: 0.05
+      });
+
+      const clothesMat = new THREE.MeshStandardMaterial({
+        color: clothesColor,
+        roughness: 0.85,
+        metalness: 0.02
+      });
+
+      const accentMat = new THREE.MeshStandardMaterial({
+        color: accentColor,
+        roughness: 0.8,
+        metalness: 0.05
+      });
+
+      if (isSeated) {
+        // Seated lower body
+        const thighs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.42), clothesMat);
+        thighs.position.set(0, 0.42, 0.15);
+        person.add(thighs);
+
+        const calves = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.42, 0.16), clothesMat);
+        calves.position.set(0, 0.21, 0.35);
+        person.add(calves);
+
+        // Seated Torso
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.58, 0.28), clothesMat);
+        torso.position.set(0, 0.78, 0);
+        person.add(torso);
+
+        // Head & Neck
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
+        head.position.set(0, 1.20, 0);
+        person.add(head);
+
+        if (hasGabi) {
+          // Traditional draped white Gabi blanket over shoulders
+          const gabi = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.55, 10), this.hararWhiteMat);
+          gabi.position.set(0, 0.78, 0);
+          person.add(gabi);
+
+          // Tibeb colored embroidered border trim
+          const trim = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.06, 10), accentMat);
+          trim.position.set(0, 0.52, 0);
+          person.add(trim);
+        }
+
+        if (hasKofia) {
+          const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.08, 10), this.hararWhiteMat);
+          cap.position.set(0, 1.32, 0);
+          person.add(cap);
+        }
+
+        // Arm holding small cini coffee cup
+        const cupArm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.32, 6), clothesMat);
+        cupArm.rotation.x = Math.PI / 3;
+        cupArm.position.set(0.18, 0.72, 0.16);
+        person.add(cupArm);
+
+        const cini = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 0.05, 8), this.hararWhiteMat);
+        cini.position.set(0.18, 0.82, 0.30);
+        person.add(cini);
+
+      } else {
+        // Standing legs
+        [-0.1, 0.1].forEach(lx => {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.78, 8), clothesMat);
+          leg.position.set(lx, 0.39, 0);
+          person.add(leg);
+        });
+
+        // Standing Torso
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.62, 0.26), clothesMat);
+        torso.position.set(0, 1.05, 0);
+        person.add(torso);
+
+        // Head
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), skinMat);
+        head.position.set(0, 1.48, 0);
+        person.add(head);
+
+        if (hasShash) {
+          // Draped colorful Harari headscarf (Shash)
+          const shash = new THREE.Mesh(new THREE.SphereGeometry(0.165, 12, 10), accentMat);
+          shash.position.set(0, 1.50, -0.02);
+          person.add(shash);
+
+          // Hanging fabric ends down shoulders
+          const veil = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.42, 0.08), accentMat);
+          veil.position.set(0, 1.25, -0.12);
+          person.add(veil);
+        }
+
+        if (hasKofia) {
+          const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.08, 10), this.hararWhiteMat);
+          cap.position.set(0, 1.60, 0);
+          person.add(cap);
+        }
+
+        // Arms
+        [-0.24, 0.24].forEach(ax => {
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.58, 6), clothesMat);
+          arm.position.set(ax, 1.05, 0);
+          person.add(arm);
+        });
+      }
+
+      return person;
+    };
+
+    // 1. Elder at Coffee Terrace enjoying traditional Harar Bunna
+    const elder = createPerson({
+      x: -8.8, y: 0.22, z: 1.2, rotY: Math.PI * 0.15,
+      skinColor: 0x4a2e1b, clothesColor: 0xf8fafc, accentColor: 0xd97706,
+      hasGabi: true, hasKofia: true, isSeated: true
+    });
+    crowdGroup.add(elder);
+
+    // 2. Harari Women shoppers browsing spices at Gidir Magala
+    const woman1 = createPerson({
+      x: -4.8, y: 0.22, z: -2.8, rotY: Math.PI * 0.65,
+      skinColor: 0x5a3825, clothesColor: 0xd97706, accentColor: 0xb91c1c,
+      hasShash: true, isSeated: false
+    });
+    crowdGroup.add(woman1);
+
+    const woman2 = createPerson({
+      x: 4.8, y: 0.22, z: 2.2, rotY: -Math.PI * 0.45,
+      skinColor: 0x6b4423, clothesColor: 0x0284c7, accentColor: 0xfacc15,
+      hasShash: true, isSeated: false
+    });
+    crowdGroup.add(woman2);
+
+    // 3. Bajaj Driver standing near his parked Bajaj
+    const driver = createPerson({
+      x: 3.8, y: 0.02, z: -23.6, rotY: Math.PI * 0.3,
+      skinColor: 0x54351e, clothesColor: 0x1e293b, accentColor: 0xef4444,
+      hasKofia: false, isSeated: false
+    });
+    crowdGroup.add(driver);
+
+    // 4. Sidewalk Khat & Fruit Merchant seated with wicker baskets
+    const merchant = createPerson({
+      x: 8.2, y: 0.22, z: -14.0, rotY: -Math.PI * 0.4,
+      skinColor: 0x4e311a, clothesColor: 0x15803d, accentColor: 0xeab308,
+      hasGabi: false, hasKofia: true, isSeated: true
+    });
+    crowdGroup.add(merchant);
+
+    // Woven market baskets of fresh fruit beside merchant
+    [-0.55, 0.55].forEach((bx, bIdx) => {
+      const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.25, 10), this.burlapMat);
+      basket.position.set(8.2 + bx, 0.35, -13.5);
+      crowdGroup.add(basket);
+
+      // Heaped oranges / mangoes in basket
+      const fruitMat = new THREE.MeshStandardMaterial({ color: bIdx === 0 ? 0xf97316 : 0x84cc16, roughness: 0.6 });
+      const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), fruitMat);
+      fruit.position.set(8.2 + bx, 0.48, -13.5);
+      crowdGroup.add(fruit);
+    });
+
+    this.group.add(crowdGroup);
+  }
+
   buildHararCoffeeAndTeaTerrace() {
     const ceremonyGroup = new THREE.Group();
     ceremonyGroup.position.set(-8.8, 0.22, 0.0);

@@ -1066,4 +1066,233 @@ export class TextureGenerator {
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
   }
+  /**
+   * Authentic dressed beige ashlar limestone masonry blocks for the Harar Jugol Main Gate (የሐረር በር).
+   */
+  static createHararAshlarStoneTexture(size = 512) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Base warm buff limestone
+    ctx.fillStyle = '#cfbe9e';
+    ctx.fillRect(0, 0, size, size);
+
+    // Stone courses
+    const rowH = 64;
+    const colW = 128;
+    const rows = size / rowH;
+
+    for (let r = 0; r < rows; r++) {
+      const y = r * rowH;
+      const offsetX = (r % 2 === 0) ? 0 : colW / 2;
+      const cols = Math.ceil(size / colW) + 1;
+
+      for (let c = -1; c < cols; c++) {
+        const x = c * colW + offsetX;
+
+        // Subtle block-to-block color variation
+        const tint = (Math.sin(r * 12.3 + c * 33.7) * 0.08);
+        const rVal = Math.min(255, Math.max(0, Math.floor(212 + tint * 50)));
+        const gVal = Math.min(255, Math.max(0, Math.floor(196 + tint * 45)));
+        const bVal = Math.min(255, Math.max(0, Math.floor(168 + tint * 40)));
+
+        ctx.fillStyle = `rgb(${rVal},${gVal},${bVal})`;
+        ctx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
+
+        // Chiseled stone surface grain
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.035)';
+        for (let i = 0; i < 40; i++) {
+          const gx = x + Math.random() * colW;
+          const gy = y + Math.random() * rowH;
+          ctx.fillRect(gx, gy, 2, 2);
+        }
+      }
+
+      // Horizontal mortar joint
+      ctx.fillStyle = '#7a6a50';
+      ctx.fillRect(0, y, size, 2);
+      ctx.fillStyle = '#eee4d0';
+      ctx.fillRect(0, y + 2, size, 1);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    return texture;
+  }
+
+  /**
+   * The iconic framed portrait of the historic Emir of Harar atop the central crest of Harar Gate (የሐረር በር).
+   */
+  static createHararEmirPortraitTexture(w = 512, h = 640) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // Ornate gilded frame border
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(16, 16, w - 32, h - 32);
+    ctx.fillStyle = '#fef3c7';
+    ctx.fillRect(24, 24, w - 48, h - 48);
+
+    // Deep crimson background
+    ctx.fillStyle = '#991b1b';
+    ctx.fillRect(36, 36, w - 72, h - 72);
+
+    // Arabic inscription banner at top of portrait
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 22px "Times New Roman", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('أمير هرر • EMIR OF HARAR', w / 2, 80);
+
+    // Golden oval halo/medallion
+    const cx = w / 2;
+    const cy = h / 2 + 10;
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 140, 180, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // White Turban of the Emir
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 80, 75, 45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draped white tunic / robe shoulders
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.moveTo(cx - 130, cy + 180);
+    ctx.quadraticCurveTo(cx - 70, cy + 40, cx - 45, cy + 15);
+    ctx.lineTo(cx + 45, cy + 15);
+    ctx.quadraticCurveTo(cx + 70, cy + 40, cx + 130, cy + 180);
+    ctx.closePath();
+    ctx.fill();
+
+    // Face / skin
+    ctx.fillStyle = '#854d0e';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 25, 46, 56, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes, mustache and facial features
+    ctx.fillStyle = '#1e1b4b';
+    ctx.beginPath();
+    ctx.ellipse(cx - 16, cy - 35, 6, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 16, cy - 35, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mustache
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#1e1b4b';
+    ctx.beginPath();
+    ctx.moveTo(cx - 24, cy - 5);
+    ctx.quadraticCurveTo(cx, cy - 12, cx + 24, cy - 5);
+    ctx.stroke();
+
+    // Bottom Arabic / Harari dedication
+    ctx.fillStyle = '#fef08a';
+    ctx.font = '18px "Times New Roman", serif';
+    ctx.fillText('أَمِيرُ حَرَرِ المَنِيعَة • 1886', w / 2, h - 55);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
+
+  /**
+   * The Ethiopic inscription plaque "የሐረር በር • 1886" beneath the Emir portrait.
+   */
+  static createHararGateSignTexture(w = 512, h = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // Lime plaster whitewashed background
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, w, h);
+
+    // Outer decorative border
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(10, 10, w - 20, h - 20);
+
+    // Ethiopic title: የሐረር በር
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 54px "Noto Sans Ethiopic", "Abyssinica SIL", "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('የሐረር በር', w / 2, 95);
+
+    // Year inscription: 1886
+    ctx.fillStyle = '#334155';
+    ctx.font = 'bold 44px "Times New Roman", "Segoe UI", serif';
+    ctx.fillText('1886', w / 2, 160);
+
+    // Subtitle: HARAR GATE • HISTORIC WALLED CITY
+    ctx.fillStyle = '#0284c7';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.fillText('HARAR JUGOL MAIN GATEWAY', w / 2, 210);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
+
+  /**
+   * The official UNESCO World Heritage blue sign plaque mounted on the left gate tower.
+   */
+  static createUnescoPlaqueTexture(w = 256, h = 256) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // UNESCO deep blue field
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(8, 8, w - 16, h - 16);
+
+    // UNESCO Temple emblem
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(40, 48, w - 80, 8); // Pediment base
+    ctx.beginPath();
+    ctx.moveTo(35, 48);
+    ctx.lineTo(w / 2, 22);
+    ctx.lineTo(w - 35, 48);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pillars
+    for (let p = 0; p < 5; p++) {
+      const px = 52 + p * 34;
+      ctx.fillRect(px, 58, 12, 38);
+    }
+    ctx.fillRect(40, 96, w - 80, 8); // Base
+
+    // Text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('UNESCO', w / 2, 138);
+
+    ctx.font = 'bold 15px "Segoe UI", sans-serif';
+    ctx.fillText('WORLD HERITAGE', w / 2, 168);
+
+    ctx.font = '13px "Segoe UI", sans-serif';
+    ctx.fillText('HARAR JUGOL', w / 2, 196);
+    ctx.fillText('EST. 16TH CENTURY', w / 2, 222);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  }
 }

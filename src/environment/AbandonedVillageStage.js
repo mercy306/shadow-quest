@@ -62,6 +62,62 @@ export class AbandonedVillageStage {
 
     // Soft Contact Shadow Decal Material for grounding objects firmly to pavement
     this.contactShadowTex = TextureGenerator.createContactShadowTexture(256);
+        // Authentic Harar Gate (የሐረር በር) Textures & Materials
+    this.ashlarStoneTex = TextureGenerator.createHararAshlarStoneTexture(512);
+    this.ashlarStoneMat = new THREE.MeshStandardMaterial({
+      map: this.ashlarStoneTex,
+      roughness: 0.85,
+      metalness: 0.04
+    });
+
+    this.emirPortraitTex = TextureGenerator.createHararEmirPortraitTexture(512, 640);
+    this.emirPortraitMat = new THREE.MeshStandardMaterial({
+      map: this.emirPortraitTex,
+      roughness: 0.45,
+      metalness: 0.05
+    });
+
+    this.hararGateSignTex = TextureGenerator.createHararGateSignTexture(512, 256);
+    this.hararGateSignMat = new THREE.MeshStandardMaterial({
+      map: this.hararGateSignTex,
+      roughness: 0.75,
+      metalness: 0.02
+    });
+
+    this.unescoPlaqueTex = TextureGenerator.createUnescoPlaqueTexture(256, 256);
+    this.unescoPlaqueMat = new THREE.MeshStandardMaterial({
+      map: this.unescoPlaqueTex,
+      roughness: 0.5,
+      metalness: 0.05
+    });
+
+    this.ledContourMat = new THREE.MeshBasicMaterial({
+      color: 0xfff7e6
+    });
+
+    this.planterPotMat = new THREE.MeshStandardMaterial({
+      color: 0x94a3b8,
+      metalness: 0.85,
+      roughness: 0.25
+    });
+
+    this.planterBaseMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.6
+    });
+
+    this.shieldMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      metalness: 0.4,
+      roughness: 0.5
+    });
+
+    this.shieldGoldMat = new THREE.MeshStandardMaterial({
+      color: 0xfacc15,
+      metalness: 0.7,
+      roughness: 0.3
+    });
+
     this.contactShadowMat = new THREE.MeshBasicMaterial({
       map: this.contactShadowTex,
       transparent: true,
@@ -588,113 +644,290 @@ export class AbandonedVillageStage {
    */
   buildShoaGateAsmadinBari() {
     const gateGroup = new THREE.Group();
-    gateGroup.position.set(0, 0, -42.0); // Spans across the avenue
+    gateGroup.position.set(0, 0, -42.0); // Spans across the avenue at city entrance
 
-    // Twin defensive semicircular bastions flanking the avenue
-    [-5.4, 5.4].forEach(tx => {
-      const towerGeo = new THREE.CylinderGeometry(2.4, 2.6, 9.2, 16);
-      const tower = new THREE.Mesh(towerGeo, this.hararWhiteMat);
-      tower.position.set(tx, 4.6, 0);
-      tower.castShadow = true;
-      tower.receiveShadow = true;
-      gateGroup.add(tower);
+    // 1. TWO MASSIVE ASHLAR LIMESTONE PYLONS WITH ROUND-ARCH PEDESTRIAN PORTALS
+    // Left Pylon centered at x: -7.6, Right Pylon centered at x: +7.6
+    [-7.6, 7.6].forEach((px, pIdx) => {
+      const pylonGroup = new THREE.Group();
+      pylonGroup.position.set(px, 0, 0);
 
-      // Upper stone cornice & flat defensive parapet
-      const corniceGeo = new THREE.CylinderGeometry(2.7, 2.5, 0.4, 24);
-      const cornice = new THREE.Mesh(corniceGeo, this.hararTerracottaMat);
-      cornice.position.set(tx, 9.2 + 0.2, 0);
-      gateGroup.add(cornice);
+      // Outer jamb
+      const outerJamb = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.8, 2.8), this.ashlarStoneMat);
+      outerJamb.position.set(pIdx === 0 ? -1.8 : 1.8, 2.9, 0);
+      outerJamb.castShadow = true;
+      outerJamb.receiveShadow = true;
+      pylonGroup.add(outerJamb);
 
-      // Upper parapet walkway
-      const parapetWalkGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 24);
-      const parapetWalk = new THREE.Mesh(parapetWalkGeo, this.jugolStoneMat);
-      parapetWalk.position.set(tx, 9.4 + 0.1, 0);
-      gateGroup.add(parapetWalk);
+      // Inner jamb (flanking central road)
+      const innerJamb = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.8, 2.8), this.ashlarStoneMat);
+      innerJamb.position.set(pIdx === 0 ? 1.8 : -1.8, 2.9, 0);
+      innerJamb.castShadow = true;
+      innerJamb.receiveShadow = true;
+      pylonGroup.add(innerJamb);
 
-      // Authentic Harari stone battlements (crenelations) around tower rim
-      const numMerlons = 8;
-      for (let m = 0; m < numMerlons; m++) {
-        const angle = (m / numMerlons) * Math.PI * 2;
-        const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.75, 0.4), this.hararWhiteMat);
-        merlon.position.set(
-          tx + Math.sin(angle) * 2.3,
-          9.5 + 0.38,
-          Math.cos(angle) * 2.3
-        );
-        merlon.rotation.y = angle;
-        merlon.castShadow = true;
-        merlon.receiveShadow = true;
-        gateGroup.add(merlon);
-      }
+      // Round arch top over pedestrian tunnel
+      const archSpandrel = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 2.8), this.ashlarStoneMat);
+      archSpandrel.position.set(0, 4.9, 0);
+      archSpandrel.castShadow = true;
+      pylonGroup.add(archSpandrel);
 
-      // Traditional exposed timber beam ends ("monkey heads") beneath cornice
-      for (let b = 0; b < 6; b++) {
-        const bAngle = (b / 6) * Math.PI * 2;
-        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.6, 8), this.timberMat);
-        beam.rotation.x = Math.PI / 2;
-        beam.rotation.z = bAngle;
-        beam.position.set(
-          tx + Math.sin(bAngle) * 2.55,
-          9.0,
-          Math.cos(bAngle) * 2.55
-        );
-        gateGroup.add(beam);
-      }
+      // Semicircular arch portal opening soffit
+      const archRimGeo = new THREE.TorusGeometry(1.1, 0.16, 8, 16, Math.PI);
+      const archRim = new THREE.Mesh(archRimGeo, this.hararWhiteMat);
+      archRim.position.set(0, 4.0, 1.41);
+      pylonGroup.add(archRim);
 
-      // Cascading Bougainvillea flowers draping down the tower
-      const vine = this.createBougainvilleaCluster(1.4);
-      vine.position.set(tx > 0 ? tx - 1.8 : tx + 1.8, 7.5, 1.5);
-      gateGroup.add(vine);
+      const archRimBack = archRim.clone();
+      archRimBack.position.z = -1.41;
+      pylonGroup.add(archRimBack);
 
-      // Warm Guard Lanterns
-      const lanternGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.45, 8);
-      const lantern = new THREE.Mesh(lanternGeo, this.headlightBulbMat);
-      lantern.position.set(tx > 0 ? tx - 2.2 : tx + 2.2, 3.8, 2.2);
-      gateGroup.add(lantern);
+      // Warm interior illuminated downlight inside pedestrian tunnel
+      const tunnelLight = new THREE.PointLight(0xfef08a, 0.95, 8);
+      tunnelLight.position.set(0, 3.8, 0);
+      pylonGroup.add(tunnelLight);
 
-      const lanternLight = new THREE.PointLight(0xf59e0b, 0.9, 8);
-      lanternLight.position.copy(lantern.position);
-      gateGroup.add(lanternLight);
+      // Wall lantern sconces on outer stone pilasters
+      const sconceLamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.42, 0.22), this.headlightBulbMat);
+      sconceLamp.position.set(pIdx === 0 ? -2.65 : 2.65, 3.6, 1.45);
+      pylonGroup.add(sconceLamp);
+
+      const sconceLight = new THREE.PointLight(0xf59e0b, 1.1, 8);
+      sconceLight.position.copy(sconceLamp.position);
+      pylonGroup.add(sconceLight);
+
+      gateGroup.add(pylonGroup);
 
       if (this.physicsWorld) {
-        const col = new CircleCollider(tx, -42.0, 2.7);
+        const col = new BoxCollider(px, -42.0, 2.7, 1.5);
         this.physicsWorld.addCollider(col);
         this.colliders.push(col);
       }
     });
 
-    // Grand Archway Overhead Bridge
-    const bridgeGeo = new THREE.BoxGeometry(9.6, 3.4, 3.2);
-    const bridge = new THREE.Mesh(bridgeGeo, this.hararWhiteMat);
-    bridge.position.set(0, 6.8, 0);
-    bridge.castShadow = true;
-    gateGroup.add(bridge);
+    // 2. CENTRAL VEHICULAR PORTAL & TRANSVERSE ARCHITRAVE BEAM
+    // Spans 8.8m wide between pylons (x: -4.4 to +4.4), clear height 5.8m
+    const lintelBeam = new THREE.Mesh(new THREE.BoxGeometry(23.2, 1.25, 2.9), this.hararWhiteMat);
+    lintelBeam.position.set(0, 6.4, 0);
+    lintelBeam.castShadow = true;
+    lintelBeam.receiveShadow = true;
+    gateGroup.add(lintelBeam);
 
-    // Open Historic Carved Wooden Fortress Gates (የተከፈቱ የሸዋ በር የእንጨት በሮች)
-    // Left leaf swung inward
-    const leftGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
-    leftGate.position.set(-2.8, 2.4, 1.4);
-    leftGate.rotation.y = Math.PI * 0.35;
-    gateGroup.add(leftGate);
+    // Glowing LED neon strip along lower edge of lintel beam (as seen in photo)
+    const lintelLed = new THREE.Mesh(new THREE.BoxGeometry(23.0, 0.08, 0.12), this.ledContourMat);
+    lintelLed.position.set(0, 5.75, 1.48);
+    gateGroup.add(lintelLed);
 
-    // Right leaf swung inward
-    const rightGate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.8, 0.18), this.hararDoorMat);
-    rightGate.position.set(2.8, 2.4, 1.4);
-    rightGate.rotation.y = -Math.PI * 0.35;
-    gateGroup.add(rightGate);
+    // 3. UPPER WHITEWASHED PARAPET WITH STEIL CRENELS
+    // Left & Right Upper Parapets (x: -11.0 to -4.0 and +4.0 to +11.0)
+    [-7.5, 7.5].forEach((sx, sIdx) => {
+      const upperWall = new THREE.Mesh(new THREE.BoxGeometry(7.0, 2.2, 2.7), this.hararWhiteMat);
+      upperWall.position.set(sx, 8.1, 0);
+      upperWall.castShadow = true;
+      gateGroup.add(upperWall);
 
-    // Decorative Terracotta Horseshoe Arch Moldings
-    const archBorder = new THREE.Mesh(new THREE.BoxGeometry(9.8, 0.45, 3.4), this.hararTerracottaMat);
-    archBorder.position.set(0, 8.6, 0);
-    gateGroup.add(archBorder);
+      // Stepped Crenelations / Merlons along roofline (5 per side)
+      for (let m = 0; m < 5; m++) {
+        const mx = sx - 2.8 + m * 1.4;
+        const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.85, 0.6), this.hararWhiteMat);
+        merlon.position.set(mx, 9.6, 1.0);
+        merlon.castShadow = true;
+        gateGroup.add(merlon);
 
-    // Grand Shoa Gate Fascia Banner
-    const gateSignMat = new THREE.MeshBasicMaterial({
-      map: this.createSignTexture('አስማዲን በሪ • ሸዋ በር', 'ASMADIN BARI • SHOA GATE OF HARAR JUGOL', '#15803d', '#ffffff')
+        // LED contour light under each merlon
+        const mNeon = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.06, 0.12), this.ledContourMat);
+        mNeon.position.set(mx, 9.15, 1.35);
+        gateGroup.add(mNeon);
+      }
+
+      // Conical dark stone pegs (monkey heads) projecting beneath outer crenels (just like in the photo!)
+      for (let k = 0; k < 5; k++) {
+        const kx = sx - 2.6 + k * 1.3;
+        const peg = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.55, 6), this.tireMat);
+        peg.rotation.x = Math.PI / 2;
+        peg.position.set(kx, 6.8, 1.55);
+        gateGroup.add(peg);
+      }
     });
-    const gateSign = new THREE.Mesh(new THREE.BoxGeometry(7.2, 1.5, 0.15), gateSignMat);
-    gateSign.position.set(0, 6.8, 1.68);
-    gateGroup.add(gateSign);
+
+    // 4. UNESCO WORLD HERITAGE PLAQUE (Left side upper wall)
+    const unescoPlaque = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 0.08), this.unescoPlaqueMat);
+    unescoPlaque.position.set(-8.4, 8.0, 1.42);
+    gateGroup.add(unescoPlaque);
+
+    // Historical information plaque (Right side upper wall)
+    const infoPlaque = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 0.08), this.unescoPlaqueMat);
+    infoPlaque.position.set(8.4, 8.0, 1.42);
+    gateGroup.add(infoPlaque);
+
+    // 5. THE ICONIC RAISED CENTRAL CROWN / CREST (The Signature Feature from User Photo)
+    // Spans x: -4.2 to +4.2, rising up to y: 11.2m
+    const crestBase = new THREE.Mesh(new THREE.BoxGeometry(8.4, 4.2, 2.7), this.hararWhiteMat);
+    crestBase.position.set(0, 9.1, 0);
+    crestBase.castShadow = true;
+    gateGroup.add(crestBase);
+
+    // 5 Crenelations on top of the central crest (rising to y: 11.8m)
+    for (let c = 0; c < 5; c++) {
+      const cx = -3.2 + c * 1.6;
+      const cMerlon = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.95, 0.65), this.hararWhiteMat);
+      cMerlon.position.set(cx, 11.65, 1.0);
+      cMerlon.castShadow = true;
+      gateGroup.add(cMerlon);
+
+      // Glowing LED strip under crest merlons
+      const cNeon = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.06, 0.12), this.ledContourMat);
+      cNeon.position.set(cx, 11.15, 1.36);
+      gateGroup.add(cNeon);
+    }
+
+    // Glowing LED contour strip along the horizontal base of the crest
+    const crestBaseLed = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.08, 0.12), this.ledContourMat);
+    crestBaseLed.position.set(0, 10.95, 1.42);
+    gateGroup.add(crestBaseLed);
+
+    // 6. THE FRAMED EMIR PORTRAIT IN RED BACKGROUND & GOLD BORDER (Centered at y: 9.6m)
+    const emirPortrait = new THREE.Mesh(new THREE.BoxGeometry(2.4, 3.0, 0.16), this.emirPortraitMat);
+    emirPortrait.position.set(0, 9.6, 1.44);
+    gateGroup.add(emirPortrait);
+
+    // White molded frame ledge around portrait
+    const pLedge = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.14, 0.22), this.hararWhiteMat);
+    pLedge.position.set(0, 8.0, 1.48);
+    gateGroup.add(pLedge);
+
+    // 7. ETHIOPIC INSCRIPTION: "የሐረር በር • 1886" (Directly below Emir portrait)
+    const gateInscription = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.05, 0.12), this.hararGateSignMat);
+    gateInscription.position.set(0, 7.45, 1.46);
+    gateGroup.add(gateInscription);
+
+    // Dedicated spot illumination on the Emir portrait & inscription
+    const portraitSpot = new THREE.PointLight(0xfff7d6, 1.6, 12);
+    portraitSpot.position.set(0, 8.5, 3.2);
+    gateGroup.add(portraitSpot);
+
+    // 8. METALLIC URN PLANTER POTS WITH GREEN PRUNED TREES (Flanking the gate entrance)
+    [-11.5, 11.5].forEach(px => {
+      const potGroup = new THREE.Group();
+      potGroup.position.set(px, 0, 2.4);
+
+      // Black circular plinth base
+      const pBase = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.35, 16), this.planterBaseMat);
+      pBase.position.y = 0.18;
+      potGroup.add(pBase);
+
+      // Silver metallic urn pot
+      const pBody = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.62, 1.15, 16), this.planterPotMat);
+      pBody.position.y = 0.85;
+      potGroup.add(pBody);
+
+      // Soil layer
+      const soil = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.05, 16), this.planterBaseMat);
+      soil.position.y = 1.42;
+      potGroup.add(soil);
+
+      // Pruned lush green ficus tree
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.2, 8), this.timberMat);
+      trunk.position.y = 2.0;
+      potGroup.add(trunk);
+
+      const foliage = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 10), this.flagGreenMat);
+      foliage.scale.set(1.0, 1.4, 1.0);
+      foliage.position.y = 3.1;
+      foliage.castShadow = true;
+      potGroup.add(foliage);
+
+      gateGroup.add(potGroup);
+    });
+
+    // 9. TRADITIONAL HARARI HONOR GUARDS (Standing in formation in front of gate)
+    // 4 guards standing in front of entrance with traditional embossed shields & spears
+    const guardPositions = [
+      { x: -3.8, z: 3.2 },
+      { x: -1.3, z: 3.2 },
+      { x: 1.3, z: 3.2 },
+      { x: 3.8, z: 3.2 },
+      { x: -7.6, z: 3.2 }, // Sentry outside left pedestrian arch
+      { x: 7.6, z: 3.2 }   // Sentry outside right pedestrian arch
+    ];
+
+    guardPositions.forEach(gp => {
+      const guard = new THREE.Group();
+      guard.position.set(gp.x, 0, gp.z);
+
+      // Contact shadow
+      const gShadow = this.createContactShadow(0.9, 0.9, 0.65);
+      gShadow.position.y = 0.02;
+      guard.add(gShadow);
+
+      // White tunic legs
+      [-0.14, 0.14].forEach(lx => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.78, 8), this.hararWhiteMat);
+        leg.position.set(lx, 0.42, 0);
+        guard.add(leg);
+      });
+
+      // White tunic torso
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.28), this.hararWhiteMat);
+      torso.position.set(0, 1.1, 0);
+      guard.add(torso);
+
+      // Black ceremonial vest / chest sash
+      const vest = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.45, 0.3), this.shieldMat);
+      vest.position.set(0, 1.18, 0);
+      guard.add(vest);
+
+      // Head with white headband / kofia
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), this.clayMat);
+      head.position.set(0, 1.54, 0);
+      guard.add(head);
+
+      const headband = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.06, 10), this.hararWhiteMat);
+      headband.position.set(0, 1.58, 0);
+      guard.add(headband);
+
+      // Round Traditional Ethiopian Embossed Shield (Gasha) held in front
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.06, 16), this.shieldMat);
+      shield.rotation.x = Math.PI / 2;
+      shield.position.set(0, 1.05, 0.22);
+      guard.add(shield);
+
+      // Gold sunburst boss in center of shield
+      const boss = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), this.shieldGoldMat);
+      boss.position.set(0, 1.05, 0.26);
+      guard.add(boss);
+
+      // Long Spear (Tor) held upright in right hand
+      const spearShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.4, 6), this.timberMat);
+      spearShaft.position.set(0.32, 1.2, 0.15);
+      guard.add(spearShaft);
+
+      const spearHead = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.32, 6), this.planterPotMat);
+      spearHead.position.set(0.32, 2.45, 0.15);
+      guard.add(spearHead);
+
+      gateGroup.add(guard);
+    });
+
+    // 10. ZEBRA CROSSING STRIPES & SAFETY CURBS (On pavement leading through gate)
+    for (let z = 0; z < 8; z++) {
+      const stripe = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 3.8), this.hararWhiteMat);
+      stripe.rotateX(-Math.PI / 2);
+      stripe.position.set(-3.5 + z * 1.0, 0.03, 4.6);
+      stripe.receiveShadow = true;
+      gateGroup.add(stripe);
+    }
+
+    // Alternating yellow & black safety curbs at the approach
+    [-5.6, 5.6].forEach(cx => {
+      for (let s = 0; s < 6; s++) {
+        const curbColor = (s % 2 === 0) ? this.shieldGoldMat : this.planterBaseMat;
+        const cBlock = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 1.1), curbColor);
+        cBlock.position.set(cx, 0.11, 2.0 + s * 1.15);
+        cBlock.receiveShadow = true;
+        gateGroup.add(cBlock);
+      }
+    });
 
     this.group.add(gateGroup);
   }

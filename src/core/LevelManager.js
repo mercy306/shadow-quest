@@ -5,7 +5,7 @@ export const STAGE_CONFIGS = [
     legacyIds: ['gondar-city', 'abandoned-village'],
     name: 'Harar Jugol (Walled City)',
     badgeText: 'ደረጃ ፩: ሐረር ጁጎል • STAGE 1: HARAR JUGOL (HISTORIC WALLED CITY)',
-    playerSpawn: { x: 0, z: -20, rotY: 0 },
+    playerSpawn: { x: 0, z: -58.0, rotY: Math.PI },
     passages: [
       {
         id: 'city-to-ruins',
@@ -13,7 +13,7 @@ export const STAGE_CONFIGS = [
         targetLevelIndex: 1,
         targetSpawn: { x: 0, z: 28, rotY: 0 },
         x: 0,
-        z: -38,
+        z: 95,
         radius: 4.5,
         prompt: '[E] Journey to Axumite Sanctuary'
       },
